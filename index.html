@@ -33,7 +33,14 @@
   <main id="app">
     <!-- ================= DASHBOARD ================= -->
     <section id="view-dashboard" class="view active" aria-label="Dashboard">
+      <button id="drive-cta" class="drive-cta">
+        <span class="dc-left"><span class="dc-dot"></span><span class="dc-text"><b>Start drive</b><small>Auto-track your miles with GPS</small></span></span>
+        <span class="dc-go">▶</span>
+      </button>
+
       <div class="kpi-grid" id="kpi-grid"></div>
+
+      <div class="card tax-card" id="tax-card"></div>
 
       <div class="card">
         <div class="card-head">
@@ -67,6 +74,7 @@
       <div class="segmented" id="log-segmented">
         <button class="seg active" data-log="shift">Shifts</button>
         <button class="seg" data-log="expense">Expenses</button>
+        <button class="seg" data-log="trip">Trips</button>
       </div>
 
       <!-- Shift form -->
@@ -205,6 +213,10 @@
           <input type="number" id="set-mileage" step="0.01" min="0" inputmode="decimal" />
         </div>
         <div class="field">
+          <label>Tax set-aside (% of profit) <span class="hint">SE + income tax rule-of-thumb</span></label>
+          <input type="number" id="set-taxrate" step="1" min="0" max="60" inputmode="numeric" />
+        </div>
+        <div class="field">
           <label>Week starts on</label>
           <select id="set-weekstart"><option value="1">Monday</option><option value="0">Sunday</option></select>
         </div>
@@ -239,6 +251,21 @@
     <button class="tab" data-view="import"><span class="ti">📥</span><span>Import</span></button>
     <button class="tab" data-view="settings"><span class="ti">⚙️</span><span>Settings</span></button>
   </nav>
+
+  <!-- ================= DRIVE OVERLAY ================= -->
+  <div id="drive-overlay" class="drive-overlay hidden" role="dialog" aria-label="Drive tracker">
+    <div class="drive-inner">
+      <div class="drive-status" id="drive-state">Getting GPS…</div>
+      <div class="drive-odometer"><span id="drive-miles">0.00</span><small>mi</small></div>
+      <div class="drive-time" id="drive-time">00:00</div>
+      <div class="drive-accuracy" id="drive-accuracy"></div>
+      <div class="drive-actions">
+        <button class="btn big danger" id="drive-stop">■ Stop &amp; save</button>
+        <button class="btn big ghost" id="drive-cancel">Cancel</button>
+      </div>
+      <p class="drive-note">Keep this screen open while you drive — phone GPS only tracks in the foreground. Miles are logged with a timestamp for your tax records.</p>
+    </div>
+  </div>
 
   <div id="toast" class="toast hidden"></div>
 

@@ -19,11 +19,15 @@ const DEFAULT_DB = {
   settings: {
     // IRS standard mileage rate (business). 2025 = $0.70/mi. Editable.
     mileageRate: 0.70,
+    // Set-aside % of net profit for self-employment + income tax. 25% is a
+    // common rule-of-thumb starting point for gig drivers.
+    taxRate: 0.25,
     weekStart: 1, // 0=Sun, 1=Mon
     currency: 'USD',
   },
   shifts: [],   // { id, platform, date, hours, gross, tips, jobs, miles, notes, createdAt }
   expenses: [], // { id, date, category, amount, note, platform, linkedShiftId, createdAt }
+  trips: [],    // { id, date, miles, startedAt, endedAt, durationMs, fixes, linkedShiftId }
 };
 
 let db = load();
@@ -41,6 +45,7 @@ function load() {
       settings: { ...DEFAULT_DB.settings, ...(parsed.settings || {}) },
       shifts: parsed.shifts || [],
       expenses: parsed.expenses || [],
+      trips: parsed.trips || [],
     };
   } catch (e) {
     console.error('Failed to load DB, starting fresh', e);
@@ -163,6 +168,34 @@ export function deleteExpense(id) {
   persist();
 }
 
+// ---- trips (GPS mileage log) ----
+export function getTrips() {
+  return [...db.trips].sort((a, b) => (b.startedAt || 0) - (a.startedAt || 0));
+}
+
+export function addTrip(data) {
+  const startedAt = data.startedAt || Date.now();
+  const trip = {
+    id: uid(),
+    date: data.date || isoDate(new Date(startedAt)),
+    miles: num(data.miles),
+    startedAt,
+    endedAt: data.endedAt || startedAt,
+    durationMs: data.durationMs || 0,
+    fixes: data.fixes || 0,
+    linkedShiftId: data.linkedShiftId || null,
+    createdAt: new Date().toISOString(),
+  };
+  db.trips.push(trip);
+  persist();
+  return trip;
+}
+
+export function deleteTrip(id) {
+  db.trips = db.trips.filter((t) => t.id !== id);
+  persist();
+}
+
 // ---- bulk import ----
 export function importShifts(rows) {
   let added = 0;
@@ -199,6 +232,7 @@ export function importJSON(text, { merge = false } = {}) {
   if (merge) {
     db.shifts.push(...incoming.shifts.map(normalizeShift));
     db.expenses.push(...(incoming.expenses || []));
+    db.trips.push(...(incoming.trips || []));
   } else {
     db = {
       ...structuredClone(DEFAULT_DB),
@@ -206,6 +240,7 @@ export function importJSON(text, { merge = false } = {}) {
       settings: { ...DEFAULT_DB.settings, ...(incoming.settings || {}) },
       shifts: (incoming.shifts || []).map(normalizeShift),
       expenses: incoming.expenses || [],
+      trips: incoming.trips || [],
     };
   }
   persist();
@@ -240,10 +275,15 @@ export function summarize(shifts, expenses, settings = db.settings) {
   const expenseTotal = expenses.reduce((a, e) => a + num(e.amount), 0);
   const mileageDeduction = miles * num(settings.mileageRate);
   const net = income - expenseTotal;
+  // Taxable profit uses the larger of actual expenses or the standard mileage
+  // deduction (you can't claim both). Never below zero.
+  const taxableEstimate = Math.max(0, income - Math.max(expenseTotal, mileageDeduction));
+  const taxSetAside = taxableEstimate * num(settings.taxRate);
   return {
     income, gross, tips, hours, miles, jobs,
     expenseTotal, net, mileageDeduction,
-    taxableEstimate: income - Math.max(expenseTotal, mileageDeduction),
+    taxableEstimate, taxSetAside,
+    takeHomeAfterTax: net - taxSetAside,
     perHour: hours ? income / hours : 0,
     perMile: miles ? income / miles : 0,
     perJob: jobs ? income / jobs : 0,

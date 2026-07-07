@@ -17,7 +17,8 @@ const server = http.createServer((req, res) => {
 await new Promise((r) => server.listen(0, r));
 const base = `http://localhost:${server.address().port}`;
 const browser = await chromium.launch({ executablePath: EXE });
-const page = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 }).then((c) => c.newPage());
+const shotCtx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, permissions: ['geolocation'], geolocation: { latitude: 40, longitude: -74, accuracy: 8 } });
+const page = await shotCtx.newPage();
 await page.goto(base, { waitUntil: 'networkidle' });
 
 // seed a few weeks of realistic data
@@ -54,6 +55,14 @@ await page.screenshot({ path: path.join(root, 'scripts/trends.png') });
 await page.locator('.tab[data-view=import]').click();
 await page.waitForTimeout(200);
 await page.screenshot({ path: path.join(root, 'scripts/import.png') });
+// drive overlay (simulate a short drive)
+await page.locator('.tab[data-view=dashboard]').click();
+await page.locator('#drive-cta').click();
+await page.waitForTimeout(300);
+for (let i = 1; i <= 8; i++) { await shotCtx.setGeolocation({ latitude: 40 + (i * 0.9) / 69, longitude: -74, accuracy: 7 }); await page.waitForTimeout(120); }
+await page.waitForTimeout(200);
+await page.screenshot({ path: path.join(root, 'scripts/drive.png') });
+await page.locator('#drive-cancel').click();
 // clean the seed so shipped app starts empty
 await page.evaluate(async () => { (await import('./js/store.js')).clearAll(); });
 await browser.close(); server.close();

@@ -5,10 +5,22 @@ and trends across your **Amazon Flex** and **DoorDash** gigs. Install it to your
 iPhone or Android home screen and it works like a native app — offline, with no
 accounts and no server. All your data stays in your browser.
 
+**Free forever. No accounts. No subscriptions. No paywalled "connection
+credits."** It does the thing paid gig apps charge extra for — **automatic GPS
+mileage tracking** — without asking for a cent.
+
 ![Amazon Flex + DoorDash gig tracker dashboard](icons/icon-512.png)
 
 ## Features
 
+- **🚗 Automatic GPS mileage tracking** — tap **Start drive** and it runs a live
+  odometer from your phone's GPS, then logs a **timestamped trip** (the kind of
+  *contemporaneous* record the IRS actually wants) and rolls the miles straight
+  into a shift. No more guessing your miles.
+- **💰 Tax set-aside estimator** — shows how much to put aside for taxes on your
+  net profit (self-employment + income tax rule-of-thumb, editable), plus your
+  estimated take-home, using the larger of your real expenses or the standard
+  mileage deduction.
 - **Dashboard KPIs** — net income, effective **$/hour**, **$/mile**, and
   **$/delivery**, for the week, month, year, or all time.
 - **Charts** — earnings over time (stacked by platform), platform split,
@@ -18,18 +30,25 @@ accounts and no server. All your data stays in your browser.
   miles, fuel) with live $/hr, $/mi and tax-deduction math as you type.
 - **Expense tracking** — fuel, tolls, maintenance, insurance, phone, supplies,
   and more, with category breakdowns.
-- **Tax help** — IRS **standard-mileage-deduction** estimate (rate editable in
-  Settings; defaults to $0.70/mi).
-- **Assisted automation** *(see below)* — 📸 screenshot import (OCR), 📄 CSV
+- **Assisted import** *(see below)* — 📸 screenshot import (OCR), 📄 CSV
   import, and ✉️ email-assisted import.
 - **Backup & restore** — export/import a JSON backup, export shifts to CSV.
 - **Offline + installable** — full PWA with a service worker.
 
-## How the "automation" works (and its limits)
+> **On GPS tracking:** phones only allow a web app to read location while it's in
+> the **foreground**, so this is a "drive mode" you start when you head out and
+> keep on screen — not silent background tracking. The trade-off for that is zero
+> cost and zero account. The distance math filters GPS jitter (poor-accuracy
+> fixes, stationary noise, and teleport glitches).
 
-Neither Amazon Flex nor DoorDash offers a public API for drivers to pull their
-earnings, and a private on-device app can't log in to your gig accounts. So there
-is no true background auto-sync. Instead there are three assisted paths:
+## How the automation works (and its limits)
+
+**Mileage is fully automatic** — start a drive and GPS handles it. **Earnings**
+are the hard part: neither Amazon Flex nor DoorDash offers a public API for
+drivers to pull their pay, and a private on-device app can't log in to your gig
+accounts, so there's no true background earnings sync (this is also what apps
+like GigReal charge extra "connection credits" for). Instead there are three
+assisted paths to get earnings in fast:
 
 1. **📸 Screenshot import (OCR)** — On the **Import** tab, snap or upload a photo
    of your Flex or Dasher earnings screen. The app runs on-device OCR
@@ -88,10 +107,11 @@ account, no server. That also means:
 ```
 index.html              app shell (tabbed: Home / Log / Trends / Import / Settings)
 css/app.css             styles (dark + light, mobile-first)
-js/store.js             on-device data model + metrics ($/hr, $/mi, net, deduction)
+js/store.js             on-device data model + metrics ($/hr, $/mi, net, tax)
 js/charts.js            dependency-free SVG bar / line / donut charts
 js/parse.js             CSV parsing + OCR/free-text field extraction
 js/ocr.js               lazy Tesseract.js loader for screenshot OCR
+js/geo.js               GPS auto-mileage tracker (Haversine + jitter filtering)
 js/app.js               UI wiring
 manifest.webmanifest    PWA manifest
 sw.js                   offline service worker
@@ -102,7 +122,7 @@ scripts/                icon generator + headless smoke test + screenshot tool
 ## Development
 
 ```bash
-npm test         # headless browser smoke test (drives the real UI + unit checks)
+npm test         # headless smoke test + GPS drive end-to-end (simulated movement)
 npm run icons    # regenerate PWA icons (pure Python, no deps)
 npm run shots    # generate seeded screenshots
 ```

@@ -106,6 +106,54 @@ try {
   await page.waitForTimeout(150);
   ok((await page.locator('#view-trends svg').count()) >= 2, 'trend charts rendered');
 
+  console.log('\n9) GPS mileage math (geo.js)');
+  const geo = await page.evaluate(async () => {
+    const g = await import('./js/geo.js');
+    // ~1 mile north: 1 deg lat ≈ 69 mi, so 1/69 deg ≈ 1 mi
+    const oneMi = g.haversineMiles({ lat: 40, lon: -74 }, { lat: 40 + 1 / 69.0, lon: -74 });
+    // straight-line drive of 5 fixes, ~0.25 mi apart, plus a jitter point + a GPS jump
+    const t0 = 1_000_000;
+    const pts = [];
+    for (let i = 0; i < 6; i++) pts.push({ lat: 40 + (i * 0.25) / 69, lon: -74, accuracy: 8, t: t0 + i * 20000 });
+    pts.splice(3, 0, { lat: 40 + (2.001 * 0.25) / 69, lon: -74, accuracy: 8, t: t0 + 45000 }); // tiny jitter
+    const acc = g.accumulate(pts);
+    // tracker via ingest
+    const tr = new g.DriveTracker();
+    let last = 0; tr.ingest(40, -74, 8, t0); tr.ingest(40 + 1 / 69, -74, 8, t0 + 60000); last = tr.miles;
+    return { oneMi, accMiles: acc.miles, trackerMiles: last };
+  });
+  ok(Math.abs(geo.oneMi - 1) < 0.02, `haversine 1° lat step ≈ 1 mi (got ${geo.oneMi.toFixed(3)})`);
+  ok(Math.abs(geo.accMiles - 1.25) < 0.05, `accumulate 5×0.25mi ≈ 1.25 mi, jitter ignored (got ${geo.accMiles})`);
+  ok(Math.abs(geo.trackerMiles - 1) < 0.02, `DriveTracker.ingest odometer ≈ 1 mi (got ${geo.trackerMiles})`);
+
+  console.log('\n10) Tax set-aside math (store.summarize)');
+  const tax = await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    // income 1000, expenses 100, miles 300 @ 0.70 = 210 deduction (> expenses)
+    const shifts = [{ platform: 'flex', date: '2026-07-01', gross: 800, tips: 200, hours: 40, miles: 300, jobs: 100 }];
+    const exp = [{ date: '2026-07-01', amount: 100 }];
+    return s.summarize(shifts, exp, { mileageRate: 0.70, taxRate: 0.25 });
+  });
+  ok(Math.abs(tax.mileageDeduction - 210) < 0.01, 'mileage deduction = 300×0.70 = $210');
+  ok(Math.abs(tax.taxableEstimate - 790) < 0.01, 'taxable = 1000 - max(100,210) = $790');
+  ok(Math.abs(tax.taxSetAside - 197.5) < 0.01, 'set-aside = 790×0.25 = $197.50');
+  ok(Math.abs(tax.takeHomeAfterTax - (900 - 197.5)) < 0.01, 'take-home = net(900) - tax(197.5)');
+
+  console.log('\n11) Trip record + tax card in UI');
+  await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    s.addTrip({ date: '2026-07-06', miles: 12.4, durationMs: 1800000, fixes: 40 });
+  });
+  await page.locator('.tab[data-view=log]').click();
+  await page.locator('#log-segmented .seg[data-log=trip]').click();
+  await page.waitForTimeout(100);
+  ok(/12\.4 mi/.test(await page.locator('#log-list').innerText()), 'tracked trip shows in mileage log');
+  await page.locator('.tab[data-view=dashboard]').click();
+  await page.locator('#period-pills .pill[data-period=all]').click();
+  await page.waitForTimeout(120);
+  ok(/Set aside for taxes/i.test(await page.locator('#tax-card').innerText()), 'tax set-aside card renders on dashboard');
+  ok((await page.locator('#drive-cta').count()) === 1, 'Start drive button present');
+
   ok(errors.length === 0, 'no console/page errors' + (errors.length ? ': ' + errors.slice(0, 3).join(' | ') : ''));
 } catch (e) {
   console.error('TEST CRASH:', e);

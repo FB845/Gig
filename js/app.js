@@ -3,6 +3,7 @@ import * as store from './store.js';
 import * as charts from './charts.js';
 import { csvToShifts, extractFromText } from './parse.js';
 import { recognize, ocrAvailable } from './ocr.js';
+import { DriveTracker } from './geo.js';
 
 const { PLATFORMS, EXPENSE_CATEGORIES } = store;
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -84,6 +85,19 @@ function renderDashboard() {
       <div class="k-value">${k.value}</div>
       <div class="k-sub">${k.sub}</div>
     </div>`).join('');
+
+  // Tax set-aside card
+  const rate = Math.round(store.getSettings().taxRate * 100);
+  $('#tax-card').innerHTML = `
+    <div class="tax-main">
+      <div class="tax-label">Set aside for taxes (${rate}%)</div>
+      <div class="tax-val">${fmtMoney0(s.taxSetAside)}</div>
+      <div class="tax-sub">on ${fmtMoney0(s.taxableEstimate)} taxable · after ${fmtMoney0(Math.max(s.expenseTotal, s.mileageDeduction))} deduction</div>
+    </div>
+    <div class="tax-take">
+      <div class="tt-val">${fmtMoney0(s.takeHomeAfterTax)}</div>
+      <div class="tt-label">est. take-home</div>
+    </div>`;
 
   renderEarningsChart(shifts);
   renderPlatformDonut(shifts);
@@ -323,6 +337,19 @@ function recordRow(item, type, deletable = true) {
       ${deletable ? `<button class="rec-del" data-del="shift" data-id="${item.id}" aria-label="Delete">✕</button>` : ''}
     </li>`;
   }
+  if (type === 'trip') {
+    const dep = item.miles * store.getSettings().mileageRate;
+    const dur = item.durationMs ? `${Math.round(item.durationMs / 60000)} min` : '';
+    return `<li class="record" data-id="${item.id}" data-type="trip">
+      <span class="rec-badge" style="background:#22d3ee"></span>
+      <div class="rec-main">
+        <div class="rec-title">${fmt1(item.miles)} mi drive</div>
+        <div class="rec-sub">${friendlyDate(item.date)}${dur ? ' · ' + dur : ''} · ${fmtMoney(dep)} tax deduction</div>
+      </div>
+      <div class="rec-amount">${fmt1(item.miles)} mi</div>
+      ${deletable ? `<button class="rec-del" data-del="trip" data-id="${item.id}" aria-label="Delete">✕</button>` : ''}
+    </li>`;
+  }
   return `<li class="record" data-id="${item.id}" data-type="expense">
     <span class="rec-badge" style="background:${item.platform ? platColor(item.platform) : '#64748b'}"></span>
     <div class="rec-main">
@@ -341,11 +368,16 @@ function renderLogList() {
     const shifts = store.getShifts();
     list.innerHTML = shifts.length ? shifts.map((s) => recordRow(s, 'shift')).join('')
       : '<li class="empty-list">No shifts logged yet.</li>';
-  } else {
+  } else if (state.logMode === 'expense') {
     $('#log-list-title').textContent = 'All expenses';
     const exp = store.getExpenses();
     list.innerHTML = exp.length ? exp.map((e) => recordRow(e, 'expense')).join('')
       : '<li class="empty-list">No expenses logged yet.</li>';
+  } else {
+    $('#log-list-title').textContent = 'GPS mileage log';
+    const trips = store.getTrips();
+    list.innerHTML = trips.length ? trips.map((t) => recordRow(t, 'trip')).join('')
+      : '<li class="empty-list">No tracked drives yet — tap “Start drive” on Home.</li>';
   }
 }
 
@@ -356,14 +388,18 @@ document.addEventListener('click', (e) => {
     e.stopPropagation();
     const { del: type, id } = del.dataset;
     if (!confirm('Delete this entry?')) return;
-    if (type === 'shift') store.deleteShift(id); else store.deleteExpense(id);
+    if (type === 'shift') store.deleteShift(id);
+    else if (type === 'expense') store.deleteExpense(id);
+    else store.deleteTrip(id);
     toast('Deleted');
     renderLogList(); renderDashboard();
     return;
   }
   const row = e.target.closest('.record[data-type]');
   if (row && row.closest('#log-list')) {
-    if (row.dataset.type === 'shift') editShift(row.dataset.id); else editExpense(row.dataset.id);
+    if (row.dataset.type === 'shift') editShift(row.dataset.id);
+    else if (row.dataset.type === 'expense') editExpense(row.dataset.id);
+    // trips are read-only records; no edit
   }
 });
 
@@ -568,13 +604,86 @@ function showCsvReview(shifts, warnings) {
 }
 
 // =====================================================================
+// Drive — GPS auto-mileage tracking
+// =====================================================================
+let tracker = null;
+let driveTimer = null;
+
+function initDrive() {
+  $('#drive-cta').addEventListener('click', startDrive);
+  $('#drive-stop').addEventListener('click', () => endDrive(true));
+  $('#drive-cancel').addEventListener('click', () => endDrive(false));
+}
+
+async function startDrive() {
+  const overlay = $('#drive-overlay');
+  overlay.classList.remove('hidden');
+  $('#drive-miles').textContent = '0.00';
+  $('#drive-time').textContent = '00:00';
+  $('#drive-accuracy').textContent = '';
+  const stateEl = $('#drive-state');
+  stateEl.textContent = 'Getting GPS…'; stateEl.className = 'drive-status';
+
+  tracker = new DriveTracker();
+  driveTimer = setInterval(() => {
+    if (tracker) $('#drive-time').textContent = fmtDuration(tracker.elapsedMs);
+  }, 1000);
+
+  try {
+    await tracker.start((u) => {
+      stateEl.textContent = '● Tracking'; stateEl.className = 'drive-status tracking';
+      $('#drive-miles').textContent = u.miles.toFixed(2);
+      if (u.accuracy != null) {
+        const good = u.accuracy <= 25;
+        $('#drive-accuracy').textContent = `GPS accuracy ±${Math.round(u.accuracy)} m${good ? '' : ' · move to open sky for better tracking'}`;
+      }
+    });
+  } catch (err) {
+    stateEl.textContent = '⚠️ ' + (err.message || 'GPS unavailable');
+    stateEl.className = 'drive-status warn';
+  }
+}
+
+function endDrive(save) {
+  clearInterval(driveTimer); driveTimer = null;
+  const result = tracker ? tracker.stop() : { miles: 0 };
+  tracker = null;
+  $('#drive-overlay').classList.add('hidden');
+  if (!save) { toast('Drive discarded'); return; }
+  if (!(result.miles > 0)) { toast('No distance tracked'); return; }
+
+  const trip = store.addTrip(result);
+  // pre-fill the shift form so the tracked miles roll into a shift record
+  state.logMode = 'shift';
+  $$('#log-segmented .seg').forEach((x) => x.classList.toggle('active', x.dataset.log === 'shift'));
+  $('#shift-form').classList.remove('hidden');
+  $('#expense-form').classList.add('hidden');
+  const f = $('#shift-form');
+  f.date.value = trip.date;
+  f.miles.value = (parseFloat(f.miles.value || '0') + trip.miles).toFixed(1);
+  updateShiftLive();
+  showView('log');
+  toast(`Logged ${trip.miles.toFixed(1)} mi ✓ — add pay to save the shift`);
+  f.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function fmtDuration(ms) {
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  const pad = (n) => String(n).padStart(2, '0');
+  return h ? `${h}:${pad(m)}:${pad(sec)}` : `${pad(m)}:${pad(sec)}`;
+}
+
+// =====================================================================
 // Settings + backup
 // =====================================================================
 function initSettings() {
   const s = store.getSettings();
   $('#set-mileage').value = s.mileageRate;
+  $('#set-taxrate').value = Math.round(s.taxRate * 100);
   $('#set-weekstart').value = String(s.weekStart);
   $('#set-mileage').addEventListener('change', (e) => { store.updateSettings({ mileageRate: parseFloat(e.target.value) || 0 }); toast('Saved'); updateShiftLive(); });
+  $('#set-taxrate').addEventListener('change', (e) => { store.updateSettings({ taxRate: (parseFloat(e.target.value) || 0) / 100 }); toast('Saved'); renderDashboard(); });
   $('#set-weekstart').addEventListener('change', (e) => { store.updateSettings({ weekStart: parseInt(e.target.value, 10) }); toast('Saved'); renderTrends(); });
 
   $('#export-json').addEventListener('click', () => download('gig-tracker-backup.json', store.exportJSON(), 'application/json'));
@@ -604,6 +713,7 @@ function onImportJSON(e) {
       toast('Backup restored ✓');
       const s = store.getSettings();
       $('#set-mileage').value = s.mileageRate; $('#set-weekstart').value = String(s.weekStart);
+      $('#set-taxrate').value = Math.round(s.taxRate * 100);
       renderDashboard(); renderLogList();
     } catch (err) { toast('Invalid backup file'); }
   };
@@ -653,6 +763,7 @@ function boot() {
   initImport();
   initSettings();
   initInstall();
+  initDrive();
   setChip('#shift-platform', 'flex');
   renderDashboard();
   renderLogList();

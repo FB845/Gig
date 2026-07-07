@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "python3 -m http.server 8080",
-    "test": "node scripts/smoke.mjs",
+    "test": "node scripts/smoke.mjs && node scripts/drive-test.mjs",
     "shots": "node scripts/shot.mjs",
     "icons": "python3 scripts/gen_icons.py"
   }
