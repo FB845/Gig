@@ -608,11 +608,31 @@ function showCsvReview(shifts, warnings) {
 // =====================================================================
 let tracker = null;
 let driveTimer = null;
+let wakeLock = null;
 
 function initDrive() {
   $('#drive-cta').addEventListener('click', startDrive);
   $('#drive-stop').addEventListener('click', () => endDrive(true));
   $('#drive-cancel').addEventListener('click', () => endDrive(false));
+  // A wake lock is dropped when the tab is hidden; re-acquire it when we come
+  // back and a drive is still running, so tracking survives a screen blank.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && tracker) acquireWakeLock();
+  });
+}
+
+async function acquireWakeLock() {
+  try {
+    if ('wakeLock' in navigator && !wakeLock) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    }
+  } catch { /* denied / unsupported — screen may sleep; that's fine */ }
+}
+
+function releaseWakeLock() {
+  try { if (wakeLock) wakeLock.release(); } catch { /* ignore */ }
+  wakeLock = null;
 }
 
 async function startDrive() {
@@ -625,6 +645,7 @@ async function startDrive() {
   stateEl.textContent = 'Getting GPS…'; stateEl.className = 'drive-status';
 
   tracker = new DriveTracker();
+  acquireWakeLock();
   driveTimer = setInterval(() => {
     if (tracker) $('#drive-time').textContent = fmtDuration(tracker.elapsedMs);
   }, 1000);
@@ -646,6 +667,7 @@ async function startDrive() {
 
 function endDrive(save) {
   clearInterval(driveTimer); driveTimer = null;
+  releaseWakeLock();
   const result = tracker ? tracker.stop() : { miles: 0 };
   tracker = null;
   $('#drive-overlay').classList.add('hidden');

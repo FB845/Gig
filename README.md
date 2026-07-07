@@ -38,8 +38,23 @@ mileage tracking** — without asking for a cent.
 > **On GPS tracking:** phones only allow a web app to read location while it's in
 > the **foreground**, so this is a "drive mode" you start when you head out and
 > keep on screen — not silent background tracking. The trade-off for that is zero
-> cost and zero account. The distance math filters GPS jitter (poor-accuracy
-> fixes, stationary noise, and teleport glitches).
+> cost and zero account. While a drive is running the app holds a **screen wake
+> lock** so the display doesn't sleep and silently stop tracking. The distance
+> math filters GPS jitter (poor-accuracy fixes, stationary noise, and teleport
+> glitches).
+
+## Battery / energy
+
+The whole UI is a **true-black OLED theme** — on OLED phones a black pixel is
+physically off, so the background draws ~zero power. This matters most on the
+Drive screen, which stays on for your whole shift: it's pure black with a
+deliberately dimmed odometer. Also:
+
+- No `backdrop-filter` blur (blur forces constant GPU repaints while scrolling).
+- Animations/transitions collapse under the OS **reduce-motion** setting.
+- The drive wake lock keeps the screen awake *without* forcing full brightness,
+  so a black screen + wake lock is about the most efficient way to keep GPS
+  tracking alive.
 
 ## How the automation works (and its limits)
 
