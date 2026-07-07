@@ -1,0 +1,13 @@
+{
+  "name": "gig-tracker",
+  "version": "1.0.0",
+  "description": "On-device PWA to track earnings, expenses, and trends for Amazon Flex + DoorDash gigs.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "python3 -m http.server 8080",
+    "test": "node scripts/smoke.mjs",
+    "shots": "node scripts/shot.mjs",
+    "icons": "python3 scripts/gen_icons.py"
+  }
+}

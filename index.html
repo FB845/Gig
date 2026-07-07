@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="description" content="Track earnings, expenses, and trends for your Amazon Flex and DoorDash gigs. Private, on-device, works offline." />
+  <title>Gig Tracker</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Gig Tracker" />
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22"><rect x="3" y="13" width="3.5" height="8" rx="1" fill="#60a5fa"/><rect x="8.5" y="9" width="3.5" height="12" rx="1" fill="#34d399"/><rect x="14" y="6" width="3.5" height="15" rx="1" fill="#60a5fa"/><rect x="19" y="3" width="2" height="18" rx="1" fill="#34d399"/></svg>
+      </span>
+      <h1>Gig Tracker</h1>
+    </div>
+    <div id="period-pills" class="pills" role="tablist" aria-label="Date range">
+      <button class="pill" data-period="week">Week</button>
+      <button class="pill" data-period="month">Month</button>
+      <button class="pill" data-period="year">Year</button>
+      <button class="pill" data-period="all">All</button>
+    </div>
+  </header>
+
+  <main id="app">
+    <!-- ================= DASHBOARD ================= -->
+    <section id="view-dashboard" class="view active" aria-label="Dashboard">
+      <div class="kpi-grid" id="kpi-grid"></div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>Earnings over time</h2>
+          <div class="legend" id="earn-legend"></div>
+        </div>
+        <div class="chart-wrap" id="chart-earnings"></div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-head"><h2>By platform</h2></div>
+          <div class="chart-wrap donut-wrap" id="chart-platform"></div>
+          <div class="legend" id="platform-legend"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>Expenses</h2></div>
+          <div class="chart-wrap donut-wrap" id="chart-expenses"></div>
+          <div class="legend" id="expenses-legend"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Recent shifts</h2></div>
+        <ul class="record-list" id="recent-shifts"></ul>
+      </div>
+    </section>
+
+    <!-- ================= LOG ================= -->
+    <section id="view-log" class="view" aria-label="Log">
+      <div class="segmented" id="log-segmented">
+        <button class="seg active" data-log="shift">Shifts</button>
+        <button class="seg" data-log="expense">Expenses</button>
+      </div>
+
+      <!-- Shift form -->
+      <form id="shift-form" class="card form">
+        <div class="card-head"><h2 id="shift-form-title">Log a shift</h2></div>
+        <div class="field">
+          <label>Platform</label>
+          <div class="choice" id="shift-platform">
+            <button type="button" class="chip active" data-val="flex">Amazon Flex</button>
+            <button type="button" class="chip" data-val="doordash">DoorDash</button>
+            <button type="button" class="chip" data-val="other">Other</button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field"><label>Date</label><input type="date" name="date" required /></div>
+          <div class="field"><label>Hours worked</label><input type="number" name="hours" step="0.25" min="0" inputmode="decimal" placeholder="3.5" /></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>Base pay ($)</label><input type="number" name="gross" step="0.01" min="0" inputmode="decimal" placeholder="42.00" /></div>
+          <div class="field"><label>Tips ($)</label><input type="number" name="tips" step="0.01" min="0" inputmode="decimal" placeholder="18.00" /></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>Deliveries / packages</label><input type="number" name="jobs" step="1" min="0" inputmode="numeric" placeholder="12" /></div>
+          <div class="field"><label>Miles driven</label><input type="number" name="miles" step="0.1" min="0" inputmode="decimal" placeholder="34.5" /></div>
+        </div>
+        <div class="field"><label>Fuel cost this shift ($) <span class="hint">optional — logged as an expense</span></label><input type="number" name="fuel" step="0.01" min="0" inputmode="decimal" placeholder="15.00" /></div>
+        <div class="field"><label>Notes</label><input type="text" name="notes" placeholder="Morning block, downtown" /></div>
+        <div class="live-metrics" id="shift-live"></div>
+        <div class="form-actions">
+          <button type="button" class="btn ghost" id="shift-reset">Clear</button>
+          <button type="submit" class="btn primary" id="shift-submit">Save shift</button>
+        </div>
+      </form>
+
+      <!-- Expense form -->
+      <form id="expense-form" class="card form hidden">
+        <div class="card-head"><h2 id="expense-form-title">Log an expense</h2></div>
+        <div class="row">
+          <div class="field"><label>Date</label><input type="date" name="date" required /></div>
+          <div class="field"><label>Amount ($)</label><input type="number" name="amount" step="0.01" min="0" inputmode="decimal" placeholder="45.00" required /></div>
+        </div>
+        <div class="field"><label>Category</label><select name="category" id="expense-category"></select></div>
+        <div class="field"><label>Platform <span class="hint">optional</span></label>
+          <div class="choice" id="expense-platform">
+            <button type="button" class="chip active" data-val="">Any</button>
+            <button type="button" class="chip" data-val="flex">Flex</button>
+            <button type="button" class="chip" data-val="doordash">Dasher</button>
+          </div>
+        </div>
+        <div class="field"><label>Note</label><input type="text" name="note" placeholder="Costco gas" /></div>
+        <div class="form-actions">
+          <button type="button" class="btn ghost" id="expense-reset">Clear</button>
+          <button type="submit" class="btn primary" id="expense-submit">Save expense</button>
+        </div>
+      </form>
+
+      <div class="card">
+        <div class="card-head"><h2 id="log-list-title">All shifts</h2></div>
+        <ul class="record-list" id="log-list"></ul>
+      </div>
+    </section>
+
+    <!-- ================= TRENDS ================= -->
+    <section id="view-trends" class="view" aria-label="Trends">
+      <div class="card">
+        <div class="card-head">
+          <h2>Weekly net income</h2>
+          <div class="legend" id="trend-net-legend"></div>
+        </div>
+        <div class="chart-wrap" id="chart-weekly-net"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Effective $/hour trend</h2></div>
+        <div class="chart-wrap" id="chart-hourly"></div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <h2>Income vs expenses (monthly)</h2>
+          <div class="legend" id="ie-legend"></div>
+        </div>
+        <div class="chart-wrap" id="chart-income-expense"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Best day of week</h2></div>
+        <div class="chart-wrap" id="chart-dow"></div>
+      </div>
+    </section>
+
+    <!-- ================= IMPORT ================= -->
+    <section id="view-import" class="view" aria-label="Import">
+      <div class="card">
+        <div class="card-head"><h2>📸 Screenshot import (OCR)</h2></div>
+        <p class="muted">Snap or upload a screenshot of your Flex or Dasher earnings screen. The app reads the amounts, miles and counts for you to review before saving.</p>
+        <div class="choice" id="ocr-platform">
+          <button type="button" class="chip active" data-val="">Auto-detect</button>
+          <button type="button" class="chip" data-val="flex">Flex</button>
+          <button type="button" class="chip" data-val="doordash">Dasher</button>
+        </div>
+        <label class="dropzone" id="ocr-drop">
+          <input type="file" id="ocr-file" accept="image/*" capture="environment" hidden />
+          <span class="dz-icon">🖼️</span>
+          <span>Tap to take a photo or choose a screenshot</span>
+        </label>
+        <div id="ocr-status" class="ocr-status hidden"></div>
+        <div id="ocr-preview" class="hidden"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>📄 CSV import</h2></div>
+        <p class="muted">Import an earnings CSV (e.g. DoorDash weekly earnings export, or any spreadsheet with date/earnings/miles columns).</p>
+        <div class="choice" id="csv-platform">
+          <button type="button" class="chip active" data-val="">Auto / mixed</button>
+          <button type="button" class="chip" data-val="flex">All Flex</button>
+          <button type="button" class="chip" data-val="doordash">All Dasher</button>
+        </div>
+        <label class="dropzone" id="csv-drop">
+          <input type="file" id="csv-file" accept=".csv,text/csv" hidden />
+          <span class="dz-icon">📄</span>
+          <span>Tap to choose a CSV file</span>
+        </label>
+        <div id="csv-preview" class="hidden"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>✉️ Email-assisted import</h2></div>
+        <p class="muted">Amazon Flex and DoorDash email you every payout. Ask Claude (with your Gmail connected) to pull those deposit emails and generate a CSV, then import it above. Amazon Flex and DoorDash don't offer a public driver API, so this is the closest thing to automatic.</p>
+      </div>
+    </section>
+
+    <!-- ================= SETTINGS ================= -->
+    <section id="view-settings" class="view" aria-label="Settings">
+      <div class="card form">
+        <div class="card-head"><h2>Settings</h2></div>
+        <div class="field">
+          <label>IRS standard mileage rate ($/mi) <span class="hint">for tax deduction estimate</span></label>
+          <input type="number" id="set-mileage" step="0.01" min="0" inputmode="decimal" />
+        </div>
+        <div class="field">
+          <label>Week starts on</label>
+          <select id="set-weekstart"><option value="1">Monday</option><option value="0">Sunday</option></select>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Backup &amp; data</h2></div>
+        <p class="muted">Your data lives only in this browser. Back it up regularly — clearing browser data will erase it.</p>
+        <div class="btn-col">
+          <button class="btn" id="export-json">⬇️ Export backup (JSON)</button>
+          <button class="btn" id="export-csv">⬇️ Export shifts (CSV)</button>
+          <label class="btn" for="import-json-file">⬆️ Restore from backup</label>
+          <input type="file" id="import-json-file" accept=".json,application/json" hidden />
+          <button class="btn danger" id="clear-all">🗑️ Erase all data</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Install</h2></div>
+        <p class="muted" id="install-hint">On iPhone: tap the Share button in Safari, then <strong>Add to Home Screen</strong> to use it like an app (offline too). On Android/desktop Chrome, use the install button below or the browser's install prompt.</p>
+        <button class="btn primary hidden" id="install-btn">📲 Install app</button>
+      </div>
+
+      <p class="version muted">Gig Tracker · on-device · v1</p>
+    </section>
+  </main>
+
+  <nav class="tabbar" role="tablist" aria-label="Sections">
+    <button class="tab active" data-view="dashboard"><span class="ti">📊</span><span>Home</span></button>
+    <button class="tab" data-view="log"><span class="ti">➕</span><span>Log</span></button>
+    <button class="tab" data-view="trends"><span class="ti">📈</span><span>Trends</span></button>
+    <button class="tab" data-view="import"><span class="ti">📥</span><span>Import</span></button>
+    <button class="tab" data-view="settings"><span class="ti">⚙️</span><span>Settings</span></button>
+  </nav>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
