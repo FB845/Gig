@@ -208,12 +208,12 @@ function renderTicker(s) {
   track.innerHTML = line + line; // doubled for seamless marquee loop
 }
 
-// Map a shift to a JR train type (種別) by its Flex block tag.
+// Map a Flex block tag to a JR train type (種別).
 const TRAIN_TYPES = {
-  'Rapid Express': { label: '特急', romaji: 'LTD.EXP', color: 'var(--jr-red)' },
+  'Local': { label: '普通', romaji: 'LOCAL', color: '#c9ced8' },
+  'Rapid': { label: '快速', romaji: 'RAPID', color: 'var(--jr-blue)' },
   'Express': { label: '急行', romaji: 'EXP', color: 'var(--jr-orange)' },
-  'Rescue': { label: '快速', romaji: 'RAPID', color: 'var(--jr-blue)' },
-  'Normal': { label: '普通', romaji: 'LOCAL', color: '#c9ced8' },
+  'Rapid Express': { label: '特急', romaji: 'LTD.EXP', color: 'var(--jr-red)' },
 };
 function trainType(shift) {
   return (shift.tag && TRAIN_TYPES[shift.tag]) || { label: '普通', romaji: 'LOCAL', color: '#c9ced8' };
@@ -230,7 +230,7 @@ const PERIOD_TYPE = {
 // 方向幕 (rollsign) header and numbered stations.
 function renderRouteStrip() {
   const host = $('#route-strip');
-  if (!host || !isDesktop()) return;
+  if (!host) return;
   const ty = PERIOD_TYPE[state.period] || PERIOD_TYPE.all;
   const rollsign = `
     <div class="rollsign">
@@ -239,13 +239,18 @@ function renderRouteStrip() {
       <span class="rs-total" id="rs-total"></span>
     </div>`;
 
-  const stops = routeStops();
+  // Fewer stations on a narrow (phone) layout so labels stay legible.
+  const cap = isDesktop() ? 12 : 7;
+  const stops = routeStops(cap);
   const total = stops.reduce((a, s) => a + s.value, 0);
   if (!stops.length || total <= 0) {
     host.innerHTML = rollsign + '<div class="chart-empty">運行実績なし — シフトを記録してください</div>';
     return;
   }
-  const W = 1000, H = 168, padX = 54, y = 92;
+  // Size the viewBox to the actual pixel width so SVG text renders ~1:1 (i.e.
+  // stays readable) on both phone and desktop rather than scaling tiny.
+  const W = Math.max(300, (host.clientWidth || 1000) - 32);
+  const H = 150, y = 84, padX = Math.min(48, W * 0.08);
   const max = Math.max(1, ...stops.map((s) => s.value));
   const step = stops.length > 1 ? (W - padX * 2) / (stops.length - 1) : 0;
   const cx = (i) => padX + i * step;
@@ -258,13 +263,13 @@ function renderRouteStrip() {
   stops.forEach((st, i) => {
     const isNow = i === lastIdx;
     const r = st.value > 0 ? rFor(st.value) : 6;
-    // JR line-map station: colored ring with a white centre
+    // JR line-map station: colored dot with a dark centre
     if (isNow && st.value > 0) svg += `<circle class="now-ring" cx="${cx(i)}" cy="${y}" r="${r + 4}" style="stroke:${line}"/>`;
     svg += `<circle cx="${cx(i)}" cy="${y}" r="${r}" style="fill:${line}"/>`;
     svg += `<circle cx="${cx(i)}" cy="${y}" r="${Math.max(2, r - 4)}" style="fill:#000"/>`;
-    svg += `<text class="amt" x="${cx(i)}" y="${y - r - 12}" text-anchor="middle">${st.value ? fmtMoney0(st.value) : '—'}</text>`;
-    svg += `<text class="stn" x="${cx(i)}" y="${y + 26}" text-anchor="middle">${String(i + 1).padStart(2, '0')}</text>`;
-    svg += `<text class="day" x="${cx(i)}" y="${y + 42}" text-anchor="middle">${st.label}</text>`;
+    svg += `<text class="amt" x="${cx(i)}" y="${y - r - 11}" text-anchor="middle">${st.value ? fmtMoney0(st.value) : '—'}</text>`;
+    svg += `<text class="stn" x="${cx(i)}" y="${y + 24}" text-anchor="middle">${String(i + 1).padStart(2, '0')}</text>`;
+    svg += `<text class="day" x="${cx(i)}" y="${y + 40}" text-anchor="middle">${st.label}</text>`;
   });
   svg += '</svg>';
 
@@ -272,12 +277,12 @@ function renderRouteStrip() {
   $('#rs-total').textContent = `${fmtMoney0(total)}`;
 }
 
-// Choose station granularity by the selected period.
-function routeStops() {
+// Choose station granularity by the selected period (capped for narrow layouts).
+function routeStops(cap = 12) {
   const shifts = store.getShifts();
   if (state.period === 'week') return lastNDays(shifts, 7);
-  if (state.period === 'month') return weekStops(shifts, 6);
-  return monthStops(shifts, 12); // year / all
+  if (state.period === 'month') return weekStops(shifts, Math.min(6, cap));
+  return monthStops(shifts, cap); // year / all
 }
 function lastNDays(shifts, n) {
   const map = new Map();
@@ -349,8 +354,8 @@ function renderPlatformDonut(shifts) {
 }
 
 const EXP_COLORS = ['#ef4444', '#f59e0b', '#34d399', '#60a5fa', '#a78bfa', '#f472b6', '#22d3ee', '#facc15', '#fb923c', '#94a3b8'];
-const TAG_COLORS = { 'Rapid Express': '#34d399', 'Express': '#60a5fa', 'Rescue': '#f5a524', 'Normal': '#a78bfa' };
-const TAG_SHORT = { 'Rapid Express': 'Rapid', 'Express': 'Express', 'Rescue': 'Rescue', 'Normal': 'Normal' };
+const TAG_COLORS = { 'Local': '#9aa3b2', 'Rapid': '#009bbf', 'Express': '#f39800', 'Rapid Express': '#e60012' };
+const TAG_SHORT = { 'Local': 'Local', 'Rapid': 'Rapid', 'Express': 'Express', 'Rapid Express': 'R.Exp' };
 function renderExpensesDonut(expenses) {
   const byCat = new Map();
   expenses.forEach((e) => byCat.set(e.category, (byCat.get(e.category) || 0) + e.amount));
@@ -369,7 +374,7 @@ function renderRecentShifts(shifts) {
 // Recent shifts as a JR LED departure board (発車標) on desktop.
 function renderDepartureBoard(shifts) {
   const host = $('#departure-board');
-  if (!host || !isDesktop()) return;
+  if (!host) return;
   if (!shifts.length) { host.innerHTML = '<div class="chart-empty">運行実績なし</div>'; return; }
   const depDate = (iso) => { const [, m, d] = iso.split('-').map(Number); return `${m}/${String(d).padStart(2, '0')}`; };
   const rows = shifts.map((s) => {

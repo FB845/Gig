@@ -10,7 +10,7 @@ const pg=await ctx.newPage(); const errs=[]; pg.on('pageerror',e=>errs.push(e.me
 await pg.goto(base,{waitUntil:'networkidle'});
 await pg.evaluate(async()=>{
   const s=await import('./js/store.js'); s.clearAll();
-  const plats=['flex','doordash']; const tags=['Rapid Express','Express','Rescue','Normal'];
+  const plats=['flex','doordash']; const tags=['Local','Rapid','Express','Rapid Express'];
   const start=new Date(); start.setDate(start.getDate()-40);
   for(let i=0;i<40;i++){ const d=new Date(start); d.setDate(d.getDate()+i); if(Math.random()<0.3) continue;
     const p=plats[Math.random()<0.55?0:1]; const isFlex=p==='flex'; const sched=[2,2.5,3,3.5,4][Math.floor(Math.random()*5)];

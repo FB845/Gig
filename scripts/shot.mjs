@@ -31,7 +31,7 @@ await page.evaluate(async () => {
     const d = new Date(start); d.setDate(d.getDate() + i);
     if (Math.random() < 0.35) continue;
     const p = plats[Math.random() < 0.5 ? 0 : 1];
-    const tags = ['Rapid Express', 'Express', 'Rescue', 'Normal'];
+    const tags = ['Local', 'Rapid', 'Express', 'Rapid Express'];
     const sched = [2, 2.5, 3, 3.5, 4][Math.floor(Math.random() * 5)];
     const isFlex = p === 'flex';
     const hours = isFlex ? Math.round((sched * (0.7 + Math.random() * 0.45)) * 4) / 4 : 2 + Math.round(Math.random() * 6);

@@ -61,7 +61,7 @@
         <span class="dc-go">▶</span>
       </button>
 
-      <div class="card route-strip desktop-only" id="route-strip"></div>
+      <div class="card route-strip" id="route-strip"></div>
 
       <div class="kpi-grid" id="kpi-grid"></div>
 
@@ -93,7 +93,7 @@
       <div class="card">
         <div class="card-head"><h2>Recent shifts<span class="jp">発車標</span></h2></div>
         <ul class="record-list" id="recent-shifts"></ul>
-        <div class="depboard desktop-only" id="departure-board"></div>
+        <div class="depboard" id="departure-board"></div>
       </div>
     </section>
 
@@ -134,10 +134,10 @@
         <div class="field flex-only" id="flex-tag-field">
           <label>Block type</label>
           <div class="choice compact" id="shift-tag">
-            <button type="button" class="chip" data-val="Rapid Express">Rapid Express</button>
-            <button type="button" class="chip" data-val="Express">Express</button>
-            <button type="button" class="chip" data-val="Rescue">Rescue</button>
-            <button type="button" class="chip" data-val="Normal">Normal</button>
+            <button type="button" class="chip" data-val="Local">Local <span class="chip-jp">普通</span></button>
+            <button type="button" class="chip" data-val="Rapid">Rapid <span class="chip-jp">快速</span></button>
+            <button type="button" class="chip" data-val="Express">Express <span class="chip-jp">急行</span></button>
+            <button type="button" class="chip" data-val="Rapid Express">Rapid Express <span class="chip-jp">特急</span></button>
           </div>
         </div>
         <div class="row">
@@ -303,11 +303,11 @@
   </main>
 
   <nav class="tabbar" role="tablist" aria-label="Sections">
-    <button class="tab active" data-view="dashboard"><span class="ti">📊</span><span>Home</span></button>
-    <button class="tab" data-view="log"><span class="ti">➕</span><span>Log</span></button>
-    <button class="tab" data-view="trends"><span class="ti">📈</span><span>Trends</span></button>
-    <button class="tab" data-view="import"><span class="ti">📥</span><span>Import</span></button>
-    <button class="tab" data-view="settings"><span class="ti">⚙️</span><span>Settings</span></button>
+    <button class="tab active" data-view="dashboard"><span class="line-mark" style="--c:var(--jr-green)">GL</span><span>Home</span></button>
+    <button class="tab" data-view="log"><span class="line-mark" style="--c:var(--jr-blue)">LG</span><span>Log</span></button>
+    <button class="tab" data-view="trends"><span class="line-mark" style="--c:var(--jr-orange)">TR</span><span>Trends</span></button>
+    <button class="tab" data-view="import"><span class="line-mark" style="--c:var(--jr-teal)">IM</span><span>Import</span></button>
+    <button class="tab" data-view="settings"><span class="line-mark" style="--c:var(--jr-navy)">ST</span><span>Settings</span></button>
   </nav>
 
   <!-- ================= DRIVE OVERLAY ================= -->

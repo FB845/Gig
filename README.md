@@ -47,8 +47,14 @@ mileage tracking** — without asking for a cent.
   Line" route map** rendering earnings as numbered stations with a pulsing "you
   are here" marker; a **発車標 departure board** of recent shifts with train-type
   badges (特急/急行/快速/普通); and **LED count-up** KPI numbers with sparklines.
-  All original artwork/CSS with system fonts — mobile stays the lean OLED-black
-  layout.
+  All original artwork/CSS with system fonts. The **same JR design now applies
+  on mobile** (rollsign, line map, departure board, kanji labels, LED numbers,
+  line-symbol tab bar), while keeping the pure-black background with no animated
+  glow — so the OLED battery win is preserved.
+
+Amazon Flex block tags map to JR train types (種別): **Local (普通)**, **Rapid
+(快速)**, **Express (急行)**, **Rapid Express (特急)** — colour-coded on the
+departure board and the pay-by-block-type breakdown.
 
 > **On GPS tracking:** phones only allow a web app to read location while it's in
 > the **foreground**, so this is a "drive mode" you start when you head out and

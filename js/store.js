@@ -11,7 +11,8 @@ export const PLATFORMS = {
 
 // Amazon Flex block-length presets (hours) and block types.
 export const FLEX_BLOCK_PRESETS = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5];
-export const FLEX_TAGS = ['Rapid Express', 'Express', 'Rescue', 'Normal'];
+// Ordered slowest → fastest, matching JR train types (普通/快速/急行/特急).
+export const FLEX_TAGS = ['Local', 'Rapid', 'Express', 'Rapid Express'];
 
 export const EXPENSE_CATEGORIES = [
   'Fuel', 'Tolls', 'Maintenance', 'Car Payment', 'Insurance',

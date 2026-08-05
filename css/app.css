@@ -287,8 +287,94 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
    (stays OLED-black and lean). Desktop has no battery concern, so it gets
    ambient motion, glow, LED numbers, a line-map route strip and a ticker.
    ===================================================================== */
-.sidebar, .ticker, .ambient, .desktop-only { display: none; }
-.jp { display: none; } /* kanji labels appear on desktop only */
+.sidebar, .ambient, .desktop-only { display: none; }
+
+/* ---------------------------------------------------------------------
+   JR components, mobile-first — shown at every width. The desktop @media
+   block below only adds the sidebar layout, multi-column grid, ambient
+   backdrop and larger sizes.
+   --------------------------------------------------------------------- */
+.jp { color: var(--muted); font-weight: 600; font-size: .74em; letter-spacing: .08em; margin-left: 6px; font-family: var(--font-jp); }
+
+.line-mark {
+  display: inline-grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0;
+  border-radius: 9px; border: 3px solid var(--c, var(--accent)); background: #f5f5ef;
+  color: var(--c, var(--accent)); font-weight: 800; font-size: 13px; letter-spacing: .02em;
+  font-family: var(--font-board);
+}
+
+.kpi .k-value { font-family: var(--font-led); font-variant-numeric: tabular-nums; text-shadow: 0 0 16px color-mix(in srgb, currentColor 28%, transparent); }
+.k-spark { display: block; margin-top: 9px; height: 26px; }
+.k-spark .spark { width: 100%; height: 26px; display: block; }
+
+/* Ticker board */
+.ticker {
+  display: block; overflow: hidden; position: relative; height: 30px; margin-top: 8px;
+  background: #05070b; border: 1px solid var(--border); border-radius: 8px;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+}
+.ticker-track {
+  display: inline-flex; align-items: center; height: 30px; white-space: nowrap;
+  font-family: var(--font-jp); font-size: 12px; letter-spacing: .03em; color: var(--text);
+  animation: marquee 30s linear infinite;
+}
+.ticker-track .tk { padding: 0 4px; }
+.ticker-track .tk b { color: var(--accent); font-family: var(--font-led); }
+.ticker-track .sep { color: var(--muted); padding: 0 8px; }
+.ticker-track .live { color: #05231a; background: var(--accent); border-radius: 4px; padding: 2px 8px; font-weight: 800; margin: 0 8px; }
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* 方向幕 rollsign header */
+.rollsign {
+  display: flex; align-items: center; gap: 11px; margin-bottom: 12px;
+  background: #eae7dc; color: #14130f; border-radius: 8px; padding: 8px 10px;
+  font-family: var(--font-jp); box-shadow: inset 0 0 0 1px rgba(0,0,0,.15);
+}
+.rs-type {
+  display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--tc); color: #fff; font-weight: 800; font-size: 16px; line-height: 1;
+  padding: 6px 9px; border-radius: 4px; letter-spacing: .06em; min-width: 56px;
+}
+.rs-type em { font-style: normal; font-family: var(--font-board); font-size: 8px; letter-spacing: .1em; margin-top: 3px; opacity: .95; }
+.rs-dest { display: flex; flex-direction: column; line-height: 1.05; min-width: 0; }
+.rs-dest b { font-size: 19px; font-weight: 800; letter-spacing: .04em; white-space: nowrap; }
+.rs-dest small { font-family: var(--font-board); font-size: 9px; letter-spacing: .24em; color: #3a3730; margin-top: 2px; }
+.rs-total { margin-left: auto; font-family: var(--font-led); font-weight: 800; font-size: 16px; color: #14130f; }
+
+/* Route map */
+.route-svg { width: 100%; height: 150px; display: block; }
+.route-svg .rline { stroke-width: 5; stroke-linecap: round; }
+.route-svg .amt { fill: var(--text); font-family: var(--font-led); font-size: 13px; font-weight: 700; }
+.route-svg .stn { fill: var(--jr-green); font-family: var(--font-board); font-size: 11px; font-weight: 700; letter-spacing: .05em; }
+.route-svg .day { fill: var(--muted); font-size: 11px; font-family: var(--font-jp); }
+.route-svg .now-ring { fill: none; stroke-width: 3; transform-box: fill-box; transform-origin: center; animation: ping 1.9s ease-out infinite; }
+@keyframes ping { 0% { transform: scale(1); opacity: .9; } 70%, 100% { transform: scale(2.6); opacity: 0; } }
+
+/* 発車標 departure board (recent shifts) */
+#recent-shifts { display: none; }
+.depboard { display: block; background: #050608; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.dep-headrow, .dep-row { display: grid; grid-template-columns: 50px 38px 1fr auto; align-items: center; gap: 8px; padding: 8px 11px; }
+.dep-headrow { color: var(--muted); font-family: var(--font-jp); font-size: 10px; letter-spacing: .1em; border-bottom: 1px solid var(--border); background: #0a0c10; }
+.dep-headrow span:nth-child(4) { display: none; }
+.dep-headrow span:last-child { text-align: right; }
+.dep-row { border-bottom: 1px solid rgba(255,255,255,.05); }
+.dep-row:last-child { border-bottom: none; }
+.dep-type { display: inline-flex; flex-direction: column; align-items: flex-start; line-height: 1; color: var(--tc); font-family: var(--font-jp); font-weight: 800; font-size: 15px; letter-spacing: .04em; }
+.dep-type em { font-style: normal; font-family: var(--font-board); font-size: 7px; letter-spacing: .08em; color: var(--muted); margin-top: 3px; }
+.dep-date { font-family: var(--font-led); font-size: 13px; color: #fdb913; font-weight: 700; }
+.dep-dest { display: flex; flex-direction: column; line-height: 1.1; min-width: 0; }
+.dep-dest b { font-family: var(--font-jp); font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dep-dest small { font-family: var(--font-board); font-size: 9px; letter-spacing: .08em; color: var(--muted); }
+.dep-dist { display: none; text-align: right; font-family: var(--font-led); font-size: 14px; color: var(--muted); }
+.dep-dist i { font-style: normal; font-size: 10px; margin-left: 2px; }
+.dep-amt { text-align: right; font-family: var(--font-led); font-size: 15px; font-weight: 800; color: var(--accent); }
+
+.chip-jp { font-family: var(--font-jp); opacity: .7; font-size: .9em; margin-left: 2px; }
+
+/* Mobile tab bar → JR line symbols */
+.tab .line-mark { width: 26px; height: 26px; border-width: 2px; font-size: 10px; border-radius: 7px; }
+.tab.active .line-mark { box-shadow: 0 0 12px -3px var(--c); }
 
 @media (min-width: 960px) {
   :root { --side-w: 248px; }
@@ -432,9 +518,11 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
   .dep-dest { display: flex; flex-direction: column; line-height: 1.1; }
   .dep-dest b { font-family: var(--font-jp); font-size: 16px; font-weight: 700; color: var(--text); }
   .dep-dest small { font-family: var(--font-board); font-size: 10px; letter-spacing: .12em; color: var(--muted); }
-  .dep-dist { text-align: right; font-family: var(--font-led); font-size: 14px; color: var(--muted); }
+  .dep-dist { display: block; text-align: right; font-family: var(--font-led); font-size: 14px; color: var(--muted); }
   .dep-dist i { font-style: normal; font-size: 10px; margin-left: 2px; }
   .dep-amt { text-align: right; font-family: var(--font-led); font-size: 17px; font-weight: 800; color: var(--accent); }
+  .dep-headrow span:nth-child(4) { display: block; }
+  .ticker { margin-top: 0; }
 }
 
 /* Cut animations/transitions — saves repaints/GPU wake-ups (and honors the OS

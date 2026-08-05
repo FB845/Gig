@@ -1,0 +1,20 @@
+import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path';
+import { fileURLToPath } from 'node:url'; import { chromium } from 'playwright-core';
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const MIME={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.webmanifest':'application/manifest+json','.png':'image/png'};
+const server=http.createServer((req,res)=>{let p=decodeURIComponent(req.url.split('?')[0]);if(p==='/')p='/index.html';const f=path.join(root,p);if(!fs.existsSync(f)||fs.statSync(f).isDirectory()){res.writeHead(404);res.end();return;}res.writeHead(200,{'Content-Type':MIME[path.extname(f)]||'application/octet-stream'});fs.createReadStream(f).pipe(res);});
+await new Promise(r=>server.listen(0,r)); const base=`http://localhost:${server.address().port}`;
+const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium-1194/chrome-linux/chrome'});
+const pg=await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:2}).then(c=>c.newPage());
+const errs=[]; pg.on('pageerror',e=>errs.push(e.message));
+await pg.goto(base,{waitUntil:'networkidle'});
+await pg.evaluate(async()=>{const s=await import('./js/store.js');s.clearAll();const T=['Local','Rapid','Express','Rapid Express'];const st=new Date();st.setDate(st.getDate()-32);
+ for(let i=0;i<32;i++){const d=new Date(st);d.setDate(d.getDate()+i);if(Math.random()<0.3)continue;const p=Math.random()<0.55?'flex':'doordash';const isF=p==='flex';const sched=[2,2.5,3,3.5][Math.floor(Math.random()*4)];const hours=isF?Math.round(sched*(0.75+Math.random()*0.35)*4)/4:2+Math.round(Math.random()*5);const rate=isF?14+Math.random()*10:12+Math.random()*6;s.addShift({platform:p,date:s.isoDate(d),hours,gross:Math.round(hours*rate*100)/100,tips:p==='doordash'?Math.round(Math.random()*22*100)/100:Math.round(Math.random()*8*100)/100,jobs:5+Math.round(Math.random()*12),miles:Math.round(hours*9*10)/10,scheduledHours:isF?sched:0,tag:isF?T[Math.floor(Math.random()*4)]:''});}
+ s.addExpense({date:s.todayISO(),category:'Phone',amount:45});});
+await pg.reload({waitUntil:'networkidle'});
+await pg.locator('#period-pills .pill[data-period=month]').click();
+await pg.waitForTimeout(600);
+await pg.screenshot({path:path.join(root,'scripts/mobile-jr.png'),fullPage:true});
+console.log('errors:', errs.length?errs.slice(0,3).join(' | '):'none');
+await pg.evaluate(async()=>{(await import('./js/store.js')).clearAll();});
+await b.close(); server.close(); console.log('mobile shot saved');

@@ -200,12 +200,12 @@ try {
     const s = await import('./js/store.js');
     return s.flexByTag([
       { platform: 'flex', date: '2026-07-01', tag: 'Rapid Express', scheduledHours: 2, hours: 1.5, gross: 44, tips: 6 },
-      { platform: 'flex', date: '2026-07-02', tag: 'Normal', scheduledHours: 3, hours: 3, gross: 45, tips: 3 },
+      { platform: 'flex', date: '2026-07-02', tag: 'Local', scheduledHours: 3, hours: 3, gross: 45, tips: 3 },
       { platform: 'doordash', date: '2026-07-03', tag: '', gross: 30, tips: 10, hours: 2 },
     ]);
   });
   ok(byTag.length === 2, 'flexByTag returns 2 tagged groups (ignores DoorDash/untagged)');
-  ok(byTag[0].tag === 'Rapid Express', 'groups ordered by FLEX_TAGS (Rapid first)');
+  ok(byTag[0].tag === 'Local', 'groups ordered by FLEX_TAGS (Local first)');
   const rapid = byTag.find((t) => t.tag === 'Rapid Express');
   ok(Math.abs(rapid.perHour - 50 / 1.5) < 0.01, 'Rapid Express $/hr = 50/1.5 = 33.33');
   ok(Math.abs(rapid.effPct - 75) < 0.01, 'Rapid Express block time = 1.5/2 = 75%');
