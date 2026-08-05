@@ -1,6 +1,10 @@
-// sw.js — offline-first service worker. Precaches the app shell; serves cached
-// assets when offline. Bump CACHE on every release to invalidate old files.
-const CACHE = 'gig-tracker-v1';
+// sw.js — offline-capable service worker.
+//
+// Strategy: NETWORK-FIRST for the app shell + code (HTML/JS/CSS/manifest) so a
+// single reload always gets the latest version when you're online, falling back
+// to cache when offline. CACHE-FIRST for static images/icons (they rarely change
+// and this keeps things fast). Bump CACHE on every release to purge old files.
+const CACHE = 'gig-tracker-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -10,6 +14,7 @@ const ASSETS = [
   './js/charts.js',
   './js/parse.js',
   './js/ocr.js',
+  './js/geo.js',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',
@@ -23,7 +28,8 @@ self.addEventListener('install', (e) => {
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+    caches.keys()
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -33,22 +39,38 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
 
-  // Never cache the OCR engine (large, cross-origin) — go straight to network.
+  // Never intercept the OCR engine (large, cross-origin) — go straight to network.
   if (url.hostname.includes('jsdelivr') || url.hostname.includes('tesseract')) return;
+  if (url.origin !== self.location.origin) return;
 
-  // Same-origin: cache-first with background refresh.
-  if (url.origin === self.location.origin) {
+  const isAppCode = req.mode === 'navigate'
+    || url.pathname === '/'
+    || url.pathname.endsWith('/index.html')
+    || /\.(?:js|css|webmanifest)$/.test(url.pathname);
+
+  if (isAppCode) {
+    // Network-first: fresh on every online reload, cached fallback when offline.
     e.respondWith(
-      caches.match(req).then((cached) => {
-        const network = fetch(req).then((res) => {
+      fetch(req)
+        .then((res) => {
           if (res && res.status === 200) {
             const copy = res.clone();
             caches.open(CACHE).then((c) => c.put(req, copy));
           }
           return res;
-        }).catch(() => cached);
-        return cached || network;
-      })
+        })
+        .catch(() => caches.match(req).then((c) => c || caches.match('./index.html')))
+    );
+  } else {
+    // Cache-first for images/icons/etc.
+    e.respondWith(
+      caches.match(req).then((cached) => cached || fetch(req).then((res) => {
+        if (res && res.status === 200) {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, copy));
+        }
+        return res;
+      }))
     );
   }
 });
