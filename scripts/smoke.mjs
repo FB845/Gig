@@ -174,7 +174,7 @@ try {
   const fx = await page.evaluate(async () => (await import('./js/store.js')).getShifts()[0]);
   ok(fx.scheduledHours === 3 && Math.abs(fx.hours - 2.25) < 0.01, 'saved scheduled=3, actual=2.25');
   ok(fx.tag === 'Rapid Express', 'saved tag = Rapid Express');
-  ok(/Rapid Express/.test(await page.locator('#log-list').innerText()) && /75%\)/.test(await page.locator('#log-list').innerText()), 'shift row shows tag + (75%)');
+  ok(/特急/.test(await page.locator('#log-list').innerText()) && /75%\)/.test(await page.locator('#log-list').innerText()), 'shift row shows 種別 badge (特急) + (75%)');
 
   await page.locator('#shift-platform .chip[data-val="doordash"]').click();
   ok((await page.locator('#flex-block-field.hidden').count()) === 1, 'Flex fields hidden for DoorDash');

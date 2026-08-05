@@ -208,22 +208,29 @@ function renderTicker(s) {
   track.innerHTML = line + line; // doubled for seamless marquee loop
 }
 
-// Map a Flex block tag to a JR train type (種別).
+// Flex block tags styled as JR train types (種別). `ink` is the text color used
+// when the type color fills a solid badge.
 const TRAIN_TYPES = {
-  'Local': { label: '普通', romaji: 'LOCAL', color: '#c9ced8' },
-  'Rapid': { label: '快速', romaji: 'RAPID', color: 'var(--jr-blue)' },
-  'Express': { label: '急行', romaji: 'EXP', color: 'var(--jr-orange)' },
-  'Rapid Express': { label: '特急', romaji: 'LTD.EXP', color: 'var(--jr-red)' },
+  'Local': { label: '普通', romaji: 'LOCAL', color: '#c9ced8', ink: '#14130f' },
+  'Rapid': { label: '快速', romaji: 'RAPID', color: 'var(--jr-blue)', ink: '#fff' },
+  'Express': { label: '急行', romaji: 'EXP', color: 'var(--jr-orange)', ink: '#fff' },
+  'Rapid Express': { label: '特急', romaji: 'LTD.EXP', color: 'var(--jr-red)', ink: '#fff' },
 };
 function trainType(shift) {
-  return (shift.tag && TRAIN_TYPES[shift.tag]) || { label: '普通', romaji: 'LOCAL', color: '#c9ced8' };
+  return (shift.tag && TRAIN_TYPES[shift.tag]) || { label: '普通', romaji: 'LOCAL', color: '#c9ced8', ink: '#14130f' };
 }
-// A train "type" for the current period, used on the rollsign.
+// A solid 種別-style badge for a Flex tag, reused wherever a tag is displayed.
+function typeBadge(tag) {
+  const ty = TRAIN_TYPES[tag];
+  if (!ty) return '';
+  return `<span class="type-badge" style="--tc:${ty.color};--ink:${ty.ink}">${ty.label}<em>${ty.romaji}</em></span>`;
+}
+// The rollsign panel shows the selected date range (not a train type).
 const PERIOD_TYPE = {
-  week: { label: '普通', romaji: 'LOCAL', color: 'var(--jr-blue)' },
-  month: { label: '快速', romaji: 'RAPID', color: 'var(--jr-teal)' },
-  year: { label: '急行', romaji: 'EXP', color: 'var(--jr-orange)' },
-  all: { label: '特急', romaji: 'LTD.EXP', color: 'var(--jr-red)' },
+  week: { label: '週間', romaji: 'WEEKLY' },
+  month: { label: '月間', romaji: 'MONTHLY' },
+  year: { label: '年間', romaji: 'YEARLY' },
+  all: { label: '全期間', romaji: 'ALL' },
 };
 
 // The signature graphic: earnings rendered as a JR-style line map, with a
@@ -234,7 +241,7 @@ function renderRouteStrip() {
   const ty = PERIOD_TYPE[state.period] || PERIOD_TYPE.all;
   const rollsign = `
     <div class="rollsign">
-      <span class="rs-type" style="--tc:${ty.color}">${ty.label}<em>${ty.romaji}</em></span>
+      <span class="rs-type" style="--tc:var(--accent)">${ty.label}<em>${ty.romaji}</em></span>
       <span class="rs-dest"><b>ギグライン</b><small>GIG&nbsp;LINE</small></span>
       <span class="rs-total" id="rs-total"></span>
     </div>`;
@@ -618,7 +625,6 @@ function recordRow(item, type, deletable = true) {
   if (type === 'shift') {
     const income = store.shiftIncome(item);
     const bits = [platLabel(item.platform)];
-    if (item.tag) bits.push(item.tag);
     if (item.scheduledHours) {
       const pct = item.hours ? Math.round((item.hours / item.scheduledHours) * 100) : null;
       bits.push(`${fmt1(item.hours)}/${fmt1(item.scheduledHours)}h${pct != null ? ` (${pct}%)` : ''}`);
@@ -630,7 +636,7 @@ function recordRow(item, type, deletable = true) {
     return `<li class="record" data-id="${item.id}" data-type="shift">
       <span class="rec-badge" style="background:${platColor(item.platform)}"></span>
       <div class="rec-main">
-        <div class="rec-title">${friendlyDate(item.date)}</div>
+        <div class="rec-title">${friendlyDate(item.date)}${item.tag ? ' ' + typeBadge(item.tag) : ''}</div>
         <div class="rec-sub">${bits.join(' · ')}${item.notes ? ' · ' + escapeHtml(item.notes) : ''}</div>
       </div>
       <div class="rec-amount">${fmtMoney(income)}</div>
@@ -722,7 +728,7 @@ function renderTrends() {
       { empty: 'Tag your Flex blocks to compare' });
     $('#flex-tag-list').innerHTML = byTag.map((t) => `
       <li class="tag-stat">
-        <span class="legend-dot" style="background:${TAG_COLORS[t.tag]}"></span>
+        ${typeBadge(t.tag)}
         <div class="ts-main">
           <div class="ts-name">${t.tag}${t.tag === best.tag && byTag.length > 1 ? ' <span class="hint">· best/hr</span>' : ''}</div>
           <div class="ts-sub">${t.count} block${t.count !== 1 ? 's' : ''} · ${fmtMoney0(t.income)} total${t.effPct ? ` · ${Math.round(t.effPct)}% block time` : ''}</div>

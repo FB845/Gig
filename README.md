@@ -43,7 +43,7 @@ mileage tracking** — without asking for a cent.
   dashboard styled after Japanese-rail (JR-East-inspired) infotainment: a
   sidebar with outlined **line-symbol** navigation and a live station clock; a
   scrolling **ticker board** with kanji stat labels (純利益・時給・走行距離…); a
-  **方向幕 rollsign** header (colored 種別 panel + line name + romaji); a **"Gig
+  **方向幕 rollsign** header (date-range panel — 週間/月間/年間/全期間 — + line name + romaji); a **"Gig
   Line" route map** rendering earnings as numbered stations with a pulsing "you
   are here" marker; a **発車標 departure board** of recent shifts with train-type
   badges (特急/急行/快速/普通); and **LED count-up** KPI numbers with sparklines.

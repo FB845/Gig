@@ -132,12 +132,12 @@
           <input type="number" id="shift-scheduled-custom" class="hidden" step="0.25" min="0" inputmode="decimal" placeholder="Custom block hours, e.g. 5" style="margin-top:8px" />
         </div>
         <div class="field flex-only" id="flex-tag-field">
-          <label>Block type</label>
-          <div class="choice compact" id="shift-tag">
-            <button type="button" class="chip" data-val="Local">Local <span class="chip-jp">普通</span></button>
-            <button type="button" class="chip" data-val="Rapid">Rapid <span class="chip-jp">快速</span></button>
-            <button type="button" class="chip" data-val="Express">Express <span class="chip-jp">急行</span></button>
-            <button type="button" class="chip" data-val="Rapid Express">Rapid Express <span class="chip-jp">特急</span></button>
+          <label>Block type <span class="hint">種別</span></label>
+          <div class="choice type-choice" id="shift-tag">
+            <button type="button" class="chip type-chip" data-val="Local" style="--tc:#c9ced8;--ink:#14130f"><b>普通</b><em>LOCAL</em><i>Local</i></button>
+            <button type="button" class="chip type-chip" data-val="Rapid" style="--tc:var(--jr-blue);--ink:#fff"><b>快速</b><em>RAPID</em><i>Rapid</i></button>
+            <button type="button" class="chip type-chip" data-val="Express" style="--tc:var(--jr-orange);--ink:#fff"><b>急行</b><em>EXP</em><i>Express</i></button>
+            <button type="button" class="chip type-chip" data-val="Rapid Express" style="--tc:var(--jr-red);--ink:#fff"><b>特急</b><em>LTD.EXP</em><i>Rapid Exp</i></button>
           </div>
         </div>
         <div class="row">

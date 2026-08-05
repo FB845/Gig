@@ -333,7 +333,7 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 }
 .rs-type {
   display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
-  background: var(--tc); color: #fff; font-weight: 800; font-size: 16px; line-height: 1;
+  background: var(--tc); color: #05231a; font-weight: 800; font-size: 16px; line-height: 1;
   padding: 6px 9px; border-radius: 4px; letter-spacing: .06em; min-width: 56px;
 }
 .rs-type em { font-style: normal; font-family: var(--font-board); font-size: 8px; letter-spacing: .1em; margin-top: 3px; opacity: .95; }
@@ -370,7 +370,19 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 .dep-dist i { font-style: normal; font-size: 10px; margin-left: 2px; }
 .dep-amt { text-align: right; font-family: var(--font-led); font-size: 15px; font-weight: 800; color: var(--accent); }
 
-.chip-jp { font-family: var(--font-jp); opacity: .7; font-size: .9em; margin-left: 2px; }
+/* Solid 種別 badge — used wherever a Flex tag is displayed (shift rows, trends) */
+.type-badge { display: inline-flex; align-items: baseline; gap: 4px; background: var(--tc); color: var(--ink); font-family: var(--font-jp); font-weight: 800; font-size: 11px; padding: 1px 6px; border-radius: 4px; letter-spacing: .03em; vertical-align: middle; }
+.type-badge em { font-style: normal; font-family: var(--font-board); font-size: 7px; letter-spacing: .08em; opacity: .8; }
+
+/* Block-type picker: each option is a 種別 panel (solid when selected) */
+.type-choice { display: flex; gap: 8px; flex-wrap: wrap; }
+.type-chip { display: inline-flex; flex-direction: column; align-items: center; line-height: 1; padding: 7px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--card-2); cursor: pointer; min-width: 58px; }
+.type-chip b { font-family: var(--font-jp); font-weight: 800; font-size: 16px; color: var(--tc); }
+.type-chip em { font-style: normal; font-family: var(--font-board); font-size: 8px; letter-spacing: .1em; color: var(--muted); margin-top: 3px; }
+.type-chip i { font-style: normal; font-size: 10px; color: var(--muted); margin-top: 3px; }
+.type-chip.active { background: var(--tc); border-color: var(--tc); }
+.type-chip.active b, .type-chip.active em, .type-chip.active i { color: var(--ink); }
+.type-chip.active em, .type-chip.active i { opacity: .82; }
 
 /* Mobile tab bar → JR line symbols */
 .tab .line-mark { width: 26px; height: 26px; border-width: 2px; font-size: 10px; border-radius: 7px; }
