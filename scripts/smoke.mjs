@@ -154,6 +154,46 @@ try {
   ok(/Set aside for taxes/i.test(await page.locator('#tax-card').innerText()), 'tax set-aside card renders on dashboard');
   ok((await page.locator('#drive-cta').count()) === 1, 'Start drive button present');
 
+  console.log('\n12) Flex block presets + tags + actual-vs-scheduled %');
+  await page.evaluate(async () => { (await import('./js/store.js')).clearAll(); });
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForTimeout(200);
+  await page.locator('.tab[data-view=log]').click();
+  ok((await page.locator('#flex-block-field:not(.hidden)').count()) === 1, 'Flex block field visible for Flex (default)');
+  await page.locator('#shift-blockpreset .chip[data-val="3"]').click();
+  ok((await page.locator('#shift-form [name=hours]').inputValue()) === '3', 'actual hours prefilled to scheduled block (3)');
+  await page.fill('#shift-form [name=hours]', '2.25'); // finished early
+  await page.locator('#shift-tag .chip[data-val="Rapid Express"]').click();
+  await page.fill('#shift-form [name=date]', '2026-07-07');
+  await page.fill('#shift-form [name=gross]', '66');
+  await page.locator('#shift-form [name=gross]').dispatchEvent('input');
+  ok(/75%/.test(await page.locator('#shift-live').innerText()), 'live "Block time" = 75% (2.25/3)');
+  await page.locator('#shift-submit').click();
+  await page.waitForTimeout(150);
+  const fx = await page.evaluate(async () => (await import('./js/store.js')).getShifts()[0]);
+  ok(fx.scheduledHours === 3 && Math.abs(fx.hours - 2.25) < 0.01, 'saved scheduled=3, actual=2.25');
+  ok(fx.tag === 'Rapid Express', 'saved tag = Rapid Express');
+  ok(/Rapid Express/.test(await page.locator('#log-list').innerText()) && /75%\)/.test(await page.locator('#log-list').innerText()), 'shift row shows tag + (75%)');
+
+  await page.locator('#shift-platform .chip[data-val="doordash"]').click();
+  ok((await page.locator('#flex-block-field.hidden').count()) === 1, 'Flex fields hidden for DoorDash');
+  ok((await page.locator('#hours-label').innerText()) === 'Hours worked', 'hours label reverts to "Hours worked" for DoorDash');
+
+  await page.locator('.tab[data-view=dashboard]').click();
+  await page.locator('#period-pills .pill[data-period=all]').click();
+  await page.waitForTimeout(150);
+  ok((await page.locator('#flex-eff-card:not(.hidden)').count()) === 1, 'Flex efficiency card shown on dashboard');
+  ok(/75%/.test(await page.locator('#flex-eff-card').innerText()), 'efficiency card shows 75%');
+
+  const eff = await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    return s.summarize([
+      { platform: 'flex', date: '2026-07-01', scheduledHours: 3, hours: 2.25, gross: 60, tips: 0 },
+      { platform: 'flex', date: '2026-07-02', scheduledHours: 2, hours: 2, gross: 40, tips: 0 },
+    ], [], { mileageRate: 0.70, taxRate: 0.25 });
+  });
+  ok(Math.abs(eff.actualVsScheduledPct - 85) < 0.01, 'summarize actual-vs-scheduled = 85% ((2.25+2)/(3+2))');
+
   ok(errors.length === 0, 'no console/page errors' + (errors.length ? ': ' + errors.slice(0, 3).join(' | ') : ''));
 } catch (e) {
   console.error('TEST CRASH:', e);

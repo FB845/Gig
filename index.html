@@ -42,6 +42,8 @@
 
       <div class="card tax-card" id="tax-card"></div>
 
+      <div class="card flex-eff-card hidden" id="flex-eff-card"></div>
+
       <div class="card">
         <div class="card-head">
           <h2>Earnings over time</h2>
@@ -88,9 +90,33 @@
             <button type="button" class="chip" data-val="other">Other</button>
           </div>
         </div>
+        <div class="field flex-only" id="flex-block-field">
+          <label>Block length <span class="hint">scheduled</span></label>
+          <div class="choice compact" id="shift-blockpreset">
+            <button type="button" class="chip" data-val="1">1:00</button>
+            <button type="button" class="chip" data-val="1.5">1:30</button>
+            <button type="button" class="chip" data-val="2">2:00</button>
+            <button type="button" class="chip" data-val="2.5">2:30</button>
+            <button type="button" class="chip" data-val="3">3:00</button>
+            <button type="button" class="chip" data-val="3.5">3:30</button>
+            <button type="button" class="chip" data-val="4">4:00</button>
+            <button type="button" class="chip" data-val="4.5">4:30</button>
+            <button type="button" class="chip" data-val="custom">Custom</button>
+          </div>
+          <input type="number" id="shift-scheduled-custom" class="hidden" step="0.25" min="0" inputmode="decimal" placeholder="Custom block hours, e.g. 5" style="margin-top:8px" />
+        </div>
+        <div class="field flex-only" id="flex-tag-field">
+          <label>Block type</label>
+          <div class="choice compact" id="shift-tag">
+            <button type="button" class="chip" data-val="Rapid Express">Rapid Express</button>
+            <button type="button" class="chip" data-val="Express">Express</button>
+            <button type="button" class="chip" data-val="Rescue">Rescue</button>
+            <button type="button" class="chip" data-val="Normal">Normal</button>
+          </div>
+        </div>
         <div class="row">
           <div class="field"><label>Date</label><input type="date" name="date" required /></div>
-          <div class="field"><label>Hours worked</label><input type="number" name="hours" step="0.25" min="0" inputmode="decimal" placeholder="3.5" /></div>
+          <div class="field"><label id="hours-label">Actual time worked</label><input type="number" name="hours" step="0.25" min="0" inputmode="decimal" placeholder="3.5" /></div>
         </div>
         <div class="row">
           <div class="field"><label>Base pay ($)</label><input type="number" name="gross" step="0.01" min="0" inputmode="decimal" placeholder="42.00" /></div>

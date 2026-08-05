@@ -9,6 +9,10 @@ export const PLATFORMS = {
   other: { id: 'other', label: 'Other', color: '#a78bfa', short: 'Other' },
 };
 
+// Amazon Flex block-length presets (hours) and block types.
+export const FLEX_BLOCK_PRESETS = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5];
+export const FLEX_TAGS = ['Rapid Express', 'Express', 'Rescue', 'Normal'];
+
 export const EXPENSE_CATEGORIES = [
   'Fuel', 'Tolls', 'Maintenance', 'Car Payment', 'Insurance',
   'Phone', 'Supplies', 'Parking', 'Hot Bags', 'Other',
@@ -124,7 +128,9 @@ function normalizeShift(s) {
     id: s.id,
     platform: s.platform in PLATFORMS ? s.platform : 'other',
     date: s.date,
-    hours: num(s.hours),
+    hours: num(s.hours),                 // actual time worked
+    scheduledHours: num(s.scheduledHours), // Flex block length (scheduled)
+    tag: FLEX_TAGS.includes(s.tag) ? s.tag : '', // Flex block type
     gross: num(s.gross),
     tips: num(s.tips),
     jobs: Math.round(num(s.jobs)),
@@ -271,6 +277,10 @@ export function summarize(shifts, expenses, settings = db.settings) {
   const tips = shifts.reduce((a, s) => a + num(s.tips), 0);
   const hours = shifts.reduce((a, s) => a + num(s.hours), 0);
   const miles = shifts.reduce((a, s) => a + num(s.miles), 0);
+  // Actual vs scheduled time, over shifts that have both (Flex blocks).
+  const schedShifts = shifts.filter((s) => num(s.scheduledHours) > 0 && num(s.hours) > 0);
+  const schedPlanned = schedShifts.reduce((a, s) => a + num(s.scheduledHours), 0);
+  const schedActual = schedShifts.reduce((a, s) => a + num(s.hours), 0);
   const jobs = shifts.reduce((a, s) => a + num(s.jobs), 0);
   const expenseTotal = expenses.reduce((a, e) => a + num(e.amount), 0);
   const mileageDeduction = miles * num(settings.mileageRate);
@@ -284,6 +294,9 @@ export function summarize(shifts, expenses, settings = db.settings) {
     expenseTotal, net, mileageDeduction,
     taxableEstimate, taxSetAside,
     takeHomeAfterTax: net - taxSetAside,
+    schedPlanned, schedActual, schedShiftCount: schedShifts.length,
+    // % of scheduled block time actually spent (<100% = finished blocks early).
+    actualVsScheduledPct: schedPlanned ? (schedActual / schedPlanned) * 100 : 0,
     perHour: hours ? income / hours : 0,
     perMile: miles ? income / miles : 0,
     perJob: jobs ? income / jobs : 0,

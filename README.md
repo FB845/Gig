@@ -28,6 +28,10 @@ mileage tracking** — without asking for a cent.
   best day of the week.
 - **Fast logging** — log a shift (platform, hours, base pay, tips, deliveries,
   miles, fuel) with live $/hr, $/mi and tax-deduction math as you type.
+- **Amazon Flex block tools** — one-tap **block-length presets** (1:00–4:30 +
+  custom) for the scheduled block, **block-type tags** (Rapid Express, Express,
+  Rescue, Normal), and an **actual-vs-scheduled %** so you can see how often you
+  beat the clock (e.g. a 3:00 block finished in 2:15 = 75%).
 - **Expense tracking** — fuel, tolls, maintenance, insurance, phone, supplies,
   and more, with category breakdowns.
 - **Assisted import** *(see below)* — 📸 screenshot import (OCR), 📄 CSV

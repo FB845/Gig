@@ -55,6 +55,18 @@ await page.screenshot({ path: path.join(root, 'scripts/trends.png') });
 await page.locator('.tab[data-view=import]').click();
 await page.waitForTimeout(200);
 await page.screenshot({ path: path.join(root, 'scripts/import.png') });
+// flex shift form with block preset + tag selected
+await page.locator('.tab[data-view=log]').click();
+await page.locator('#shift-blockpreset .chip[data-val="3"]').click();
+await page.fill('#shift-form [name=hours]', '2.5');
+await page.locator('#shift-tag .chip[data-val="Rapid Express"]').click();
+await page.fill('#shift-form [name=gross]', '54');
+await page.fill('#shift-form [name=tips]', '8');
+await page.fill('#shift-form [name=jobs]', '31');
+await page.fill('#shift-form [name=miles]', '38');
+await page.locator('#shift-form [name=miles]').dispatchEvent('input');
+await page.waitForTimeout(150);
+await page.screenshot({ path: path.join(root, 'scripts/flex-form.png') });
 // drive overlay (simulate a short drive)
 await page.locator('.tab[data-view=dashboard]').click();
 await page.locator('#drive-cta').click();

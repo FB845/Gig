@@ -99,6 +99,24 @@ function renderDashboard() {
       <div class="tt-label">est. take-home</div>
     </div>`;
 
+  // Flex block efficiency: actual vs scheduled time
+  const feCard = $('#flex-eff-card');
+  if (s.schedPlanned > 0) {
+    const pct = s.actualVsScheduledPct;
+    const over = pct > 100.5;
+    const trend = pct > 100.5 ? 'ran over' : pct < 99.5 ? 'finished early' : 'right on time';
+    feCard.classList.remove('hidden');
+    feCard.innerHTML = `
+      <div class="fe-head">
+        <span class="fe-title">Flex block time used</span>
+        <span class="fe-pct ${over ? 'over' : ''}">${Math.round(pct)}%</span>
+      </div>
+      <div class="fe-bar"><span class="${over ? 'over' : ''}" style="width:${Math.min(100, pct)}%"></span></div>
+      <div class="fe-sub">${fmt1(s.schedActual)} h actual of ${fmt1(s.schedPlanned)} h scheduled · ${s.schedShiftCount} block${s.schedShiftCount !== 1 ? 's' : ''} · ${trend} on average</div>`;
+  } else {
+    feCard.classList.add('hidden');
+  }
+
   renderEarningsChart(shifts);
   renderPlatformDonut(shifts);
   renderExpensesDonut(expenses);
@@ -178,6 +196,12 @@ function initForms() {
   bindChips('#ocr-platform');
   bindChips('#csv-platform');
 
+  // Flex-specific: block-type tags + block-length presets, shown only for Flex
+  bindChips('#shift-tag');
+  $('#shift-platform').addEventListener('click', (e) => { if (e.target.closest('.chip')) updateFlexUI(); });
+  bindBlockPresets();
+  updateFlexUI();
+
   // expense categories
   $('#expense-category').innerHTML = EXPENSE_CATEGORIES.map((c) => `<option value="${c}">${c}</option>`).join('');
 
@@ -212,6 +236,53 @@ function setChip(sel, val) {
   $$(`${sel} .chip`).forEach((c) => c.classList.toggle('active', c.dataset.val === val));
 }
 
+// Show/hide the Flex-only fields and adapt the hours label to the platform.
+function updateFlexUI() {
+  const isFlex = chipValue('#shift-platform') === 'flex';
+  $$('#shift-form .flex-only').forEach((el) => el.classList.toggle('hidden', !isFlex));
+  $('#hours-label').textContent = isFlex ? 'Actual time worked' : 'Hours worked';
+  updateShiftLive();
+}
+
+function bindBlockPresets() {
+  const group = $('#shift-blockpreset');
+  const custom = $('#shift-scheduled-custom');
+  $$('.chip', group).forEach((c) => c.addEventListener('click', () => {
+    $$('.chip', group).forEach((x) => x.classList.toggle('active', x === c));
+    const isCustom = c.dataset.val === 'custom';
+    custom.classList.toggle('hidden', !isCustom);
+    if (isCustom) { custom.focus(); }
+    else {
+      const f = $('#shift-form');
+      if (!f.hours.value) f.hours.value = c.dataset.val; // prefill actual = scheduled
+    }
+    updateShiftLive();
+  }));
+  custom.addEventListener('input', updateShiftLive);
+}
+
+// Currently selected scheduled block length (hours), 0 if none.
+function getScheduledHours() {
+  const active = $('#shift-blockpreset .chip.active');
+  if (!active) return 0;
+  if (active.dataset.val === 'custom') return parseFloat($('#shift-scheduled-custom').value) || 0;
+  return parseFloat(active.dataset.val) || 0;
+}
+
+// Reflect a stored scheduledHours value back onto the preset chips (used on edit).
+function setBlockPreset(scheduledHours) {
+  const custom = $('#shift-scheduled-custom');
+  $$('#shift-blockpreset .chip').forEach((c) => c.classList.remove('active'));
+  custom.classList.add('hidden'); custom.value = '';
+  if (!scheduledHours) return;
+  const match = $$('#shift-blockpreset .chip').find((c) => c.dataset.val !== 'custom' && parseFloat(c.dataset.val) === scheduledHours);
+  if (match) { match.classList.add('active'); }
+  else {
+    $('#shift-blockpreset .chip[data-val="custom"]').classList.add('active');
+    custom.classList.remove('hidden'); custom.value = scheduledHours;
+  }
+}
+
 function updateShiftLive() {
   const f = $('#shift-form');
   const gross = +f.gross.value || 0, tips = +f.tips.value || 0, hours = +f.hours.value || 0;
@@ -224,17 +295,22 @@ function updateShiftLive() {
   if (miles) parts.push(`<span class="lm">$/mi <b>${fmtMoney(income / miles)}</b></span>`);
   if (jobs) parts.push(`<span class="lm">$/job <b>${fmtMoney(income / jobs)}</b></span>`);
   if (miles) parts.push(`<span class="lm">Tax mi-deduction <b>${fmtMoney(miles * rate)}</b></span>`);
+  const sched = chipValue('#shift-platform') === 'flex' ? getScheduledHours() : 0;
+  if (sched && hours) parts.push(`<span class="lm">Block time <b>${Math.round((hours / sched) * 100)}%</b></span>`);
   $('#shift-live').innerHTML = parts.join('');
 }
 
 function onSaveShift(e) {
   e.preventDefault();
   const f = e.target;
+  const isFlex = chipValue('#shift-platform') === 'flex';
   const data = {
     platform: chipValue('#shift-platform') || 'other',
     date: f.date.value,
     hours: f.hours.value, gross: f.gross.value, tips: f.tips.value,
     jobs: f.jobs.value, miles: f.miles.value, fuel: f.fuel.value, notes: f.notes.value,
+    scheduledHours: isFlex ? getScheduledHours() : 0,
+    tag: isFlex ? chipValue('#shift-tag') : '',
   };
   if (!data.date) { toast('Pick a date'); return; }
   if (state.editShiftId) {
@@ -268,10 +344,12 @@ function resetShiftForm() {
   f.reset();
   f.date.value = store.todayISO();
   setChip('#shift-platform', 'flex');
+  setChip('#shift-tag', '');
+  setBlockPreset(0);
   state.editShiftId = null;
   $('#shift-form-title').textContent = 'Log a shift';
   $('#shift-submit').textContent = 'Save shift';
-  updateShiftLive();
+  updateFlexUI();
 }
 function resetExpenseForm() {
   const f = $('#expense-form');
@@ -292,13 +370,15 @@ function editShift(id) {
   $('#expense-form').classList.add('hidden');
   const f = $('#shift-form');
   setChip('#shift-platform', s.platform);
+  setChip('#shift-tag', s.tag || '');
+  setBlockPreset(s.scheduledHours || 0);
   f.date.value = s.date; f.hours.value = s.hours || ''; f.gross.value = s.gross || '';
   f.tips.value = s.tips || ''; f.jobs.value = s.jobs || ''; f.miles.value = s.miles || '';
   f.fuel.value = ''; f.notes.value = s.notes || '';
   state.editShiftId = id;
   $('#shift-form-title').textContent = 'Edit shift';
   $('#shift-submit').textContent = 'Update shift';
-  updateShiftLive();
+  updateFlexUI();
   showView('log');
   f.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -324,7 +404,13 @@ function recordRow(item, type, deletable = true) {
   if (type === 'shift') {
     const income = store.shiftIncome(item);
     const bits = [platLabel(item.platform)];
-    if (item.hours) bits.push(`${fmt1(item.hours)}h`);
+    if (item.tag) bits.push(item.tag);
+    if (item.scheduledHours) {
+      const pct = item.hours ? Math.round((item.hours / item.scheduledHours) * 100) : null;
+      bits.push(`${fmt1(item.hours)}/${fmt1(item.scheduledHours)}h${pct != null ? ` (${pct}%)` : ''}`);
+    } else if (item.hours) {
+      bits.push(`${fmt1(item.hours)}h`);
+    }
     if (item.jobs) bits.push(`${item.jobs} jobs`);
     if (item.miles) bits.push(`${fmt1(item.miles)} mi`);
     return `<li class="record" data-id="${item.id}" data-type="shift">
