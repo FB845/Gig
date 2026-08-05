@@ -113,6 +113,10 @@ npm start        # serves at http://localhost:8080 (python3 http.server)
 
 Once installed it launches full-screen and works offline.
 
+**Updates:** when a new version is deployed, the app detects it and shows a
+"New version available — Refresh" banner. Tap **Refresh** to update on the spot;
+nothing reloads out from under you until you do.
+
 ## Your data
 
 Everything is stored **locally in your browser** (`localStorage`) — private, no

@@ -4,7 +4,7 @@
 // single reload always gets the latest version when you're online, falling back
 // to cache when offline. CACHE-FIRST for static images/icons (they rarely change
 // and this keeps things fast). Bump CACHE on every release to purge old files.
-const CACHE = 'gig-tracker-v2';
+const CACHE = 'gig-tracker-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -23,7 +23,15 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  // Precache the shell, but DON'T auto-activate — wait in the "installed" state
+  // so the page can show an "update available" banner and let the user choose
+  // when to switch (avoids reloading out from under someone mid-entry).
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));
+});
+
+// The page posts this when the user taps "Refresh" on the update banner.
+self.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('activate', (e) => {

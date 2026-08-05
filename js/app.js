@@ -904,9 +904,55 @@ function boot() {
   // re-render dashboard when data changes elsewhere
   store.onChange(() => { if ($('#view-dashboard').classList.contains('active')) renderDashboard(); });
 
-  // register service worker for offline
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
-  }
+  registerSW();
 }
 boot();
+
+// ---- service worker + in-app update banner ----
+function registerSW() {
+  if (!('serviceWorker' in navigator)) return;
+  let updateAccepted = false;
+  let reloading = false;
+
+  // When the freshly-activated SW takes control (only after the user taps
+  // Refresh), reload once to run the new code.
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!updateAccepted || reloading) return;
+    reloading = true;
+    window.location.reload();
+  });
+
+  window.addEventListener('load', async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('sw.js');
+      // A new version may already be waiting from a previous visit.
+      if (reg.waiting && navigator.serviceWorker.controller) showUpdateBanner(reg);
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        if (!nw) return;
+        nw.addEventListener('statechange', () => {
+          // "installed" + an existing controller == this is an update, not first install.
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) showUpdateBanner(reg);
+        });
+      });
+      // Proactively check for a new deploy each time the app is reopened/refocused.
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') reg.update().catch(() => {});
+      });
+    } catch { /* offline / unsupported — app still works from cache */ }
+
+    function showUpdateBanner(reg) {
+      const banner = $('#update-banner');
+      if (!banner || banner.dataset.shown === '1') return;
+      banner.dataset.shown = '1';
+      banner.classList.remove('hidden');
+      $('#update-apply').onclick = () => {
+        updateAccepted = true;
+        banner.classList.add('hidden');
+        if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        else window.location.reload();
+      };
+      $('#update-dismiss').onclick = () => { banner.classList.add('hidden'); };
+    }
+  });
+}

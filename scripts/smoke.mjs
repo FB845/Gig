@@ -39,6 +39,7 @@ try {
   await page.waitForTimeout(300);
   ok(await page.locator('h1').innerText() === 'Gig Tracker', 'app title renders');
   ok(await page.locator('#view-dashboard.active').count() === 1, 'dashboard is default view');
+  ok(await page.locator('#update-banner.hidden').count() === 1, 'update banner present and hidden by default');
 
   console.log('\n2) Log a shift via the form');
   await page.locator('.tab[data-view=log]').click();
