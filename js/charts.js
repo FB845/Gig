@@ -55,7 +55,7 @@ export function barChart(container, data, series, opts = {}) {
       yCursor -= h;
       const rect = el('rect', {
         x: cx - barW / 2, y: yCursor, width: barW, height: Math.max(0, h),
-        rx: 3, fill: s.color, class: 'bar',
+        rx: 3, fill: d.color || s.color, class: 'bar', // per-point color override
       });
       rect.appendChild(el('title', {}, [document.createTextNode(`${d.label} · ${s.label}: ${money(v)}`)]));
       svg.appendChild(rect);

@@ -194,6 +194,26 @@ try {
   });
   ok(Math.abs(eff.actualVsScheduledPct - 85) < 0.01, 'summarize actual-vs-scheduled = 85% ((2.25+2)/(3+2))');
 
+  console.log('\n13) Flex pay by block type (Trends breakdown)');
+  const byTag = await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    return s.flexByTag([
+      { platform: 'flex', date: '2026-07-01', tag: 'Rapid Express', scheduledHours: 2, hours: 1.5, gross: 44, tips: 6 },
+      { platform: 'flex', date: '2026-07-02', tag: 'Normal', scheduledHours: 3, hours: 3, gross: 45, tips: 3 },
+      { platform: 'doordash', date: '2026-07-03', tag: '', gross: 30, tips: 10, hours: 2 },
+    ]);
+  });
+  ok(byTag.length === 2, 'flexByTag returns 2 tagged groups (ignores DoorDash/untagged)');
+  ok(byTag[0].tag === 'Rapid Express', 'groups ordered by FLEX_TAGS (Rapid first)');
+  const rapid = byTag.find((t) => t.tag === 'Rapid Express');
+  ok(Math.abs(rapid.perHour - 50 / 1.5) < 0.01, 'Rapid Express $/hr = 50/1.5 = 33.33');
+  ok(Math.abs(rapid.effPct - 75) < 0.01, 'Rapid Express block time = 1.5/2 = 75%');
+  await page.locator('.tab[data-view=trends]').click();
+  await page.waitForTimeout(150);
+  ok((await page.locator('#flex-tag-card:not(.hidden)').count()) === 1, 'Flex-by-block-type card visible in Trends');
+  ok((await page.locator('#chart-flex-tag svg .bar').count()) >= 1, 'block-type $/hr bar chart drew bars');
+  ok(/Rapid Express/.test(await page.locator('#flex-tag-list').innerText()), 'block-type list shows Rapid Express');
+
   ok(errors.length === 0, 'no console/page errors' + (errors.length ? ': ' + errors.slice(0, 3).join(' | ') : ''));
 } catch (e) {
   console.error('TEST CRASH:', e);

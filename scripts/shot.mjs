@@ -31,10 +31,14 @@ await page.evaluate(async () => {
     const d = new Date(start); d.setDate(d.getDate() + i);
     if (Math.random() < 0.35) continue;
     const p = plats[Math.random() < 0.5 ? 0 : 1];
-    const hours = 2 + Math.round(Math.random() * 6);
-    const gross = Math.round((hours * (12 + Math.random() * 6)) * 100) / 100;
+    const tags = ['Rapid Express', 'Express', 'Rescue', 'Normal'];
+    const sched = [2, 2.5, 3, 3.5, 4][Math.floor(Math.random() * 5)];
+    const isFlex = p === 'flex';
+    const hours = isFlex ? Math.round((sched * (0.7 + Math.random() * 0.45)) * 4) / 4 : 2 + Math.round(Math.random() * 6);
+    const rate = isFlex ? 14 + Math.random() * 10 : 12 + Math.random() * 6;
+    const gross = Math.round((hours * rate) * 100) / 100;
     const tips = p === 'doordash' ? Math.round(Math.random() * 25 * 100) / 100 : Math.round(Math.random() * 8 * 100) / 100;
-    s.addShift({ platform: p, date: s.isoDate(d), hours, gross, tips, jobs: 4 + Math.round(Math.random() * 14), miles: Math.round((hours * 9) * 10) / 10, fuel: Math.random() < 0.4 ? Math.round(Math.random() * 25 * 100) / 100 : 0 });
+    s.addShift({ platform: p, date: s.isoDate(d), hours, gross, tips, jobs: 4 + Math.round(Math.random() * 14), miles: Math.round((hours * 9) * 10) / 10, fuel: Math.random() < 0.4 ? Math.round(Math.random() * 25 * 100) / 100 : 0, scheduledHours: isFlex ? sched : 0, tag: isFlex ? tags[Math.floor(Math.random() * 4)] : '' });
   }
   s.addExpense({ date: '2026-06-15', category: 'Maintenance', amount: 89.99, note: 'Oil change' });
   s.addExpense({ date: '2026-06-20', category: 'Phone', amount: 45 });

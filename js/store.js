@@ -305,6 +305,34 @@ export function summarize(shifts, expenses, settings = db.settings) {
   };
 }
 
+// Per-block-type breakdown for Amazon Flex: income, hours, $/hr and block
+// efficiency for each tag. Ordered by FLEX_TAGS. Only tagged Flex shifts count.
+export function flexByTag(shifts) {
+  const map = new Map();
+  for (const s of shifts) {
+    if (s.platform !== 'flex' || !s.tag) continue;
+    if (!map.has(s.tag)) map.set(s.tag, { tag: s.tag, count: 0, income: 0, hours: 0, miles: 0, schedPlanned: 0, schedActual: 0 });
+    const o = map.get(s.tag);
+    o.count += 1;
+    o.income += shiftIncome(s);
+    o.hours += num(s.hours);
+    o.miles += num(s.miles);
+    if (num(s.scheduledHours) > 0 && num(s.hours) > 0) {
+      o.schedPlanned += num(s.scheduledHours);
+      o.schedActual += num(s.hours);
+    }
+  }
+  return FLEX_TAGS.filter((t) => map.has(t)).map((t) => {
+    const o = map.get(t);
+    return {
+      ...o,
+      perHour: o.hours ? o.income / o.hours : 0,
+      perBlock: o.count ? o.income / o.count : 0,
+      effPct: o.schedPlanned ? (o.schedActual / o.schedPlanned) * 100 : 0,
+    };
+  });
+}
+
 // ---- date helpers ----
 export function todayISO() {
   const d = new Date();

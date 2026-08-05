@@ -24,8 +24,9 @@ mileage tracking** — without asking for a cent.
 - **Dashboard KPIs** — net income, effective **$/hour**, **$/mile**, and
   **$/delivery**, for the week, month, year, or all time.
 - **Charts** — earnings over time (stacked by platform), platform split,
-  expense breakdown, weekly net, hourly-rate trend, income-vs-expenses, and your
-  best day of the week.
+  expense breakdown, weekly net, hourly-rate trend, income-vs-expenses, your
+  best day of the week, and **Flex $/hour by block type** (which of Rapid
+  Express / Express / Rescue / Normal actually pays best per hour).
 - **Fast logging** — log a shift (platform, hours, base pay, tips, deliveries,
   miles, fuel) with live $/hr, $/mi and tax-deduction math as you type.
 - **Amazon Flex block tools** — one-tap **block-length presets** (1:00–4:30 +

@@ -163,6 +163,8 @@ function renderPlatformDonut(shifts) {
 }
 
 const EXP_COLORS = ['#ef4444', '#f59e0b', '#34d399', '#60a5fa', '#a78bfa', '#f472b6', '#22d3ee', '#facc15', '#fb923c', '#94a3b8'];
+const TAG_COLORS = { 'Rapid Express': '#34d399', 'Express': '#60a5fa', 'Rescue': '#f5a524', 'Normal': '#a78bfa' };
+const TAG_SHORT = { 'Rapid Express': 'Rapid', 'Express': 'Express', 'Rescue': 'Rescue', 'Normal': 'Normal' };
 function renderExpensesDonut(expenses) {
   const byCat = new Map();
   expenses.forEach((e) => byCat.set(e.category, (byCat.get(e.category) || 0) + e.amount));
@@ -495,6 +497,29 @@ document.addEventListener('click', (e) => {
 function renderTrends() {
   const shifts = store.getShifts();
   const expenses = store.getExpenses();
+
+  // Flex pay by block type — which tag actually pays best per hour
+  const byTag = store.flexByTag(shifts);
+  const ftCard = $('#flex-tag-card');
+  if (byTag.length) {
+    ftCard.classList.remove('hidden');
+    const best = byTag.reduce((a, b) => (b.perHour > a.perHour ? b : a), byTag[0]);
+    charts.barChart($('#chart-flex-tag'),
+      byTag.map((t) => ({ label: TAG_SHORT[t.tag] || t.tag, values: { rate: t.perHour }, color: TAG_COLORS[t.tag] })),
+      [{ key: 'rate', label: '$/hr', color: 'var(--accent)' }],
+      { empty: 'Tag your Flex blocks to compare' });
+    $('#flex-tag-list').innerHTML = byTag.map((t) => `
+      <li class="tag-stat">
+        <span class="legend-dot" style="background:${TAG_COLORS[t.tag]}"></span>
+        <div class="ts-main">
+          <div class="ts-name">${t.tag}${t.tag === best.tag && byTag.length > 1 ? ' <span class="hint">· best/hr</span>' : ''}</div>
+          <div class="ts-sub">${t.count} block${t.count !== 1 ? 's' : ''} · ${fmtMoney0(t.income)} total${t.effPct ? ` · ${Math.round(t.effPct)}% block time` : ''}</div>
+        </div>
+        <div class="ts-rate">${t.perHour ? fmtMoney(t.perHour) + '/hr' : '—'}</div>
+      </li>`).join('');
+  } else {
+    ftCard.classList.add('hidden');
+  }
 
   // Weekly net (last 10 weeks)
   const weeks = groupByWeek(shifts, expenses, 10);
