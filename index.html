@@ -25,11 +25,11 @@
       <div class="sb-title"><b>Gig Tracker</b><small>ギグ・トラッカー</small></div>
     </div>
     <div class="side-nav">
-      <button class="snav active" data-view="dashboard"><span class="line-mark" style="--c:#34d399">GX</span><span class="snav-t">Home<small>ホーム</small></span></button>
-      <button class="snav" data-view="log"><span class="line-mark" style="--c:#60a5fa">LG</span><span class="snav-t">Log<small>記録</small></span></button>
-      <button class="snav" data-view="trends"><span class="line-mark" style="--c:#a78bfa">TR</span><span class="snav-t">Trends<small>傾向</small></span></button>
-      <button class="snav" data-view="import"><span class="line-mark" style="--c:#f5a524">IM</span><span class="snav-t">Import<small>取込</small></span></button>
-      <button class="snav" data-view="settings"><span class="line-mark" style="--c:#868e9e">ST</span><span class="snav-t">Settings<small>設定</small></span></button>
+      <button class="snav active" data-view="dashboard"><span class="line-mark" style="--c:var(--jr-green)">GL</span><span class="snav-t">Home<small>ホーム</small></span></button>
+      <button class="snav" data-view="log"><span class="line-mark" style="--c:var(--jr-blue)">LG</span><span class="snav-t">Log<small>記録</small></span></button>
+      <button class="snav" data-view="trends"><span class="line-mark" style="--c:var(--jr-orange)">TR</span><span class="snav-t">Trends<small>分析</small></span></button>
+      <button class="snav" data-view="import"><span class="line-mark" style="--c:var(--jr-teal)">IM</span><span class="snav-t">Import<small>取込</small></span></button>
+      <button class="snav" data-view="settings"><span class="line-mark" style="--c:var(--jr-navy)">ST</span><span class="snav-t">Settings<small>設定</small></span></button>
     </div>
     <div class="side-foot">
       <div class="side-clock" id="side-clock">--:--:--</div>
@@ -71,7 +71,7 @@
 
       <div class="card">
         <div class="card-head">
-          <h2>Earnings over time</h2>
+          <h2>Earnings over time<span class="jp">収入推移</span></h2>
           <div class="legend" id="earn-legend"></div>
         </div>
         <div class="chart-wrap" id="chart-earnings"></div>
@@ -79,20 +79,21 @@
 
       <div class="two-col">
         <div class="card">
-          <div class="card-head"><h2>By platform</h2></div>
+          <div class="card-head"><h2>By platform<span class="jp">事業者別</span></h2></div>
           <div class="chart-wrap donut-wrap" id="chart-platform"></div>
           <div class="legend" id="platform-legend"></div>
         </div>
         <div class="card">
-          <div class="card-head"><h2>Expenses</h2></div>
+          <div class="card-head"><h2>Expenses<span class="jp">経費</span></h2></div>
           <div class="chart-wrap donut-wrap" id="chart-expenses"></div>
           <div class="legend" id="expenses-legend"></div>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-head"><h2>Recent shifts</h2></div>
+        <div class="card-head"><h2>Recent shifts<span class="jp">発車標</span></h2></div>
         <ul class="record-list" id="recent-shifts"></ul>
+        <div class="depboard desktop-only" id="departure-board"></div>
       </div>
     </section>
 
@@ -191,31 +192,31 @@
     <!-- ================= TRENDS ================= -->
     <section id="view-trends" class="view" aria-label="Trends">
       <div class="card hidden" id="flex-tag-card">
-        <div class="card-head"><h2>Flex $/hour by block type</h2></div>
+        <div class="card-head"><h2>Flex $/hour by block type<span class="jp">種別別 時給</span></h2></div>
         <div class="chart-wrap" id="chart-flex-tag"></div>
         <ul class="tag-stats" id="flex-tag-list"></ul>
       </div>
 
       <div class="card">
         <div class="card-head">
-          <h2>Weekly net income</h2>
+          <h2>Weekly net income<span class="jp">週別 純利益</span></h2>
           <div class="legend" id="trend-net-legend"></div>
         </div>
         <div class="chart-wrap" id="chart-weekly-net"></div>
       </div>
       <div class="card">
-        <div class="card-head"><h2>Effective $/hour trend</h2></div>
+        <div class="card-head"><h2>Effective $/hour trend<span class="jp">時給 推移</span></h2></div>
         <div class="chart-wrap" id="chart-hourly"></div>
       </div>
       <div class="card">
         <div class="card-head">
-          <h2>Income vs expenses (monthly)</h2>
+          <h2>Income vs expenses (monthly)<span class="jp">月別 収支</span></h2>
           <div class="legend" id="ie-legend"></div>
         </div>
         <div class="chart-wrap" id="chart-income-expense"></div>
       </div>
       <div class="card">
-        <div class="card-head"><h2>Best day of week</h2></div>
+        <div class="card-head"><h2>Best day of week<span class="jp">曜日別</span></h2></div>
         <div class="chart-wrap" id="chart-dow"></div>
       </div>
     </section>

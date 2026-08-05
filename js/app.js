@@ -75,14 +75,14 @@ function renderDashboard() {
   // KPIs (with LED count-up + sparklines on desktop)
   const spark = dailyMetricSeries(14);
   const kpis = [
-    { label: 'Net income', target: s.net, fmt: 'money0', sub: `${fmtMoney0(s.income)} in · ${fmtMoney0(s.expenseTotal)} out`, cls: s.net >= 0 ? 'accent' : 'neg', series: spark.net, color: '#34d399' },
-    { label: '$ / hour', target: s.perHour, fmt: 'money2', empty: !s.hours, sub: `${fmt1(s.hours)} hrs worked`, series: spark.perHour, color: '#60a5fa' },
-    { label: '$ / mile', target: s.perMile, fmt: 'money2', empty: !s.miles, sub: `${fmt1(s.miles)} mi driven`, series: spark.perMile, color: '#a78bfa' },
-    { label: 'Per delivery', target: s.perJob, fmt: 'money2', empty: !s.jobs, sub: `${s.jobs} deliveries`, series: spark.perJob, color: '#f5a524' },
+    { label: 'Net income', jp: '純利益', target: s.net, fmt: 'money0', sub: `${fmtMoney0(s.income)} in · ${fmtMoney0(s.expenseTotal)} out`, cls: s.net >= 0 ? 'accent' : 'neg', series: spark.net, color: '#34d399' },
+    { label: '$ / hour', jp: '時給', target: s.perHour, fmt: 'money2', empty: !s.hours, sub: `${fmt1(s.hours)} hrs worked`, series: spark.perHour, color: '#60a5fa' },
+    { label: '$ / mile', jp: '距離単価', target: s.perMile, fmt: 'money2', empty: !s.miles, sub: `${fmt1(s.miles)} mi driven`, series: spark.perMile, color: '#a78bfa' },
+    { label: 'Per delivery', jp: '配達単価', target: s.perJob, fmt: 'money2', empty: !s.jobs, sub: `${s.jobs} deliveries`, series: spark.perJob, color: '#f5a524' },
   ];
   $('#kpi-grid').innerHTML = kpis.map((k) => `
     <div class="kpi ${k.cls || ''}">
-      <div class="k-label">${k.label}</div>
+      <div class="k-label">${k.label}<span class="jp">${k.jp}</span></div>
       <div class="k-value"${k.empty ? '' : ` data-count="${k.target}" data-fmt="${k.fmt}"`}>${k.empty ? '—' : fmtByType(k.fmt, k.target)}</div>
       <div class="k-sub">${k.sub}</div>
       <div class="k-spark">${sparkline(k.series, k.color)}</div>
@@ -193,61 +193,83 @@ function sparkline(vals, color) {
 function renderTicker(s) {
   const track = $('#ticker-track');
   if (!track) return;
-  const chip = (label, val) => `<span class="tk">${label} <b>${val}</b></span>`;
+  const chip = (jp, val) => `<span class="tk">${jp} <b>${val}</b></span>`;
   const items = [
-    chip('NET', fmtMoney0(s.net)),
-    chip('$/HR', s.perHour ? fmtMoney(s.perHour) : '—'),
-    chip('$/MI', s.perMile ? fmtMoney(s.perMile) : '—'),
-    chip('MILES', fmt1(s.miles)),
-    chip('DELIVERIES', String(s.jobs)),
-    chip('TAX SET-ASIDE', fmtMoney0(s.taxSetAside)),
-    chip('TAKE-HOME', fmtMoney0(s.takeHomeAfterTax)),
-    chip('SHIFTS', String(s.shiftCount)),
+    chip('純利益', fmtMoney0(s.net)),
+    chip('時給', s.perHour ? fmtMoney(s.perHour) : '—'),
+    chip('距離単価', s.perMile ? fmtMoney(s.perMile) : '—'),
+    chip('走行距離', fmt1(s.miles) + ' mi'),
+    chip('配達数', String(s.jobs)),
+    chip('税金積立', fmtMoney0(s.taxSetAside)),
+    chip('手取り', fmtMoney0(s.takeHomeAfterTax)),
+    chip('運行数', String(s.shiftCount)),
   ];
-  const line = `<span class="live">● LIVE</span>` + items.join('<span class="sep">・</span>') + '<span class="sep">・</span>';
+  const line = `<span class="live">● 運行中</span>` + items.join('<span class="sep">・</span>') + '<span class="sep">・</span>';
   track.innerHTML = line + line; // doubled for seamless marquee loop
 }
 
-// The signature graphic: earnings rendered as stations along a rail line.
+// Map a shift to a JR train type (種別) by its Flex block tag.
+const TRAIN_TYPES = {
+  'Rapid Express': { label: '特急', romaji: 'LTD.EXP', color: 'var(--jr-red)' },
+  'Express': { label: '急行', romaji: 'EXP', color: 'var(--jr-orange)' },
+  'Rescue': { label: '快速', romaji: 'RAPID', color: 'var(--jr-blue)' },
+  'Normal': { label: '普通', romaji: 'LOCAL', color: '#c9ced8' },
+};
+function trainType(shift) {
+  return (shift.tag && TRAIN_TYPES[shift.tag]) || { label: '普通', romaji: 'LOCAL', color: '#c9ced8' };
+}
+// A train "type" for the current period, used on the rollsign.
+const PERIOD_TYPE = {
+  week: { label: '普通', romaji: 'LOCAL', color: 'var(--jr-blue)' },
+  month: { label: '快速', romaji: 'RAPID', color: 'var(--jr-teal)' },
+  year: { label: '急行', romaji: 'EXP', color: 'var(--jr-orange)' },
+  all: { label: '特急', romaji: 'LTD.EXP', color: 'var(--jr-red)' },
+};
+
+// The signature graphic: earnings rendered as a JR-style line map, with a
+// 方向幕 (rollsign) header and numbered stations.
 function renderRouteStrip() {
   const host = $('#route-strip');
   if (!host || !isDesktop()) return;
+  const ty = PERIOD_TYPE[state.period] || PERIOD_TYPE.all;
+  const rollsign = `
+    <div class="rollsign">
+      <span class="rs-type" style="--tc:${ty.color}">${ty.label}<em>${ty.romaji}</em></span>
+      <span class="rs-dest"><b>ギグライン</b><small>GIG&nbsp;LINE</small></span>
+      <span class="rs-total" id="rs-total"></span>
+    </div>`;
+
   const stops = routeStops();
   const total = stops.reduce((a, s) => a + s.value, 0);
   if (!stops.length || total <= 0) {
-    host.innerHTML = `<div class="route-head"><span class="rl-badge">GX</span><span class="rl-name">Gig Line</span><span class="rl-jp">ギグライン</span></div>
-      <div class="chart-empty">Log shifts to ride the line</div>`;
+    host.innerHTML = rollsign + '<div class="chart-empty">運行実績なし — シフトを記録してください</div>';
     return;
   }
-  const W = 1000, H = 150, padX = 54, y = 84;
+  const W = 1000, H = 168, padX = 54, y = 92;
   const max = Math.max(1, ...stops.map((s) => s.value));
   const step = stops.length > 1 ? (W - padX * 2) / (stops.length - 1) : 0;
   const cx = (i) => padX + i * step;
-  const rFor = (v) => 5 + (v / max) * 12;
+  const rFor = (v) => 6 + (v / max) * 12;
   const lastIdx = stops.length - 1;
+  const line = 'var(--jr-green)';
 
   let svg = `<svg class="route-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">`;
-  svg += `<line class="rline" x1="${cx(0)}" y1="${y}" x2="${cx(lastIdx)}" y2="${y}"/>`;
+  svg += `<line class="rline" x1="${cx(0)}" y1="${y}" x2="${cx(lastIdx)}" y2="${y}" style="stroke:${line}"/>`;
   stops.forEach((st, i) => {
     const isNow = i === lastIdx;
-    const r = rFor(st.value);
-    if (st.value > 0) {
-      if (isNow) svg += `<circle class="now-ring" cx="${cx(i)}" cy="${y}" r="${r + 3}"/>`;
-      svg += `<circle class="stop" cx="${cx(i)}" cy="${y}" r="${r}"/>`;
-    } else {
-      svg += `<circle class="stop-hollow" cx="${cx(i)}" cy="${y}" r="5"/>`;
-    }
-    svg += `<text class="amt" x="${cx(i)}" y="${y - r - 10}" text-anchor="middle">${st.value ? fmtMoney0(st.value) : ''}</text>`;
-    svg += `<text class="day" x="${cx(i)}" y="${y + 30}" text-anchor="middle">${st.label}</text>`;
+    const r = st.value > 0 ? rFor(st.value) : 6;
+    // JR line-map station: colored ring with a white centre
+    if (isNow && st.value > 0) svg += `<circle class="now-ring" cx="${cx(i)}" cy="${y}" r="${r + 4}" style="stroke:${line}"/>`;
+    svg += `<circle cx="${cx(i)}" cy="${y}" r="${r}" style="fill:${line}"/>`;
+    svg += `<circle cx="${cx(i)}" cy="${y}" r="${Math.max(2, r - 4)}" style="fill:#000"/>`;
+    svg += `<text class="amt" x="${cx(i)}" y="${y - r - 12}" text-anchor="middle">${st.value ? fmtMoney0(st.value) : '—'}</text>`;
+    svg += `<text class="stn" x="${cx(i)}" y="${y + 26}" text-anchor="middle">${String(i + 1).padStart(2, '0')}</text>`;
+    svg += `<text class="day" x="${cx(i)}" y="${y + 42}" text-anchor="middle">${st.label}</text>`;
   });
   svg += '</svg>';
 
-  host.innerHTML = `
-    <div class="route-head">
-      <span class="rl-badge">GX</span>
-      <span class="rl-name">Gig Line</span><span class="rl-jp">ギグライン</span>
-      <span class="rl-total">${fmtMoney0(total)} · ${state.period.toUpperCase()}</span>
-    </div>${svg}`;
+  host.innerHTML = rollsign + svg;
+  $('#rs-total').textContent = `${fmtMoney0(total)}`;
 }
 
 // Choose station granularity by the selected period.
@@ -341,6 +363,27 @@ function renderRecentShifts(shifts) {
   const list = $('#recent-shifts');
   if (!shifts.length) { list.innerHTML = '<li class="empty-list">No shifts yet — tap “Log” to add one.</li>'; return; }
   list.innerHTML = shifts.map((s) => recordRow(s, 'shift', false)).join('');
+  renderDepartureBoard(shifts);
+}
+
+// Recent shifts as a JR LED departure board (発車標) on desktop.
+function renderDepartureBoard(shifts) {
+  const host = $('#departure-board');
+  if (!host || !isDesktop()) return;
+  if (!shifts.length) { host.innerHTML = '<div class="chart-empty">運行実績なし</div>'; return; }
+  const depDate = (iso) => { const [, m, d] = iso.split('-').map(Number); return `${m}/${String(d).padStart(2, '0')}`; };
+  const rows = shifts.map((s) => {
+    const ty = trainType(s);
+    const p = PLATFORMS[s.platform] || PLATFORMS.other;
+    return `<div class="dep-row">
+      <span class="dep-type" style="--tc:${ty.color}">${ty.label}<em>${ty.romaji}</em></span>
+      <span class="dep-date">${depDate(s.date)}</span>
+      <span class="dep-dest"><b>${p.jp}</b><small>${p.label}</small></span>
+      <span class="dep-dist">${fmt1(s.miles)}<i>mi</i></span>
+      <span class="dep-amt">${fmtMoney0(store.shiftIncome(s))}</span>
+    </div>`;
+  }).join('');
+  host.innerHTML = `<div class="dep-headrow"><span>種別</span><span>日付</span><span>行先</span><span>距離</span><span>収入</span></div>${rows}`;
 }
 
 // =====================================================================

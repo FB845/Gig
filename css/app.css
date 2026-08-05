@@ -19,12 +19,28 @@
   --radius: 16px;
   --shadow: 0 4px 18px rgba(0,0,0,.6);
   --safe-b: env(safe-area-inset-bottom, 0px);
+
+  /* Type: Japanese gothic (approximating signage kaku-gothic), a clean Latin
+     grotesque for board text, and a mono for LED-style numerals. System fonts
+     only (offline-safe) — no embedded/proprietary faces. */
+  --font-jp: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "YuGothic", "Meiryo", "Noto Sans JP", sans-serif;
+  --font-board: "Helvetica Neue", "Arial", var(--font-jp);
+  --font-led: ui-monospace, "SF Mono", "Menlo", "Consolas", monospace;
+
+  /* JR East line-colour palette (used for line symbols + train types). */
+  --jr-green: #86b81b;   /* 山手 Yamanote */
+  --jr-blue: #009bbf;    /* 京浜東北 Keihin-Tōhoku */
+  --jr-orange: #f15a22;  /* 中央 Chūō */
+  --jr-red: #e60012;     /* 特急 / 湘南新宿 */
+  --jr-yellow: #ffd400;  /* 総武 Sōbu */
+  --jr-teal: #00ac9b;    /* 埼京 Saikyō */
+  --jr-navy: #123f8c;    /* 横須賀 Yokosuka */
 }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
   background: var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
@@ -272,9 +288,13 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
    ambient motion, glow, LED numbers, a line-map route strip and a ticker.
    ===================================================================== */
 .sidebar, .ticker, .ambient, .desktop-only { display: none; }
+.jp { display: none; } /* kanji labels appear on desktop only */
 
 @media (min-width: 960px) {
   :root { --side-w: 248px; }
+
+  .jp { display: inline; color: var(--muted); font-weight: 600; font-size: .78em; letter-spacing: .12em; margin-left: 9px; font-family: var(--font-jp); }
+  .k-label .jp { margin-left: 7px; }
   body { padding-bottom: 32px; }
 
   /* Ambient animated backdrop */
@@ -310,13 +330,13 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
   .snav.active::before { content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 3px; background: var(--accent); }
   .snav-t { display: flex; flex-direction: column; line-height: 1.1; font-weight: 700; font-size: 14px; }
   .snav-t small { font-size: 10px; color: var(--muted); font-weight: 500; letter-spacing: .06em; margin-top: 2px; }
-  /* line-mark badge — like a train line code */
+  /* JR East line symbol — outlined rounded square, white interior, colored
+     border + code (as on the station-numbering signage). */
   .line-mark {
-    display: inline-grid; place-items: center; width: 30px; height: 30px; flex-shrink: 0;
-    border-radius: 8px; font-weight: 800; font-size: 11px; letter-spacing: .04em;
-    color: #05231a; background: var(--c, var(--accent));
-    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-    box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 0 14px -4px var(--c, var(--accent));
+    display: inline-grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0;
+    border-radius: 9px; border: 3px solid var(--c, var(--accent)); background: #f5f5ef;
+    color: var(--c, var(--accent)); font-weight: 800; font-size: 13px; letter-spacing: .02em;
+    font-family: var(--font-board);
   }
   .side-foot { margin-top: auto; padding: 12px 8px 4px; border-top: 1px solid var(--border); }
   .side-clock {
@@ -365,24 +385,56 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
   .card { transition: border-color .2s, box-shadow .2s; }
   #view-dashboard .card:hover, #view-trends .card:hover { border-color: color-mix(in srgb, var(--accent-2) 30%, var(--border)); }
 
-  /* Route strip (line map of earnings) */
+  /* Route strip (JR line map of earnings) */
   .route-strip.desktop-only { display: block; }
-  .route-head { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
-  .route-head .rl-badge {
-    font-family: ui-monospace, monospace; font-weight: 800; font-size: 12px; color: #05231a;
-    background: var(--accent); border-radius: 6px; padding: 3px 9px; letter-spacing: .06em;
+  /* 方向幕 rollsign header */
+  .rollsign {
+    display: flex; align-items: center; gap: 16px; margin-bottom: 12px;
+    background: #eae7dc; color: #14130f; border-radius: 8px; padding: 9px 12px 9px 9px;
+    font-family: var(--font-jp); box-shadow: inset 0 0 0 1px rgba(0,0,0,.15);
   }
-  .route-head .rl-name { font-weight: 800; font-size: 15px; letter-spacing: .02em; }
-  .route-head .rl-jp { font-size: 11px; color: var(--muted); letter-spacing: .14em; }
-  .route-head .rl-total { margin-left: auto; font-family: ui-monospace, monospace; font-weight: 800; color: var(--accent); }
-  .route-svg { width: 100%; height: 150px; display: block; }
-  .route-svg .rline { stroke: color-mix(in srgb, var(--accent) 55%, var(--border)); stroke-width: 4; stroke-linecap: round; }
-  .route-svg .stop { fill: var(--accent); }
-  .route-svg .stop-hollow { fill: #05070b; stroke: color-mix(in srgb, var(--accent) 60%, var(--border)); stroke-width: 3; }
-  .route-svg .amt { fill: var(--text); font-family: ui-monospace, monospace; font-size: 13px; font-weight: 700; }
-  .route-svg .day { fill: var(--muted); font-size: 11px; }
-  .route-svg .now-ring { fill: none; stroke: var(--accent); stroke-width: 3; transform-box: fill-box; transform-origin: center; animation: ping 1.9s ease-out infinite; }
+  .rs-type {
+    display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+    background: var(--tc); color: #fff; font-weight: 800; font-size: 20px; line-height: 1;
+    padding: 7px 12px; border-radius: 4px; letter-spacing: .1em; min-width: 78px;
+  }
+  .rs-type em { font-style: normal; font-family: var(--font-board); font-size: 9px; letter-spacing: .16em; margin-top: 3px; opacity: .95; }
+  .rs-dest { display: flex; flex-direction: column; line-height: 1.05; }
+  .rs-dest b { font-size: 27px; font-weight: 800; letter-spacing: .06em; }
+  .rs-dest small { font-family: var(--font-board); font-size: 11px; letter-spacing: .34em; color: #3a3730; margin-top: 2px; }
+  .rs-total { margin-left: auto; font-family: var(--font-led); font-weight: 800; font-size: 22px; color: #14130f; padding-right: 6px; }
+
+  .route-svg { width: 100%; height: 168px; display: block; }
+  .route-svg .rline { stroke-width: 5; stroke-linecap: round; }
+  .route-svg .amt { fill: var(--text); font-family: var(--font-led); font-size: 13px; font-weight: 700; }
+  .route-svg .stn { fill: var(--jr-green); font-family: var(--font-board); font-size: 11px; font-weight: 700; letter-spacing: .05em; }
+  .route-svg .day { fill: var(--muted); font-size: 11px; font-family: var(--font-jp); }
+  .route-svg .now-ring { fill: none; stroke-width: 3; transform-box: fill-box; transform-origin: center; animation: ping 1.9s ease-out infinite; }
   @keyframes ping { 0% { transform: scale(1); opacity: .9; } 70%, 100% { transform: scale(2.6); opacity: 0; } }
+
+  /* 発車標 departure board — recent shifts */
+  #recent-shifts { display: none; } /* mobile list hidden on desktop */
+  .depboard.desktop-only { display: block; background: #050608; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .dep-headrow, .dep-row {
+    display: grid; grid-template-columns: 96px 66px 1fr 96px 96px; align-items: center;
+    gap: 10px; padding: 9px 14px;
+  }
+  .dep-headrow { color: var(--muted); font-family: var(--font-jp); font-size: 11px; letter-spacing: .16em; border-bottom: 1px solid var(--border); background: #0a0c10; }
+  .dep-headrow span:nth-child(4), .dep-headrow span:nth-child(5) { text-align: right; }
+  .dep-row { border-bottom: 1px solid rgba(255,255,255,.05); }
+  .dep-row:last-child { border-bottom: none; }
+  .dep-type {
+    display: inline-flex; flex-direction: column; align-items: flex-start; line-height: 1;
+    color: var(--tc); font-family: var(--font-jp); font-weight: 800; font-size: 18px; letter-spacing: .06em;
+  }
+  .dep-type em { font-style: normal; font-family: var(--font-board); font-size: 8px; letter-spacing: .12em; color: var(--muted); margin-top: 3px; }
+  .dep-date { font-family: var(--font-led); font-size: 15px; color: #fdb913; font-weight: 700; } /* amber, LED */
+  .dep-dest { display: flex; flex-direction: column; line-height: 1.1; }
+  .dep-dest b { font-family: var(--font-jp); font-size: 16px; font-weight: 700; color: var(--text); }
+  .dep-dest small { font-family: var(--font-board); font-size: 10px; letter-spacing: .12em; color: var(--muted); }
+  .dep-dist { text-align: right; font-family: var(--font-led); font-size: 14px; color: var(--muted); }
+  .dep-dist i { font-style: normal; font-size: 10px; margin-left: 2px; }
+  .dep-amt { text-align: right; font-family: var(--font-led); font-size: 17px; font-weight: 800; color: var(--accent); }
 }
 
 /* Cut animations/transitions — saves repaints/GPU wake-ups (and honors the OS
