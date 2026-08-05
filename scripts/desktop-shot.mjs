@@ -1,0 +1,32 @@
+import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path';
+import { fileURLToPath } from 'node:url'; import { chromium } from 'playwright-core';
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const MIME={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.webmanifest':'application/manifest+json','.png':'image/png'};
+const server=http.createServer((req,res)=>{let p=decodeURIComponent(req.url.split('?')[0]);if(p==='/')p='/index.html';const f=path.join(root,p);if(!fs.existsSync(f)||fs.statSync(f).isDirectory()){res.writeHead(404);res.end();return;}res.writeHead(200,{'Content-Type':MIME[path.extname(f)]||'application/octet-stream'});fs.createReadStream(f).pipe(res);});
+await new Promise(r=>server.listen(0,r)); const base=`http://localhost:${server.address().port}`;
+const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium-1194/chrome-linux/chrome'});
+const ctx=await b.newContext({viewport:{width:1440,height:900},deviceScaleFactor:1.5});
+const pg=await ctx.newPage(); const errs=[]; pg.on('pageerror',e=>errs.push(e.message));
+await pg.goto(base,{waitUntil:'networkidle'});
+await pg.evaluate(async()=>{
+  const s=await import('./js/store.js'); s.clearAll();
+  const plats=['flex','doordash']; const tags=['Rapid Express','Express','Rescue','Normal'];
+  const start=new Date(); start.setDate(start.getDate()-40);
+  for(let i=0;i<40;i++){ const d=new Date(start); d.setDate(d.getDate()+i); if(Math.random()<0.3) continue;
+    const p=plats[Math.random()<0.55?0:1]; const isFlex=p==='flex'; const sched=[2,2.5,3,3.5,4][Math.floor(Math.random()*5)];
+    const hours=isFlex?Math.round((sched*(0.7+Math.random()*0.4))*4)/4:2+Math.round(Math.random()*6);
+    const rate=isFlex?14+Math.random()*10:12+Math.random()*6; const gross=Math.round(hours*rate*100)/100;
+    const tips=p==='doordash'?Math.round(Math.random()*25*100)/100:Math.round(Math.random()*8*100)/100;
+    s.addShift({platform:p,date:s.isoDate(d),hours,gross,tips,jobs:4+Math.round(Math.random()*14),miles:Math.round(hours*9*10)/10,fuel:Math.random()<0.4?Math.round(Math.random()*25*100)/100:0,scheduledHours:isFlex?sched:0,tag:isFlex?tags[Math.floor(Math.random()*4)]:''}); }
+  s.addExpense({date:s.todayISO(),category:'Maintenance',amount:89.99,note:'Oil change'});
+  s.addExpense({date:s.todayISO(),category:'Phone',amount:45});
+});
+await pg.reload({waitUntil:'networkidle'});
+await pg.locator('#period-pills .pill[data-period=month]').click();
+await pg.waitForTimeout(700);
+await pg.screenshot({path:path.join(root,'scripts/desktop-dashboard.png')});
+await pg.locator('.snav[data-view=trends]').click(); await pg.waitForTimeout(500);
+await pg.screenshot({path:path.join(root,'scripts/desktop-trends.png')});
+await pg.evaluate(async()=>{(await import('./js/store.js')).clearAll();});
+console.log('errors:', errs.length?errs.slice(0,3).join(' | '):'none');
+await b.close(); server.close(); console.log('desktop shots saved');

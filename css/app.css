@@ -265,6 +265,126 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 .hidden { display: none !important; }
 .version { text-align: center; margin: 8px 0 0; }
 
+/* =====================================================================
+   DESKTOP — Japanese train-infotainment inspired analytics dashboard.
+   All of this is gated behind min-width:960px, so mobile is untouched
+   (stays OLED-black and lean). Desktop has no battery concern, so it gets
+   ambient motion, glow, LED numbers, a line-map route strip and a ticker.
+   ===================================================================== */
+.sidebar, .ticker, .ambient, .desktop-only { display: none; }
+
+@media (min-width: 960px) {
+  :root { --side-w: 248px; }
+  body { padding-bottom: 32px; }
+
+  /* Ambient animated backdrop */
+  .ambient {
+    display: block; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(45% 40% at 18% 0%, rgba(52,211,153,.10), transparent 70%),
+      radial-gradient(45% 45% at 100% 12%, rgba(96,155,255,.10), transparent 70%),
+      radial-gradient(50% 50% at 60% 110%, rgba(167,139,250,.08), transparent 70%);
+    animation: ambient-drift 20s ease-in-out infinite alternate;
+  }
+  @keyframes ambient-drift { from { transform: translate3d(0,0,0); } to { transform: translate3d(0,-24px,0); } }
+
+  /* Sidebar */
+  .sidebar {
+    display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0; left: 0;
+    width: var(--side-w); z-index: 25; padding: 20px 14px;
+    background: linear-gradient(180deg, #05070b, #000);
+    border-right: 1px solid var(--border);
+  }
+  .side-brand { display: flex; align-items: center; gap: 11px; padding: 6px 8px 18px; border-bottom: 1px solid var(--border); }
+  .sb-title { display: flex; flex-direction: column; line-height: 1.15; }
+  .sb-title b { font-size: 16px; font-weight: 800; letter-spacing: -.02em; }
+  .sb-title small { font-size: 10px; color: var(--muted); letter-spacing: .12em; }
+  .side-nav { display: flex; flex-direction: column; gap: 4px; margin-top: 16px; }
+  .snav {
+    display: flex; align-items: center; gap: 12px; padding: 11px 10px; border: none;
+    background: transparent; color: var(--muted); cursor: pointer; border-radius: 12px;
+    text-align: left; position: relative; transition: background .15s, color .15s;
+  }
+  .snav:hover { background: var(--card); color: var(--text); }
+  .snav.active { background: var(--card); color: var(--text); }
+  .snav.active::before { content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 3px; background: var(--accent); }
+  .snav-t { display: flex; flex-direction: column; line-height: 1.1; font-weight: 700; font-size: 14px; }
+  .snav-t small { font-size: 10px; color: var(--muted); font-weight: 500; letter-spacing: .06em; margin-top: 2px; }
+  /* line-mark badge — like a train line code */
+  .line-mark {
+    display: inline-grid; place-items: center; width: 30px; height: 30px; flex-shrink: 0;
+    border-radius: 8px; font-weight: 800; font-size: 11px; letter-spacing: .04em;
+    color: #05231a; background: var(--c, var(--accent));
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 0 14px -4px var(--c, var(--accent));
+  }
+  .side-foot { margin-top: auto; padding: 12px 8px 4px; border-top: 1px solid var(--border); }
+  .side-clock {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 24px; font-weight: 700; letter-spacing: .06em; color: var(--accent);
+    text-shadow: 0 0 16px color-mix(in srgb, var(--accent) 55%, transparent); font-variant-numeric: tabular-nums;
+  }
+  .side-clock-sub { font-size: 10px; color: var(--muted); letter-spacing: .12em; margin-top: 2px; }
+
+  /* Shift the whole app right of the sidebar */
+  .app-header { margin-left: var(--side-w); padding: 12px 28px; display: flex; align-items: center; gap: 20px; }
+  .app-header .brand { display: none; }           /* brand lives in the sidebar now */
+  .pills { margin-top: 0; width: 320px; flex-shrink: 0; }
+  main { margin-left: var(--side-w); max-width: 1240px; padding: 20px 28px 40px; position: relative; z-index: 1; }
+  .tabbar { display: none; }
+
+  /* Ticker board */
+  .ticker {
+    display: block; flex: 1; overflow: hidden; position: relative; height: 34px;
+    background: #05070b; border: 1px solid var(--border); border-radius: 10px;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+            mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+  }
+  .ticker-track {
+    display: inline-flex; align-items: center; height: 34px; white-space: nowrap;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px;
+    letter-spacing: .06em; color: var(--text); animation: marquee 34s linear infinite;
+  }
+  .ticker-track .tk { padding: 0 4px; }
+  .ticker-track .tk b { color: var(--accent); }
+  .ticker-track .sep { color: var(--muted); padding: 0 10px; }
+  .ticker-track .live { color: #05231a; background: var(--accent); border-radius: 4px; padding: 2px 7px; font-weight: 800; margin: 0 10px; }
+  @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* Multi-column dashboard */
+  #view-dashboard .kpi-grid { grid-template-columns: repeat(4, 1fr); }
+  #view-dashboard .two-col { grid-template-columns: 1fr 1fr; }
+  .kpi { position: relative; overflow: hidden; transition: border-color .2s, box-shadow .2s, transform .2s; }
+  .kpi:hover { border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); box-shadow: 0 0 26px -10px var(--accent); transform: translateY(-2px); }
+  .kpi .k-value {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-variant-numeric: tabular-nums; text-shadow: 0 0 18px color-mix(in srgb, currentColor 30%, transparent);
+  }
+  .k-spark { display: block; margin-top: 10px; height: 30px; }
+  .k-spark .spark { width: 100%; height: 30px; display: block; }
+  .card { transition: border-color .2s, box-shadow .2s; }
+  #view-dashboard .card:hover, #view-trends .card:hover { border-color: color-mix(in srgb, var(--accent-2) 30%, var(--border)); }
+
+  /* Route strip (line map of earnings) */
+  .route-strip.desktop-only { display: block; }
+  .route-head { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+  .route-head .rl-badge {
+    font-family: ui-monospace, monospace; font-weight: 800; font-size: 12px; color: #05231a;
+    background: var(--accent); border-radius: 6px; padding: 3px 9px; letter-spacing: .06em;
+  }
+  .route-head .rl-name { font-weight: 800; font-size: 15px; letter-spacing: .02em; }
+  .route-head .rl-jp { font-size: 11px; color: var(--muted); letter-spacing: .14em; }
+  .route-head .rl-total { margin-left: auto; font-family: ui-monospace, monospace; font-weight: 800; color: var(--accent); }
+  .route-svg { width: 100%; height: 150px; display: block; }
+  .route-svg .rline { stroke: color-mix(in srgb, var(--accent) 55%, var(--border)); stroke-width: 4; stroke-linecap: round; }
+  .route-svg .stop { fill: var(--accent); }
+  .route-svg .stop-hollow { fill: #05070b; stroke: color-mix(in srgb, var(--accent) 60%, var(--border)); stroke-width: 3; }
+  .route-svg .amt { fill: var(--text); font-family: ui-monospace, monospace; font-size: 13px; font-weight: 700; }
+  .route-svg .day { fill: var(--muted); font-size: 11px; }
+  .route-svg .now-ring { fill: none; stroke: var(--accent); stroke-width: 3; transform-box: fill-box; transform-origin: center; animation: ping 1.9s ease-out infinite; }
+  @keyframes ping { 0% { transform: scale(1); opacity: .9; } 70%, 100% { transform: scale(2.6); opacity: 0; } }
+}
+
 /* Cut animations/transitions — saves repaints/GPU wake-ups (and honors the OS
    reduce-motion setting). */
 @media (prefers-reduced-motion: reduce) {

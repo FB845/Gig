@@ -8,6 +8,7 @@
     "start": "python3 -m http.server 8080",
     "test": "node scripts/smoke.mjs && node scripts/drive-test.mjs",
     "shots": "node scripts/shot.mjs",
+    "shots:desktop": "node scripts/desktop-shot.mjs",
     "icons": "python3 scripts/gen_icons.py"
   }
 }

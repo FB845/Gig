@@ -39,6 +39,13 @@ mileage tracking** — without asking for a cent.
   import, and ✉️ email-assisted import.
 - **Backup & restore** — export/import a JSON backup, export shifts to CSV.
 - **Offline + installable** — full PWA with a service worker.
+- **Desktop dashboard** — on wide screens the app becomes a Japanese
+  train-infotainment-inspired analytics dashboard: a sidebar with line-mark
+  navigation and a live station clock, a scrolling **ticker board** of your
+  stats, a **"Gig Line" route strip** that renders your earnings as stations
+  along a rail line (with a pulsing "you are here" marker), **LED count-up**
+  KPI numbers with sparklines, and ambient glow/motion. Mobile stays the lean
+  OLED-black layout.
 
 > **On GPS tracking:** phones only allow a web app to read location while it's in
 > the **foreground**, so this is a "drive mode" you start when you head out and

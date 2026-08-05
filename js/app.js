@@ -46,14 +46,14 @@ function dayOfWeek(iso) {
 // =====================================================================
 function showView(name) {
   $$('.view').forEach((v) => v.classList.toggle('active', v.id === `view-${name}`));
-  $$('.tab').forEach((t) => t.classList.toggle('active', t.dataset.view === name));
+  $$('.tab, .snav').forEach((t) => t.classList.toggle('active', t.dataset.view === name));
   window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
   if (name === 'dashboard') renderDashboard();
   if (name === 'trends') renderTrends();
   if (name === 'log') renderLogList();
 }
 
-$$('.tab').forEach((t) => t.addEventListener('click', () => showView(t.dataset.view)));
+$$('.tab, .snav').forEach((t) => t.addEventListener('click', () => showView(t.dataset.view)));
 
 $$('#period-pills .pill').forEach((p) => p.addEventListener('click', () => {
   state.period = p.dataset.period;
@@ -72,19 +72,22 @@ function renderDashboard() {
   const expenses = store.inRange(store.getExpenses(), from, to);
   const s = store.summarize(shifts, expenses);
 
-  // KPIs
+  // KPIs (with LED count-up + sparklines on desktop)
+  const spark = dailyMetricSeries(14);
   const kpis = [
-    { label: 'Net income', value: fmtMoney0(s.net), sub: `${fmtMoney0(s.income)} in · ${fmtMoney0(s.expenseTotal)} out`, cls: s.net >= 0 ? 'accent' : 'neg' },
-    { label: '$ / hour', value: s.perHour ? fmtMoney(s.perHour) : '—', sub: `${fmt1(s.hours)} hrs worked` },
-    { label: '$ / mile', value: s.perMile ? fmtMoney(s.perMile) : '—', sub: `${fmt1(s.miles)} mi driven` },
-    { label: 'Per delivery', value: s.perJob ? fmtMoney(s.perJob) : '—', sub: `${s.jobs} deliveries` },
+    { label: 'Net income', target: s.net, fmt: 'money0', sub: `${fmtMoney0(s.income)} in · ${fmtMoney0(s.expenseTotal)} out`, cls: s.net >= 0 ? 'accent' : 'neg', series: spark.net, color: '#34d399' },
+    { label: '$ / hour', target: s.perHour, fmt: 'money2', empty: !s.hours, sub: `${fmt1(s.hours)} hrs worked`, series: spark.perHour, color: '#60a5fa' },
+    { label: '$ / mile', target: s.perMile, fmt: 'money2', empty: !s.miles, sub: `${fmt1(s.miles)} mi driven`, series: spark.perMile, color: '#a78bfa' },
+    { label: 'Per delivery', target: s.perJob, fmt: 'money2', empty: !s.jobs, sub: `${s.jobs} deliveries`, series: spark.perJob, color: '#f5a524' },
   ];
   $('#kpi-grid').innerHTML = kpis.map((k) => `
     <div class="kpi ${k.cls || ''}">
       <div class="k-label">${k.label}</div>
-      <div class="k-value">${k.value}</div>
+      <div class="k-value"${k.empty ? '' : ` data-count="${k.target}" data-fmt="${k.fmt}"`}>${k.empty ? '—' : fmtByType(k.fmt, k.target)}</div>
       <div class="k-sub">${k.sub}</div>
+      <div class="k-spark">${sparkline(k.series, k.color)}</div>
     </div>`).join('');
+  animateCounts($('#kpi-grid'));
 
   // Tax set-aside card
   const rate = Math.round(store.getSettings().taxRate * 100);
@@ -117,10 +120,171 @@ function renderDashboard() {
     feCard.classList.add('hidden');
   }
 
+  renderTicker(s);
+  renderRouteStrip();
+
   renderEarningsChart(shifts);
   renderPlatformDonut(shifts);
   renderExpensesDonut(expenses);
   renderRecentShifts(store.getShifts().slice(0, 6));
+}
+
+// ---- desktop train-infotainment graphics ----
+const isDesktop = () => window.matchMedia('(min-width: 960px)').matches;
+const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function fmtByType(fmt, v) { return fmt === 'money0' ? fmtMoney0(v) : fmtMoney(v); }
+
+// Count each value up from 0 to its target on desktop (LED-board feel).
+function animateCounts(root) {
+  const els = $$('.k-value[data-count]', root);
+  if (!isDesktop() || reducedMotion()) return; // mobile keeps the final value, no motion
+  for (const el of els) {
+    const target = parseFloat(el.dataset.count) || 0;
+    const fmt = el.dataset.fmt;
+    const dur = 650, t0 = performance.now();
+    const tick = (now) => {
+      const p = Math.min(1, (now - t0) / dur);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmtByType(fmt, target * eased);
+      if (p < 1) requestAnimationFrame(tick);
+      else el.textContent = fmtByType(fmt, target);
+    };
+    requestAnimationFrame(tick);
+  }
+}
+
+// Daily series for the last N days, per KPI metric (for sparklines).
+function dailyMetricSeries(days) {
+  const map = new Map();
+  const today = new Date();
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today); d.setDate(d.getDate() - i);
+    map.set(store.isoDate(d), { income: 0, expense: 0, hours: 0, miles: 0, jobs: 0 });
+  }
+  store.getShifts().forEach((sh) => {
+    const o = map.get(sh.date); if (!o) return;
+    o.income += store.shiftIncome(sh); o.hours += sh.hours; o.miles += sh.miles; o.jobs += sh.jobs;
+  });
+  store.getExpenses().forEach((e) => { const o = map.get(e.date); if (o) o.expense += e.amount; });
+  const rows = [...map.values()];
+  return {
+    net: rows.map((r) => r.income - r.expense),
+    perHour: rows.map((r) => (r.hours ? r.income / r.hours : 0)),
+    perMile: rows.map((r) => (r.miles ? r.income / r.miles : 0)),
+    perJob: rows.map((r) => (r.jobs ? r.income / r.jobs : 0)),
+  };
+}
+
+function sparkline(vals, color) {
+  if (!vals || vals.length < 2 || vals.every((v) => !v)) return '';
+  const w = 120, h = 30, max = Math.max(...vals), min = Math.min(...vals), rng = (max - min) || 1;
+  const x = (i) => (i / (vals.length - 1)) * w;
+  const y = (v) => h - 3 - ((v - min) / rng) * (h - 6);
+  const pts = vals.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const area = `0,${h} ${pts} ${w},${h}`;
+  return `<svg viewBox="0 0 ${w} ${h}" class="spark" preserveAspectRatio="none">
+    <polygon points="${area}" fill="${color}" fill-opacity="0.10"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${x(vals.length - 1).toFixed(1)}" cy="${y(vals[vals.length - 1]).toFixed(1)}" r="2.6" fill="${color}"/>
+  </svg>`;
+}
+
+function renderTicker(s) {
+  const track = $('#ticker-track');
+  if (!track) return;
+  const chip = (label, val) => `<span class="tk">${label} <b>${val}</b></span>`;
+  const items = [
+    chip('NET', fmtMoney0(s.net)),
+    chip('$/HR', s.perHour ? fmtMoney(s.perHour) : '—'),
+    chip('$/MI', s.perMile ? fmtMoney(s.perMile) : '—'),
+    chip('MILES', fmt1(s.miles)),
+    chip('DELIVERIES', String(s.jobs)),
+    chip('TAX SET-ASIDE', fmtMoney0(s.taxSetAside)),
+    chip('TAKE-HOME', fmtMoney0(s.takeHomeAfterTax)),
+    chip('SHIFTS', String(s.shiftCount)),
+  ];
+  const line = `<span class="live">● LIVE</span>` + items.join('<span class="sep">・</span>') + '<span class="sep">・</span>';
+  track.innerHTML = line + line; // doubled for seamless marquee loop
+}
+
+// The signature graphic: earnings rendered as stations along a rail line.
+function renderRouteStrip() {
+  const host = $('#route-strip');
+  if (!host || !isDesktop()) return;
+  const stops = routeStops();
+  const total = stops.reduce((a, s) => a + s.value, 0);
+  if (!stops.length || total <= 0) {
+    host.innerHTML = `<div class="route-head"><span class="rl-badge">GX</span><span class="rl-name">Gig Line</span><span class="rl-jp">ギグライン</span></div>
+      <div class="chart-empty">Log shifts to ride the line</div>`;
+    return;
+  }
+  const W = 1000, H = 150, padX = 54, y = 84;
+  const max = Math.max(1, ...stops.map((s) => s.value));
+  const step = stops.length > 1 ? (W - padX * 2) / (stops.length - 1) : 0;
+  const cx = (i) => padX + i * step;
+  const rFor = (v) => 5 + (v / max) * 12;
+  const lastIdx = stops.length - 1;
+
+  let svg = `<svg class="route-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">`;
+  svg += `<line class="rline" x1="${cx(0)}" y1="${y}" x2="${cx(lastIdx)}" y2="${y}"/>`;
+  stops.forEach((st, i) => {
+    const isNow = i === lastIdx;
+    const r = rFor(st.value);
+    if (st.value > 0) {
+      if (isNow) svg += `<circle class="now-ring" cx="${cx(i)}" cy="${y}" r="${r + 3}"/>`;
+      svg += `<circle class="stop" cx="${cx(i)}" cy="${y}" r="${r}"/>`;
+    } else {
+      svg += `<circle class="stop-hollow" cx="${cx(i)}" cy="${y}" r="5"/>`;
+    }
+    svg += `<text class="amt" x="${cx(i)}" y="${y - r - 10}" text-anchor="middle">${st.value ? fmtMoney0(st.value) : ''}</text>`;
+    svg += `<text class="day" x="${cx(i)}" y="${y + 30}" text-anchor="middle">${st.label}</text>`;
+  });
+  svg += '</svg>';
+
+  host.innerHTML = `
+    <div class="route-head">
+      <span class="rl-badge">GX</span>
+      <span class="rl-name">Gig Line</span><span class="rl-jp">ギグライン</span>
+      <span class="rl-total">${fmtMoney0(total)} · ${state.period.toUpperCase()}</span>
+    </div>${svg}`;
+}
+
+// Choose station granularity by the selected period.
+function routeStops() {
+  const shifts = store.getShifts();
+  if (state.period === 'week') return lastNDays(shifts, 7);
+  if (state.period === 'month') return weekStops(shifts, 6);
+  return monthStops(shifts, 12); // year / all
+}
+function lastNDays(shifts, n) {
+  const map = new Map();
+  const today = new Date();
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(today); d.setDate(d.getDate() - i);
+    map.set(store.isoDate(d), { label: d.toLocaleDateString(undefined, { weekday: 'narrow' }) + ' ' + (d.getMonth() + 1) + '/' + d.getDate(), value: 0 });
+  }
+  shifts.forEach((s) => { const o = map.get(s.date); if (o) o.value += store.shiftIncome(s); });
+  return [...map.values()];
+}
+function weekStops(shifts, n) {
+  const map = new Map();
+  shifts.forEach((s) => {
+    const [y, m, d] = s.date.split('-').map(Number);
+    const ws = store.isoDate(store.startOfWeek(new Date(y, m - 1, d)));
+    if (!map.has(ws)) { const [wy, wm, wd] = ws.split('-').map(Number); map.set(ws, { label: `${wm}/${wd}`, value: 0 }); }
+    map.get(ws).value += store.shiftIncome(s);
+  });
+  return [...map.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1)).slice(-n).map((e) => e[1]);
+}
+function monthStops(shifts, n) {
+  const map = new Map();
+  shifts.forEach((s) => {
+    const k = s.date.slice(0, 7);
+    if (!map.has(k)) map.set(k, { label: monthLabel(k), value: 0 });
+    map.get(k).value += store.shiftIncome(s);
+  });
+  return [...map.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1)).slice(-n).map((e) => e[1]);
 }
 
 function bucketByPeriod(shifts) {
@@ -800,6 +964,19 @@ function endDrive(save) {
   f.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+// Live station-board clock in the sidebar (desktop).
+function startClock() {
+  const el = $('#side-clock');
+  if (!el) return;
+  const pad = (n) => String(n).padStart(2, '0');
+  const tick = () => {
+    const d = new Date();
+    el.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  };
+  tick();
+  setInterval(tick, 1000);
+}
+
 function fmtDuration(ms) {
   const s = Math.floor(ms / 1000);
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
@@ -900,6 +1077,11 @@ function boot() {
   setChip('#shift-platform', 'flex');
   renderDashboard();
   renderLogList();
+  startClock();
+
+  // Re-render when crossing the desktop breakpoint so the route strip / ticker
+  // and count-up numbers appear/disappear correctly.
+  window.matchMedia('(min-width: 960px)').addEventListener('change', () => renderDashboard());
 
   // re-render dashboard when data changes elsewhere
   store.onChange(() => { if ($('#view-dashboard').classList.contains('active')) renderDashboard(); });

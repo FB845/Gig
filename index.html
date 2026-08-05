@@ -15,6 +15,28 @@
   <link rel="stylesheet" href="css/app.css" />
 </head>
 <body>
+  <div class="ambient" aria-hidden="true"></div>
+
+  <nav class="sidebar" aria-label="Primary navigation">
+    <div class="side-brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22"><rect x="3" y="13" width="3.5" height="8" rx="1" fill="#60a5fa"/><rect x="8.5" y="9" width="3.5" height="12" rx="1" fill="#34d399"/><rect x="14" y="6" width="3.5" height="15" rx="1" fill="#60a5fa"/><rect x="19" y="3" width="2" height="18" rx="1" fill="#34d399"/></svg>
+      </span>
+      <div class="sb-title"><b>Gig Tracker</b><small>ギグ・トラッカー</small></div>
+    </div>
+    <div class="side-nav">
+      <button class="snav active" data-view="dashboard"><span class="line-mark" style="--c:#34d399">GX</span><span class="snav-t">Home<small>ホーム</small></span></button>
+      <button class="snav" data-view="log"><span class="line-mark" style="--c:#60a5fa">LG</span><span class="snav-t">Log<small>記録</small></span></button>
+      <button class="snav" data-view="trends"><span class="line-mark" style="--c:#a78bfa">TR</span><span class="snav-t">Trends<small>傾向</small></span></button>
+      <button class="snav" data-view="import"><span class="line-mark" style="--c:#f5a524">IM</span><span class="snav-t">Import<small>取込</small></span></button>
+      <button class="snav" data-view="settings"><span class="line-mark" style="--c:#868e9e">ST</span><span class="snav-t">Settings<small>設定</small></span></button>
+    </div>
+    <div class="side-foot">
+      <div class="side-clock" id="side-clock">--:--:--</div>
+      <div class="side-clock-sub">オンデバイス ・ on-device</div>
+    </div>
+  </nav>
+
   <header class="app-header">
     <div class="brand">
       <span class="brand-mark" aria-hidden="true">
@@ -28,6 +50,7 @@
       <button class="pill" data-period="year">Year</button>
       <button class="pill" data-period="all">All</button>
     </div>
+    <div class="ticker" id="ticker" aria-hidden="true"><div class="ticker-track" id="ticker-track"></div></div>
   </header>
 
   <main id="app">
@@ -37,6 +60,8 @@
         <span class="dc-left"><span class="dc-dot"></span><span class="dc-text"><b>Start drive</b><small>Auto-track your miles with GPS</small></span></span>
         <span class="dc-go">▶</span>
       </button>
+
+      <div class="card route-strip desktop-only" id="route-strip"></div>
 
       <div class="kpi-grid" id="kpi-grid"></div>
 
