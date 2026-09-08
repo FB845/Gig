@@ -215,6 +215,31 @@ try {
   ok((await page.locator('#chart-flex-tag svg .bar').count()) >= 1, 'block-type $/hr bar chart drew bars');
   ok(/Rapid Express/.test(await page.locator('#flex-tag-list').innerText()), 'block-type list shows Rapid Express');
 
+  console.log('\n14) Route-strip total matches KPI income for every range');
+  await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    s.clearAll();
+    s.addShift({ platform: 'flex', date: s.todayISO(), gross: 100, tips: 20, hours: 4, jobs: 10, miles: 30 });
+    const d = new Date(); d.setDate(d.getDate() - 100);
+    s.addShift({ platform: 'doordash', date: s.isoDate(d), gross: 80, tips: 10, hours: 3, jobs: 8, miles: 20 });
+  });
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.locator('.tab[data-view=dashboard]').click();
+  await page.waitForTimeout(150);
+  for (const period of ['week', 'month', 'year', 'all']) {
+    await page.locator(`#period-pills .pill[data-period=${period}]`).click();
+    await page.waitForTimeout(120);
+    const r = await page.evaluate(async (p) => {
+      const s = await import('./js/store.js');
+      const { from, to } = s.rangeFor(p);
+      const income = s.inRange(s.getShifts(), from, to).reduce((a, x) => a + s.shiftIncome(x), 0);
+      const el = document.querySelector('#rs-total');
+      return { income, shown: el ? el.textContent.trim() : '' };
+    }, period);
+    const expect = '$' + Math.round(r.income).toLocaleString();
+    ok(r.income === 0 || r.shown === expect, `${period}: rollsign ${r.shown || '(empty)'} == income ${expect}`);
+  }
+
   ok(errors.length === 0, 'no console/page errors' + (errors.length ? ': ' + errors.slice(0, 3).join(' | ') : ''));
 } catch (e) {
   console.error('TEST CRASH:', e);

@@ -249,7 +249,9 @@ function renderRouteStrip() {
   // Fewer stations on a narrow (phone) layout so labels stay legible.
   const cap = isDesktop() ? 12 : 7;
   const stops = routeStops(cap);
-  const total = stops.reduce((a, s) => a + s.value, 0);
+  // Total mirrors the KPI income for the selected range (rollsign == dashboard).
+  const { from, to } = currentRange();
+  const total = store.inRange(store.getShifts(), from, to).reduce((a, s) => a + store.shiftIncome(s), 0);
   if (!stops.length || total <= 0) {
     host.innerHTML = rollsign + '<div class="chart-empty">運行実績なし — シフトを記録してください</div>';
     return;
@@ -268,10 +270,9 @@ function renderRouteStrip() {
   let svg = `<svg class="route-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">`;
   svg += `<line class="rline" x1="${cx(0)}" y1="${y}" x2="${cx(lastIdx)}" y2="${y}" style="stroke:${line}"/>`;
   stops.forEach((st, i) => {
-    const isNow = i === lastIdx;
     const r = st.value > 0 ? rFor(st.value) : 6;
-    // JR line-map station: colored dot with a dark centre
-    if (isNow && st.value > 0) svg += `<circle class="now-ring" cx="${cx(i)}" cy="${y}" r="${r + 4}" style="stroke:${line}"/>`;
+    // JR line-map station: colored dot with a dark centre; ring marks "now"
+    if (st.now) svg += `<circle class="now-ring" cx="${cx(i)}" cy="${y}" r="${r + 4}" style="stroke:${line}"/>`;
     svg += `<circle cx="${cx(i)}" cy="${y}" r="${r}" style="fill:${line}"/>`;
     svg += `<circle cx="${cx(i)}" cy="${y}" r="${Math.max(2, r - 4)}" style="fill:#000"/>`;
     svg += `<text class="amt" x="${cx(i)}" y="${y - r - 11}" text-anchor="middle">${st.value ? fmtMoney0(st.value) : '—'}</text>`;
@@ -284,41 +285,81 @@ function renderRouteStrip() {
   $('#rs-total').textContent = `${fmtMoney0(total)}`;
 }
 
-// Choose station granularity by the selected period (capped for narrow layouts).
+// Build route-map stations for the SELECTED range so they line up with the
+// KPIs (the stations sum to the range's income). Each stop: { label, value, now }.
 function routeStops(cap = 12) {
+  if (state.period === 'week') return weekDayStops();
+  if (state.period === 'month') return monthWeekStops();
+  if (state.period === 'year') return yearMonthStops(cap);
+  return allMonthStops(cap); // all-time
+}
+
+// Days of the current week (from week-start); value = that day's income.
+function weekDayStops() {
+  const now = new Date();
+  const start = store.startOfWeek(now);
+  const todayISO = store.isoDate(now);
   const shifts = store.getShifts();
-  if (state.period === 'week') return lastNDays(shifts, 7);
-  if (state.period === 'month') return weekStops(shifts, Math.min(6, cap));
-  return monthStops(shifts, cap); // year / all
-}
-function lastNDays(shifts, n) {
-  const map = new Map();
-  const today = new Date();
-  for (let i = n - 1; i >= 0; i--) {
-    const d = new Date(today); d.setDate(d.getDate() - i);
-    map.set(store.isoDate(d), { label: d.toLocaleDateString(undefined, { weekday: 'narrow' }) + ' ' + (d.getMonth() + 1) + '/' + d.getDate(), value: 0 });
+  const stops = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start); d.setDate(d.getDate() + i);
+    const iso = store.isoDate(d);
+    const value = shifts.filter((s) => s.date === iso).reduce((a, s) => a + store.shiftIncome(s), 0);
+    stops.push({
+      label: d.toLocaleDateString(undefined, { weekday: 'narrow' }) + ' ' + (d.getMonth() + 1) + '/' + d.getDate(),
+      value, now: iso === todayISO,
+    });
   }
-  shifts.forEach((s) => { const o = map.get(s.date); if (o) o.value += store.shiftIncome(s); });
-  return [...map.values()];
+  return stops;
 }
-function weekStops(shifts, n) {
-  const map = new Map();
-  shifts.forEach((s) => {
-    const [y, m, d] = s.date.split('-').map(Number);
-    const ws = store.isoDate(store.startOfWeek(new Date(y, m - 1, d)));
-    if (!map.has(ws)) { const [wy, wm, wd] = ws.split('-').map(Number); map.set(ws, { label: `${wm}/${wd}`, value: 0 }); }
-    map.get(ws).value += store.shiftIncome(s);
-  });
-  return [...map.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1)).slice(-n).map((e) => e[1]);
+
+// Weeks of the current month up to the current week; each value counts only the
+// days that fall inside the month, so the stations sum to the month's income.
+function monthWeekStops() {
+  const now = new Date();
+  const first = new Date(now.getFullYear(), now.getMonth(), 1);
+  const nowWs = store.startOfWeek(now);
+  const nowWsISO = store.isoDate(nowWs);
+  const shifts = store.getShifts();
+  const stops = [];
+  let ws = store.startOfWeek(first);
+  while (ws <= nowWs) {
+    const wStart = new Date(ws);
+    const wEnd = new Date(ws); wEnd.setDate(wEnd.getDate() + 6);
+    const labelDate = wStart < first ? first : wStart;
+    const value = shifts.filter((s) => {
+      const [yy, mm, dd] = s.date.split('-').map(Number);
+      const sd = new Date(yy, mm - 1, dd);
+      return sd >= wStart && sd <= wEnd && mm - 1 === now.getMonth() && yy === now.getFullYear();
+    }).reduce((a, s) => a + store.shiftIncome(s), 0);
+    stops.push({ label: `${labelDate.getMonth() + 1}/${labelDate.getDate()}`, value, now: store.isoDate(ws) === nowWsISO });
+    ws = new Date(ws); ws.setDate(ws.getDate() + 7);
+  }
+  return stops;
 }
-function monthStops(shifts, n) {
+
+// Months of the current year up to the current month.
+function yearMonthStops(cap) {
+  const now = new Date();
+  const shifts = store.getShifts();
+  const stops = [];
+  for (let m = 0; m <= now.getMonth(); m++) {
+    const key = `${now.getFullYear()}-${String(m + 1).padStart(2, '0')}`;
+    const value = shifts.filter((s) => s.date.slice(0, 7) === key).reduce((a, s) => a + store.shiftIncome(s), 0);
+    stops.push({ label: new Date(now.getFullYear(), m, 1).toLocaleDateString(undefined, { month: 'short' }), value, now: m === now.getMonth() });
+  }
+  return stops.slice(-cap);
+}
+
+// All-time by month (most recent `cap`); the last bucket is the current one.
+function allMonthStops(cap) {
   const map = new Map();
-  shifts.forEach((s) => {
+  store.getShifts().forEach((s) => {
     const k = s.date.slice(0, 7);
-    if (!map.has(k)) map.set(k, { label: monthLabel(k), value: 0 });
-    map.get(k).value += store.shiftIncome(s);
+    map.set(k, (map.get(k) || 0) + store.shiftIncome(s));
   });
-  return [...map.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1)).slice(-n).map((e) => e[1]);
+  const entries = [...map.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1)).slice(-cap);
+  return entries.map(([k, v], i) => ({ label: monthLabel(k), value: v, now: i === entries.length - 1 }));
 }
 
 function bucketByPeriod(shifts) {
