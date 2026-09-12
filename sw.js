@@ -4,7 +4,7 @@
 // single reload always gets the latest version when you're online, falling back
 // to cache when offline. CACHE-FIRST for static images/icons (they rarely change
 // and this keeps things fast). Bump CACHE on every release to purge old files.
-const CACHE = 'gig-tracker-v8';
+const CACHE = 'gig-tracker-v9';
 const ASSETS = [
   './',
   './index.html',

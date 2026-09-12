@@ -10,6 +10,7 @@
     "shots": "node scripts/shot.mjs",
     "shots:desktop": "node scripts/desktop-shot.mjs",
     "shots:mobile": "node scripts/mobile-shot.mjs",
+    "shots:campaign": "node scripts/campaign-shot.mjs",
     "icons": "python3 scripts/gen_icons.py"
   }
 }

@@ -27,6 +27,14 @@ mileage tracking** — without asking for a cent.
   expense breakdown, weekly net, hourly-rate trend, income-vs-expenses, your
   best day of the week, and **Flex $/hour by block type** (which of Rapid
   Express / Express / Rescue / Normal actually pays best per hour).
+- **🎯 Campaign 350** — a goal tracker for earning **$350/day, every day
+  (2026-09-12 → 2026-12-31)**, combining gig income with manual income
+  (e.g. TraceHaus). Shows today's hit/miss, earned-vs-goal-to-date,
+  ahead/behind pace, required daily pace (flagged when you've fallen behind),
+  current $350+ streak, a 14-day bar chart with a dashed $350 line, and a
+  combined income ledger. Gig shift income is reused directly (never
+  duplicated); non-gig income is logged in the **Log → Income** tab and is
+  **Campaign-only** so it never distorts the gig $/hr, $/mi or tax metrics.
 - **Fast logging** — log a shift (platform, hours, base pay, tips, deliveries,
   miles, fuel) with live $/hr, $/mi and tax-deduction math as you type.
 - **Amazon Flex block tools** — one-tap **block-length presets** (1:00–4:30 +

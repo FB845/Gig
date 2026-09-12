@@ -14,6 +14,7 @@ const state = {
   logMode: 'shift',
   editShiftId: null,
   editExpenseId: null,
+  editIncomeId: null,
 };
 
 // ---------- money / format helpers ----------
@@ -51,6 +52,7 @@ function showView(name) {
   if (name === 'dashboard') renderDashboard();
   if (name === 'trends') renderTrends();
   if (name === 'log') renderLogList();
+  if (name === 'campaign') renderCampaign();
 }
 
 $$('.tab, .snav').forEach((t) => t.addEventListener('click', () => showView(t.dataset.view)));
@@ -449,6 +451,7 @@ function initForms() {
     $$('#log-segmented .seg').forEach((x) => x.classList.toggle('active', x === b));
     $('#shift-form').classList.toggle('hidden', state.logMode !== 'shift');
     $('#expense-form').classList.toggle('hidden', state.logMode !== 'expense');
+    $('#income-form').classList.toggle('hidden', state.logMode !== 'income');
     renderLogList();
   }));
 
@@ -470,6 +473,7 @@ function initForms() {
   // default dates
   $('#shift-form [name=date]').value = store.todayISO();
   $('#expense-form [name=date]').value = store.todayISO();
+  $('#income-form [name=date]').value = store.todayISO();
 
   // live metrics on shift form
   ['gross', 'tips', 'hours', 'miles', 'jobs'].forEach((n) => {
@@ -479,8 +483,11 @@ function initForms() {
 
   $('#shift-form').addEventListener('submit', onSaveShift);
   $('#expense-form').addEventListener('submit', onSaveExpense);
+  $('#income-form').addEventListener('submit', onSaveIncome);
   $('#shift-reset').addEventListener('click', () => resetShiftForm());
   $('#expense-reset').addEventListener('click', () => resetExpenseForm());
+  $('#income-reset').addEventListener('click', () => resetIncomeForm());
+  $('#camp-add-income').addEventListener('click', () => { openIncomeForm(); });
 }
 
 function bindChips(sel) {
@@ -645,6 +652,50 @@ function editShift(id) {
   f.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+function onSaveIncome(e) {
+  e.preventDefault();
+  const f = e.target;
+  const data = { date: f.date.value, amount: f.amount.value, source: f.source.value, note: f.note.value };
+  if (!data.date || !(+data.amount > 0)) { toast('Enter a date and amount'); return; }
+  if (!data.source.trim()) { toast('Enter a source'); return; }
+  if (state.editIncomeId) { store.updateIncome(state.editIncomeId, data); toast('Income updated'); }
+  else { store.addIncome(data); toast('Income saved ✓'); }
+  resetIncomeForm();
+  renderLogList();
+}
+
+function resetIncomeForm() {
+  const f = $('#income-form');
+  f.reset();
+  f.date.value = store.todayISO();
+  state.editIncomeId = null;
+  $('#income-form-title').textContent = 'Log income';
+  $('#income-submit').textContent = 'Save income';
+}
+
+// Jump to the Log view's Income segment (used by the Campaign "+ Income" button).
+function openIncomeForm() {
+  state.logMode = 'income';
+  $$('#log-segmented .seg').forEach((x) => x.classList.toggle('active', x.dataset.log === 'income'));
+  $('#shift-form').classList.add('hidden');
+  $('#expense-form').classList.add('hidden');
+  $('#income-form').classList.remove('hidden');
+  renderLogList();
+  showView('log');
+  $('#income-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function editIncome(id) {
+  const inc = store.getIncomes().find((x) => x.id === id);
+  if (!inc) return;
+  openIncomeForm();
+  const f = $('#income-form');
+  f.date.value = inc.date; f.amount.value = inc.amount; f.source.value = inc.source; f.note.value = inc.note || '';
+  state.editIncomeId = id;
+  $('#income-form-title').textContent = 'Edit income';
+  $('#income-submit').textContent = 'Update income';
+}
+
 function editExpense(id) {
   const ex = store.getExpenses().find((x) => x.id === id);
   if (!ex) return;
@@ -697,6 +748,17 @@ function recordRow(item, type, deletable = true) {
       ${deletable ? `<button class="rec-del" data-del="trip" data-id="${item.id}" aria-label="Delete">✕</button>` : ''}
     </li>`;
   }
+  if (type === 'income') {
+    return `<li class="record" data-id="${item.id}" data-type="income">
+      <span class="rec-badge" style="background:#f5a524"></span>
+      <div class="rec-main">
+        <div class="rec-title">${escapeHtml(item.source)}</div>
+        <div class="rec-sub">${friendlyDate(item.date)} · manual${item.note ? ' · ' + escapeHtml(item.note) : ''}</div>
+      </div>
+      <div class="rec-amount">${fmtMoney(item.amount)}</div>
+      ${deletable ? `<button class="rec-del" data-del="income" data-id="${item.id}" aria-label="Delete">✕</button>` : ''}
+    </li>`;
+  }
   return `<li class="record" data-id="${item.id}" data-type="expense">
     <span class="rec-badge" style="background:${item.platform ? platColor(item.platform) : '#64748b'}"></span>
     <div class="rec-main">
@@ -720,6 +782,11 @@ function renderLogList() {
     const exp = store.getExpenses();
     list.innerHTML = exp.length ? exp.map((e) => recordRow(e, 'expense')).join('')
       : '<li class="empty-list">No expenses logged yet.</li>';
+  } else if (state.logMode === 'income') {
+    $('#log-list-title').textContent = 'Manual income';
+    const inc = store.getIncomes();
+    list.innerHTML = inc.length ? inc.map((i) => recordRow(i, 'income')).join('')
+      : '<li class="empty-list">No manual income yet — for TraceHaus invoices etc.</li>';
   } else {
     $('#log-list-title').textContent = 'GPS mileage log';
     const trips = store.getTrips();
@@ -737,18 +804,85 @@ document.addEventListener('click', (e) => {
     if (!confirm('Delete this entry?')) return;
     if (type === 'shift') store.deleteShift(id);
     else if (type === 'expense') store.deleteExpense(id);
+    else if (type === 'income') store.deleteIncome(id);
     else store.deleteTrip(id);
     toast('Deleted');
-    renderLogList(); renderDashboard();
+    renderLogList(); renderDashboard(); renderCampaign();
     return;
   }
   const row = e.target.closest('.record[data-type]');
   if (row && row.closest('#log-list')) {
     if (row.dataset.type === 'shift') editShift(row.dataset.id);
     else if (row.dataset.type === 'expense') editExpense(row.dataset.id);
+    else if (row.dataset.type === 'income') editIncome(row.dataset.id);
     // trips are read-only records; no edit
   }
 });
+
+// =====================================================================
+// Campaign 350
+// =====================================================================
+function renderCampaign() {
+  if (!$('#view-campaign')) return;
+  const c = store.campaignStats();
+
+  // Hero — today's hit/miss (the "did I hit the block" call)
+  const st = c.todayHit ? 'is-hit' : (c.todayTotal > 0 ? 'is-part' : 'is-none');
+  const label = c.todayHit ? 'HIT' : (c.todayTotal > 0 ? 'IN PROGRESS' : 'NO EARNINGS YET');
+  const jp = c.todayHit ? '達成' : (c.todayTotal > 0 ? '進行中' : '未達');
+  const pct = Math.min(100, (c.todayTotal / c.daily) * 100);
+  const hero = $('#camp-hero');
+  hero.className = `card camp-hero ${st}`;
+  hero.innerHTML = `
+    <div class="ch-top">
+      <span class="ch-title">CAMPAIGN 350<span class="jp">目標</span></span>
+      <span class="ch-days">${c.daysRemaining}<em>days left · 残り</em></span>
+    </div>
+    <div class="ch-status">${label}<span class="ch-status-jp">${jp}</span></div>
+    <div class="ch-amount">${fmtMoney0(c.todayTotal)} <span class="ch-goal">/ ${fmtMoney0(c.daily)} today</span></div>
+    <div class="ch-bar"><span style="width:${pct}%"></span></div>`;
+
+  // Stat tiles
+  const aheadPos = c.ahead >= 0;
+  const tiles = [
+    { label: 'Earned to date', jp: '累計', value: fmtMoney0(c.earnedToDate), sub: `of ${fmtMoney0(c.totalGoal)} goal`, cls: 'accent' },
+    { label: 'Goal to date', jp: '目標累計', value: fmtMoney0(c.goalToDate), sub: `day ${c.daysElapsed} of ${c.totalDays}` },
+    { label: aheadPos ? 'Ahead of pace' : 'Behind pace', jp: aheadPos ? '貯金' : '不足', value: (aheadPos ? '+' : '−') + fmtMoney0(Math.abs(c.ahead)), sub: 'vs $350/day line', cls: aheadPos ? 'accent' : 'neg' },
+    { label: 'Remaining goal', jp: '残り目標', value: fmtMoney0(c.remainingGoal), sub: `${c.daysRemaining} days left` },
+    { label: 'Required / day', jp: '必要日額', value: fmtMoney0(c.requiredPace), sub: c.behindPace ? `above $${c.daily} — behind` : `≤ $${c.daily} — on track`, cls: c.behindPace ? 'neg' : 'accent' },
+    { label: 'Streak', jp: '連続達成', value: `${c.streak}`, sub: `day${c.streak === 1 ? '' : 's'} at $350+` },
+  ];
+  $('#camp-kpis').innerHTML = tiles.map((k) => `
+    <div class="kpi ${k.cls || ''}">
+      <div class="k-label">${k.label}<span class="jp">${k.jp}</span></div>
+      <div class="k-value">${k.value}</div>
+      <div class="k-sub">${k.sub}</div>
+    </div>`).join('');
+
+  // 14-day chart with a dashed $350 reference line
+  const to = store.todayISO();
+  const fromD = new Date(); fromD.setDate(fromD.getDate() - 13);
+  const days = store.dailyTotals(store.isoDate(fromD), to);
+  const data = days.map((d) => {
+    const dd = new Date(d.date + 'T00:00:00');
+    const color = d.total >= c.daily ? '#34d399' : (d.total > 0 ? '#f5a524' : '#3a3f4b');
+    return { label: `${dd.getMonth() + 1}/${dd.getDate()}`, values: { t: d.total }, color };
+  });
+  charts.barChart($('#camp-chart'), data, [{ key: 't', label: 'Total', color: '#34d399' }], {
+    refLine: { value: c.daily, label: `$${c.daily}`, color: '#f5a524' }, empty: 'No data yet',
+  });
+
+  // Ledger — last ~60 days, gig shifts + manual income, newest first
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 59);
+  const cutISO = store.isoDate(cutoff);
+  const rows = [
+    ...store.getShifts().filter((s) => s.date >= cutISO).map((item) => ({ kind: 'shift', item })),
+    ...store.getIncomes().filter((i) => i.date >= cutISO).map((item) => ({ kind: 'income', item })),
+  ].sort((a, b) => (a.item.date < b.item.date ? 1 : a.item.date > b.item.date ? -1 : 0));
+  $('#camp-ledger').innerHTML = rows.length
+    ? rows.map((r) => (r.kind === 'shift' ? recordRow(r.item, 'shift', false) : recordRow(r.item, 'income', true))).join('')
+    : '<li class="empty-list">No income logged in the last 60 days.</li>';
+}
 
 // =====================================================================
 // Trends
@@ -1179,7 +1313,10 @@ function boot() {
   window.matchMedia('(min-width: 960px)').addEventListener('change', () => renderDashboard());
 
   // re-render dashboard when data changes elsewhere
-  store.onChange(() => { if ($('#view-dashboard').classList.contains('active')) renderDashboard(); });
+  store.onChange(() => {
+    if ($('#view-dashboard').classList.contains('active')) renderDashboard();
+    if ($('#view-campaign').classList.contains('active')) renderCampaign();
+  });
 
   registerSW();
 }

@@ -33,7 +33,11 @@ const DEFAULT_DB = {
   shifts: [],   // { id, platform, date, hours, gross, tips, jobs, miles, notes, createdAt }
   expenses: [], // { id, date, category, amount, note, platform, linkedShiftId, createdAt }
   trips: [],    // { id, date, miles, startedAt, endedAt, durationMs, fixes, linkedShiftId }
+  incomes: [],  // manual non-gig income (e.g. TraceHaus): { id, date, source, amount, note, createdAt }
 };
+
+// Campaign 350: earn $350/day, every day, 2026-09-12 → 2026-12-31.
+export const CAMPAIGN = { start: '2026-09-12', end: '2026-12-31', daily: 350 };
 
 let db = load();
 const listeners = new Set();
@@ -51,6 +55,7 @@ function load() {
       shifts: parsed.shifts || [],
       expenses: parsed.expenses || [],
       trips: parsed.trips || [],
+      incomes: parsed.incomes || [],
     };
   } catch (e) {
     console.error('Failed to load DB, starting fresh', e);
@@ -203,6 +208,42 @@ export function deleteTrip(id) {
   persist();
 }
 
+// ---- manual income (non-gig, e.g. TraceHaus) ----
+export function getIncomes() {
+  return [...db.incomes].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+}
+
+export function addIncome(data) {
+  const inc = normalizeIncome({ id: uid(), createdAt: new Date().toISOString(), ...data });
+  db.incomes.push(inc);
+  persist();
+  return inc;
+}
+
+export function updateIncome(id, data) {
+  const i = db.incomes.findIndex((x) => x.id === id);
+  if (i === -1) return null;
+  db.incomes[i] = normalizeIncome({ ...db.incomes[i], ...data });
+  persist();
+  return db.incomes[i];
+}
+
+export function deleteIncome(id) {
+  db.incomes = db.incomes.filter((i) => i.id !== id);
+  persist();
+}
+
+function normalizeIncome(i) {
+  return {
+    id: i.id,
+    date: i.date,
+    source: (i.source || '').trim() || 'Income',
+    amount: num(i.amount),
+    note: i.note || '',
+    createdAt: i.createdAt || new Date().toISOString(),
+  };
+}
+
 // ---- bulk import ----
 export function importShifts(rows) {
   let added = 0;
@@ -240,6 +281,7 @@ export function importJSON(text, { merge = false } = {}) {
     db.shifts.push(...incoming.shifts.map(normalizeShift));
     db.expenses.push(...(incoming.expenses || []));
     db.trips.push(...(incoming.trips || []));
+    db.incomes.push(...(incoming.incomes || []).map(normalizeIncome));
   } else {
     db = {
       ...structuredClone(DEFAULT_DB),
@@ -248,6 +290,7 @@ export function importJSON(text, { merge = false } = {}) {
       shifts: (incoming.shifts || []).map(normalizeShift),
       expenses: incoming.expenses || [],
       trips: incoming.trips || [],
+      incomes: (incoming.incomes || []).map(normalizeIncome),
     };
   }
   persist();
@@ -332,6 +375,88 @@ export function flexByTag(shifts) {
       effPct: o.schedPlanned ? (o.schedActual / o.schedPlanned) * 100 : 0,
     };
   });
+}
+
+// =====================================================================
+// Campaign 350
+// =====================================================================
+
+// One map of date(ISO) -> total income that day (gig shift income + manual).
+function incomeByDateMap() {
+  const m = new Map();
+  for (const s of db.shifts) m.set(s.date, (m.get(s.date) || 0) + shiftIncome(s));
+  for (const i of db.incomes) m.set(i.date, (m.get(i.date) || 0) + num(i.amount));
+  return m;
+}
+
+// Total income (gig + manual) for a single ISO date.
+export function dailyIncome(iso) {
+  return incomeByDateMap().get(iso) || 0;
+}
+
+// [{ date, total }] for each day in [fromISO, toISO] inclusive.
+export function dailyTotals(fromISO, toISO) {
+  const m = incomeByDateMap();
+  const out = [];
+  const d = new Date(fromISO + 'T00:00:00');
+  const end = new Date(toISO + 'T00:00:00');
+  while (d <= end) {
+    const iso = isoDate(d);
+    out.push({ date: iso, total: m.get(iso) || 0 });
+    d.setDate(d.getDate() + 1);
+  }
+  return out;
+}
+
+function daysInclusive(aISO, bISO) {
+  const a = new Date(aISO + 'T00:00:00');
+  const b = new Date(bISO + 'T00:00:00');
+  return Math.floor((b - a) / 86400000) + 1;
+}
+
+// Full Campaign 350 status as of `nowISO` (defaults to today), computed from
+// the real date — nothing hardcoded except the campaign window/goal.
+export function campaignStats(nowISO = todayISO()) {
+  const { start, end, daily } = CAMPAIGN;
+  const totalDays = daysInclusive(start, end);   // 111
+  const totalGoal = totalDays * daily;           // 38,850
+  const started = nowISO >= start;
+  const ended = nowISO > end;
+  const throughISO = ended ? end : (started ? nowISO : start);
+  const daysElapsed = started ? daysInclusive(start, throughISO) : 0; // incl. today
+  const daysRemaining = ended ? 0 : daysInclusive(started ? nowISO : start, end); // incl. today
+  const goalToDate = daysElapsed * daily;
+
+  const m = incomeByDateMap();
+  let earnedToDate = 0;
+  for (const [d, v] of m) if (d >= start && d <= throughISO) earnedToDate += v;
+
+  const remainingGoal = Math.max(0, totalGoal - earnedToDate);
+  const requiredPace = daysRemaining > 0 ? remainingGoal / daysRemaining : 0;
+  const ahead = earnedToDate - goalToDate; // + = ahead of the $350/day line
+
+  const todayTotal = m.get(nowISO) || 0;
+  const todayHit = todayTotal >= daily;
+
+  // Streak: consecutive $350+ days counting back from today. If today hasn't
+  // hit yet, count back from yesterday so an in-progress day doesn't zero it.
+  let streak = 0;
+  const startD = new Date(start + 'T00:00:00');
+  const cur = new Date(nowISO + 'T00:00:00');
+  if ((m.get(isoDate(cur)) || 0) < daily) cur.setDate(cur.getDate() - 1);
+  while (cur >= startD) {
+    if ((m.get(isoDate(cur)) || 0) >= daily) { streak += 1; cur.setDate(cur.getDate() - 1); }
+    else break;
+  }
+
+  return {
+    start, end, daily, totalDays, totalGoal,
+    started, ended, daysElapsed, daysRemaining,
+    todayTotal, todayHit,
+    earnedToDate, goalToDate, ahead,
+    remainingGoal, requiredPace, behindPace: requiredPace > daily,
+    streak,
+  };
 }
 
 // ---- date helpers ----

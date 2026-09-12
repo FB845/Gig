@@ -26,6 +26,7 @@
     </div>
     <div class="side-nav">
       <button class="snav active" data-view="dashboard"><span class="line-mark" style="--c:var(--jr-green)">GL</span><span class="snav-t">Home<small>ホーム</small></span></button>
+      <button class="snav" data-view="campaign"><span class="line-mark" style="--c:#f5a524">35</span><span class="snav-t">Campaign<small>目標</small></span></button>
       <button class="snav" data-view="log"><span class="line-mark" style="--c:var(--jr-blue)">LG</span><span class="snav-t">Log<small>記録</small></span></button>
       <button class="snav" data-view="trends"><span class="line-mark" style="--c:var(--jr-orange)">TR</span><span class="snav-t">Trends<small>分析</small></span></button>
       <button class="snav" data-view="import"><span class="line-mark" style="--c:var(--jr-teal)">IM</span><span class="snav-t">Import<small>取込</small></span></button>
@@ -97,11 +98,29 @@
       </div>
     </section>
 
+    <!-- ================= CAMPAIGN 350 ================= -->
+    <section id="view-campaign" class="view" aria-label="Campaign 350">
+      <div class="card camp-hero" id="camp-hero"></div>
+      <div class="kpi-grid camp-kpis" id="camp-kpis"></div>
+      <div class="card">
+        <div class="card-head"><h2>Last 14 days<span class="jp">直近14日</span></h2></div>
+        <div class="chart-wrap" id="camp-chart"></div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <h2>Income ledger<span class="jp">入金台帳</span></h2>
+          <button type="button" class="btn ghost camp-add" id="camp-add-income">+ Income</button>
+        </div>
+        <ul class="record-list" id="camp-ledger"></ul>
+      </div>
+    </section>
+
     <!-- ================= LOG ================= -->
     <section id="view-log" class="view" aria-label="Log">
       <div class="segmented" id="log-segmented">
         <button class="seg active" data-log="shift">Shifts</button>
         <button class="seg" data-log="expense">Expenses</button>
+        <button class="seg" data-log="income">Income</button>
         <button class="seg" data-log="trip">Trips</button>
       </div>
 
@@ -180,6 +199,23 @@
         <div class="form-actions">
           <button type="button" class="btn ghost" id="expense-reset">Clear</button>
           <button type="submit" class="btn primary" id="expense-submit">Save expense</button>
+        </div>
+      </form>
+
+      <form id="income-form" class="card form hidden">
+        <div class="card-head"><h2 id="income-form-title">Log income</h2></div>
+        <div class="row">
+          <div class="field"><label>Date</label><input type="date" name="date" required /></div>
+          <div class="field"><label>Amount ($)</label><input type="number" name="amount" step="0.01" min="0" inputmode="decimal" placeholder="500.00" required /></div>
+        </div>
+        <div class="field"><label>Source</label>
+          <input type="text" name="source" list="income-sources" placeholder="TraceHaus" autocomplete="off" required />
+          <datalist id="income-sources"><option value="TraceHaus"></option><option value="Invoice"></option><option value="Consulting"></option><option value="Retainer"></option></datalist>
+        </div>
+        <div class="field"><label>Note <span class="hint">optional</span></label><input type="text" name="note" placeholder="Invoice #123" /></div>
+        <div class="form-actions">
+          <button type="button" class="btn ghost" id="income-reset">Clear</button>
+          <button type="submit" class="btn primary" id="income-submit">Save income</button>
         </div>
       </form>
 
@@ -304,6 +340,7 @@
 
   <nav class="tabbar" role="tablist" aria-label="Sections">
     <button class="tab active" data-view="dashboard"><span class="line-mark" style="--c:var(--jr-green)">GL</span><span>Home</span></button>
+    <button class="tab" data-view="campaign"><span class="line-mark" style="--c:#f5a524">35</span><span>350</span></button>
     <button class="tab" data-view="log"><span class="line-mark" style="--c:var(--jr-blue)">LG</span><span>Log</span></button>
     <button class="tab" data-view="trends"><span class="line-mark" style="--c:var(--jr-orange)">TR</span><span>Trends</span></button>
     <button class="tab" data-view="import"><span class="line-mark" style="--c:var(--jr-teal)">IM</span><span>Import</span></button>

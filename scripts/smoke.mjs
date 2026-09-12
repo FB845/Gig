@@ -240,6 +240,59 @@ try {
     ok(r.income === 0 || r.shown === expect, `${period}: rollsign ${r.shown || '(empty)'} == income ${expect}`);
   }
 
+  console.log('\n15) Campaign 350 metrics (fixed nowISO for determinism)');
+  const c = await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    s.clearAll();
+    s.addShift({ platform: 'flex', date: '2026-10-01', gross: 150, tips: 50, hours: 4, jobs: 10, miles: 30 }); // 200
+    s.addIncome({ date: '2026-10-01', source: 'TraceHaus', amount: 200 }); // today 400 → hit
+    s.addIncome({ date: '2026-09-30', source: 'TraceHaus', amount: 350 }); // hit
+    s.addShift({ platform: 'doordash', date: '2026-09-29', gross: 80, tips: 20, hours: 3, jobs: 8, miles: 20 }); // 100 miss
+    return s.campaignStats('2026-10-01');
+  });
+  ok(c.totalDays === 111 && c.totalGoal === 38850, 'campaign = 111 days / $38,850');
+  ok(c.daysElapsed === 20, 'days elapsed = 20 (9/12→10/1)');
+  ok(c.daysRemaining === 92, 'days remaining = 92 (10/1→12/31)');
+  ok(Math.abs(c.earnedToDate - 850) < 0.01, 'earned to date = $850');
+  ok(c.goalToDate === 7000, 'goal to date = 20×350 = $7,000');
+  ok(Math.abs(c.ahead + 6150) < 0.01, 'behind by $6,150');
+  ok(Math.abs(c.remainingGoal - 38000) < 0.01, 'remaining goal = $38,000');
+  ok(c.behindPace === true && Math.abs(c.requiredPace - 38000 / 92) < 0.01, 'required pace ≈ $413/day (behind)');
+  ok(c.todayHit === true && Math.abs(c.todayTotal - 400) < 0.01, 'today HIT at $400');
+  ok(c.streak === 2, 'streak = 2 (10/1 + 9/30, broken by 9/29 miss)');
+
+  console.log('\n16) Income entry + campaign ledger (UI)');
+  await page.evaluate(async () => { (await import('./js/store.js')).clearAll(); });
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.locator('.tab[data-view=log]').click();
+  await page.locator('#log-segmented .seg[data-log=income]').click();
+  await page.waitForTimeout(100);
+  ok((await page.locator('#income-form:not(.hidden)').count()) === 1, 'Income segment shows income form');
+  const today = await page.evaluate(async () => (await import('./js/store.js')).todayISO());
+  await page.fill('#income-form [name=date]', today);
+  await page.fill('#income-form [name=amount]', '500');
+  await page.fill('#income-form [name=source]', 'TraceHaus');
+  await page.locator('#income-submit').click();
+  await page.waitForTimeout(120);
+  ok(/TraceHaus/.test(await page.locator('#log-list').innerText()) && /\$500/.test(await page.locator('#log-list').innerText()), 'manual income saved + listed');
+  await page.evaluate(async () => { const s = await import('./js/store.js'); s.addShift({ platform: 'flex', date: s.todayISO(), gross: 100, tips: 20, hours: 3, jobs: 8, miles: 20 }); });
+  await page.locator('.tab[data-view=campaign]').click();
+  await page.waitForTimeout(150);
+  ok((await page.locator('#view-campaign.active').count()) === 1, 'campaign view active');
+  ok(/CAMPAIGN 350/.test(await page.locator('#camp-hero').innerText()), 'hero renders');
+  ok(await page.evaluate(() => { const h = document.querySelector('#camp-hero'); return h.offsetHeight >= h.scrollHeight - 2; }), 'hero card not clipped (no class collision)');
+  ok((await page.locator('#camp-kpis .kpi').count()) === 6, 'six campaign stat tiles');
+  ok((await page.locator('#camp-chart svg .bar').count()) >= 1, '14-day chart drew bars');
+  ok((await page.locator('#camp-chart svg .refline').count()) === 1, '$350 reference line drawn');
+  ok(/TraceHaus/.test(await page.locator('#camp-ledger').innerText()), 'ledger shows manual income');
+  ok((await page.locator('#camp-ledger [data-del="income"]').count()) === 1, 'manual income deletable in ledger');
+  ok((await page.locator('#camp-ledger [data-del="shift"]').count()) === 0, 'gig shift NOT deletable in ledger');
+  await page.evaluate(() => { window.confirm = () => true; });
+  await page.locator('#camp-ledger [data-del="income"]').click();
+  await page.waitForTimeout(120);
+  const after = await page.evaluate(async () => { const s = await import('./js/store.js'); return { inc: s.getIncomes().length, shifts: s.getShifts().length }; });
+  ok(after.inc === 0 && after.shifts === 1, 'deleting ledger income removed income, kept the gig shift');
+
   ok(errors.length === 0, 'no console/page errors' + (errors.length ? ': ' + errors.slice(0, 3).join(' | ') : ''));
 } catch (e) {
   console.error('TEST CRASH:', e);

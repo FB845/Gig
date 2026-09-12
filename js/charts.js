@@ -28,7 +28,8 @@ export function barChart(container, data, series, opts = {}) {
   const plotH = H - padT - padB;
 
   const totals = data.map((d) => series.reduce((a, s) => a + (d.values[s.key] || 0), 0));
-  const max = Math.max(1, ...totals);
+  const refV = opts.refLine ? opts.refLine.value : 0;
+  const max = Math.max(1, refV, ...totals);
   const niceMax = niceCeil(max);
 
   const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, class: 'chart', preserveAspectRatio: 'none' });
@@ -65,6 +66,21 @@ export function barChart(container, data, series, opts = {}) {
       svg.appendChild(text(cx, H - 12, d.label, 'axis mid'));
     }
   });
+
+  // optional dashed reference line (e.g. the $350 goal)
+  if (opts.refLine) {
+    const ry = padT + plotH - (Math.min(opts.refLine.value, niceMax) / niceMax) * plotH;
+    svg.appendChild(el('line', {
+      x1: padL, y1: ry, x2: W - padR, y2: ry, class: 'refline',
+      stroke: opts.refLine.color || 'var(--accent)', 'stroke-dasharray': '5 4', 'stroke-width': 1.5,
+    }));
+    if (opts.refLine.label) {
+      const t = text(W - padR, ry - 4, opts.refLine.label, 'axis');
+      t.setAttribute('text-anchor', 'end');
+      t.setAttribute('fill', opts.refLine.color || 'var(--accent)');
+      svg.appendChild(t);
+    }
+  }
 
   container.appendChild(svg);
 }
