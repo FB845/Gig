@@ -316,9 +316,59 @@
         </div>
       </div>
 
+      <div class="card" id="sync-card">
+        <div class="card-head"><h2>Cloud sync<span class="jp">同期</span></h2><span class="sync-pill" id="sync-pill">Off</span></div>
+        <p class="muted">Sync your data across phone &amp; desktop with your own free Firebase project — sign in with the same email on both devices. Optional; the app works fully on-device without it. <a href="#" id="sync-guide-toggle">Setup guide</a></p>
+
+        <div class="sync-guide hidden" id="sync-guide">
+          <ol class="muted">
+            <li>Create a free project at <b>console.firebase.google.com</b>, then add a <b>Web app</b> and copy its <code>firebaseConfig</code> object.</li>
+            <li>In <b>Build → Authentication</b>, enable the <b>Email/Password</b> sign-in method.</li>
+            <li>In <b>Build → Firestore Database</b>, create a database, then set <b>Rules</b> to:</li>
+          </ol>
+          <pre class="sync-rules">rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+    match /gigtracker/{uid} {
+      allow read, write: if request.auth != null
+                         &amp;&amp; request.auth.uid == uid;
+    }
+  }
+}</pre>
+          <p class="muted">Paste the same config on each device, then sign in with the same email.</p>
+        </div>
+
+        <div class="field" id="sync-config-field">
+          <label>Firebase config <span class="hint">paste the <code>firebaseConfig</code> object</span></label>
+          <textarea id="sync-config" rows="5" spellcheck="false" autocomplete="off" placeholder='{ "apiKey": "…", "authDomain": "…", "projectId": "…", "appId": "…" }'></textarea>
+          <div class="form-actions"><button type="button" class="btn primary" id="sync-save-config">Save config</button></div>
+        </div>
+
+        <div id="sync-auth" class="hidden">
+          <div class="row">
+            <div class="field"><label>Email</label><input type="email" id="sync-email" autocomplete="username" placeholder="you@example.com" /></div>
+            <div class="field"><label>Password</label><input type="password" id="sync-pass" autocomplete="current-password" placeholder="••••••••" /></div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn ghost" id="sync-signup">Create account</button>
+            <button type="button" class="btn primary" id="sync-signin">Sign in</button>
+          </div>
+        </div>
+
+        <div id="sync-account" class="hidden">
+          <p class="muted">Signed in as <b id="sync-account-email"></b> · <span id="sync-status-text">—</span></p>
+          <div class="btn-col">
+            <button type="button" class="btn ghost" id="sync-change-config">Change Firebase config</button>
+            <button type="button" class="btn danger" id="sync-signout">Sign out of sync</button>
+          </div>
+        </div>
+
+        <p class="muted sync-error hidden" id="sync-error"></p>
+      </div>
+
       <div class="card">
         <div class="card-head"><h2>Backup &amp; data</h2></div>
-        <p class="muted">Your data lives only in this browser. Back it up regularly — clearing browser data will erase it.</p>
+        <p class="muted">Your data lives in this browser (and in your Firebase project if cloud sync is on). Back it up regularly — clearing browser data will erase the local copy.</p>
         <div class="btn-col">
           <button class="btn" id="export-json">⬇️ Export backup (JSON)</button>
           <button class="btn" id="export-csv">⬇️ Export shifts (CSV)</button>

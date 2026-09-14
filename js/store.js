@@ -21,6 +21,7 @@ export const EXPENSE_CATEGORIES = [
 
 const DEFAULT_DB = {
   version: 1,
+  rev: 0, // last-write timestamp (ms) — used for cloud-sync conflict resolution
   settings: {
     // IRS standard mileage rate (business). 2025 = $0.70/mi. Editable.
     mileageRate: 0.70,
@@ -42,30 +43,73 @@ export const CAMPAIGN = { start: '2026-09-12', end: '2026-12-31', daily: 350 };
 let db = load();
 const listeners = new Set();
 
+// Coerce any parsed/remote object into the full DB shape (fills new defaults).
+function coerce(parsed) {
+  return {
+    ...structuredClone(DEFAULT_DB),
+    ...parsed,
+    settings: { ...DEFAULT_DB.settings, ...(parsed.settings || {}) },
+    shifts: parsed.shifts || [],
+    expenses: parsed.expenses || [],
+    trips: parsed.trips || [],
+    incomes: parsed.incomes || [],
+  };
+}
+
 function load() {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return structuredClone(DEFAULT_DB);
-    const parsed = JSON.parse(raw);
-    // shallow-merge settings so new defaults appear for older saves
-    return {
-      ...structuredClone(DEFAULT_DB),
-      ...parsed,
-      settings: { ...DEFAULT_DB.settings, ...(parsed.settings || {}) },
-      shifts: parsed.shifts || [],
-      expenses: parsed.expenses || [],
-      trips: parsed.trips || [],
-      incomes: parsed.incomes || [],
-    };
+    return coerce(JSON.parse(raw));
   } catch (e) {
     console.error('Failed to load DB, starting fresh', e);
     return structuredClone(DEFAULT_DB);
   }
 }
 
+function save() { localStorage.setItem(KEY, JSON.stringify(db)); }
+function notify(origin) { listeners.forEach((fn) => fn(db, origin)); }
+
+// Local user change: bump the revision so cloud sync knows this device is newest.
 function persist() {
-  localStorage.setItem(KEY, JSON.stringify(db));
-  listeners.forEach((fn) => fn(db));
+  db.rev = Date.now();
+  save();
+  notify('local');
+}
+
+// ---- cloud-sync hooks (no-ops unless js/sync.js is active) ----
+export function getDB() { return structuredClone(db); }
+export function getRev() { return db.rev || 0; }
+
+// Replace the whole DB with a remote copy (last-write-wins). Keeps the remote's
+// rev so we don't re-push it back.
+export function applyRemote(remote) {
+  db = coerce(remote);
+  save();
+  notify('remote');
+}
+
+// Union local + remote by record id (used once when first linking an account so
+// neither side's existing entries are lost). Bumps rev and returns the merged db.
+export function mergeRemote(remote) {
+  const r = coerce(remote);
+  const union = (a, b) => {
+    const m = new Map(a.map((x) => [x.id, x]));
+    for (const x of b) if (!m.has(x.id)) m.set(x.id, x);
+    return [...m.values()];
+  };
+  db = {
+    ...db,
+    shifts: union(db.shifts, r.shifts),
+    expenses: union(db.expenses, r.expenses),
+    trips: union(db.trips, r.trips),
+    incomes: union(db.incomes, r.incomes),
+    settings: { ...r.settings, ...db.settings },
+    rev: Date.now(),
+  };
+  save();
+  notify('merge');
+  return structuredClone(db);
 }
 
 export function onChange(fn) {

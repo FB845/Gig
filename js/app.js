@@ -4,6 +4,7 @@ import * as charts from './charts.js';
 import { csvToShifts, extractFromText } from './parse.js';
 import { recognize, ocrAvailable } from './ocr.js';
 import { DriveTracker } from './geo.js';
+import * as sync from './sync.js';
 
 const { PLATFORMS, EXPENSE_CATEGORIES } = store;
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -1234,6 +1235,72 @@ function initSettings() {
   });
 }
 
+// ---- cloud sync UI (Settings → Cloud sync) ----
+function parseFirebaseConfig(txt) {
+  const m = txt.match(/\{[\s\S]*\}/);
+  const objText = m ? m[0] : txt;
+  try { return JSON.parse(objText); } catch { /* fall through */ }
+  // tolerate a JS object literal (unquoted keys, single quotes, trailing commas)
+  return (new Function('return (' + objText + ')'))();
+}
+
+function initSyncUI() {
+  if (!$('#sync-card')) return;
+  const err = $('#sync-error');
+  const showErr = (msg) => { err.textContent = msg || ''; err.classList.toggle('hidden', !msg); };
+
+  $('#sync-guide-toggle').addEventListener('click', (e) => { e.preventDefault(); $('#sync-guide').classList.toggle('hidden'); });
+  $('#sync-change-config').addEventListener('click', () => $('#sync-config-field').classList.remove('hidden'));
+
+  $('#sync-save-config').addEventListener('click', async () => {
+    const txt = $('#sync-config').value.trim();
+    if (!txt) { showErr('Paste your Firebase config first.'); return; }
+    let cfg;
+    try { cfg = parseFirebaseConfig(txt); } catch { showErr('Couldn’t read that config — paste the firebaseConfig object.'); return; }
+    if (!cfg || !cfg.apiKey || !cfg.projectId) { showErr('Config is missing apiKey / projectId.'); return; }
+    showErr('');
+    await sync.configureSync(cfg);
+    toast('Config saved — now sign in');
+  });
+
+  const doAuth = async (which) => {
+    const email = $('#sync-email').value.trim();
+    const pass = $('#sync-pass').value;
+    if (!email || !pass) { showErr('Enter your email and password.'); return; }
+    showErr('');
+    try { await sync[which](email, pass); $('#sync-pass').value = ''; toast('Signed in ✓'); }
+    catch (e) { showErr(sync.getSyncState().error || e.message || 'Sign-in failed'); }
+  };
+  $('#sync-signin').addEventListener('click', () => doAuth('signIn'));
+  $('#sync-signup').addEventListener('click', () => doAuth('signUp'));
+  $('#sync-signout').addEventListener('click', async () => { try { await sync.signOutSync(); toast('Signed out of sync'); } catch { /* ignore */ } });
+
+  const STATUS = { idle: 'Signed out', loading: 'Connecting…', syncing: 'Syncing…', synced: 'Synced ✓', error: 'Error' };
+  const PILL = { idle: '', loading: 'busy', syncing: 'busy', synced: 'ok', error: 'err' };
+
+  sync.onSyncState((st) => {
+    let pillText = 'Off', pillCls = '';
+    if (st.signedIn) { pillText = STATUS[st.status] || 'On'; pillCls = PILL[st.status] || 'ok'; }
+    else if (st.configured) { pillText = st.status === 'error' ? 'Error' : 'Sign in'; pillCls = st.status === 'error' ? 'err' : ''; }
+    $('#sync-pill').textContent = pillText;
+    $('#sync-pill').className = 'sync-pill ' + pillCls;
+
+    if (!st.configured) {
+      $('#sync-config-field').classList.remove('hidden');
+      $('#sync-auth').classList.add('hidden'); $('#sync-account').classList.add('hidden');
+    } else if (!st.signedIn) {
+      $('#sync-config-field').classList.add('hidden');
+      $('#sync-auth').classList.remove('hidden'); $('#sync-account').classList.add('hidden');
+    } else {
+      $('#sync-config-field').classList.add('hidden');
+      $('#sync-auth').classList.add('hidden'); $('#sync-account').classList.remove('hidden');
+    }
+    $('#sync-account-email').textContent = st.email || '';
+    $('#sync-status-text').textContent = STATUS[st.status] || '';
+    showErr(st.error || '');
+  });
+}
+
 function exportShiftsCSV() {
   const rows = [['date', 'platform', 'hours', 'gross', 'tips', 'income', 'jobs', 'miles', 'notes']];
   store.getShifts().forEach((s) => rows.push([s.date, s.platform, s.hours, s.gross, s.tips, store.shiftIncome(s), s.jobs, s.miles, (s.notes || '').replace(/"/g, '""')]));
@@ -1301,6 +1368,7 @@ function boot() {
   initForms();
   initImport();
   initSettings();
+  initSyncUI();
   initInstall();
   initDrive();
   setChip('#shift-platform', 'flex');
@@ -1312,10 +1380,15 @@ function boot() {
   // and count-up numbers appear/disappear correctly.
   window.matchMedia('(min-width: 960px)').addEventListener('change', () => renderDashboard());
 
-  // re-render dashboard when data changes elsewhere
+  // Re-render whatever view is active when data changes — including remote
+  // updates arriving from cloud sync on another device.
   store.onChange(() => {
-    if ($('#view-dashboard').classList.contains('active')) renderDashboard();
-    if ($('#view-campaign').classList.contains('active')) renderCampaign();
+    const active = document.querySelector('.view.active');
+    if (!active) return;
+    if (active.id === 'view-dashboard') renderDashboard();
+    else if (active.id === 'view-campaign') renderCampaign();
+    else if (active.id === 'view-log') renderLogList();
+    else if (active.id === 'view-trends') renderTrends();
   });
 
   registerSW();

@@ -143,12 +143,45 @@ nothing reloads out from under you until you do.
 
 ## Your data
 
-Everything is stored **locally in your browser** (`localStorage`) — private, no
-account, no server. That also means:
+By default everything is stored **locally in your browser** (`localStorage`) —
+private, no account, no server. That also means:
 
 - **Back up regularly.** Settings → **Export backup (JSON)**. Clearing your
-  browser data (or deleting the installed app) erases everything.
+  browser data (or deleting the installed app) erases the local copy.
 - Restore anytime with Settings → **Restore from backup** (merge or replace).
+
+## Cloud sync (optional) — access your data on phone + desktop
+
+Cloud sync is **opt-in**; the app works fully on-device without it. When enabled,
+it uses **your own free Firebase (Firestore) project** so your data stays in an
+account you control. Sign in with the same email on each device and they stay in
+sync live. Set it up once per device in **Settings → Cloud sync**:
+
+1. At **console.firebase.google.com**, create a free project, add a **Web app**,
+   and copy its `firebaseConfig` object.
+2. **Build → Authentication →** enable the **Email/Password** provider.
+3. **Build → Firestore Database →** create a database, then set **Rules** to:
+   ```
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{db}/documents {
+       match /gigtracker/{uid} {
+         allow read, write: if request.auth != null && request.auth.uid == uid;
+       }
+     }
+   }
+   ```
+4. Paste the config into **Settings → Cloud sync** and sign in (create the
+   account on the first device, sign in with the same email/password on the
+   others).
+
+How it works: the whole DB is stored as one document at `gigtracker/{uid}`.
+Conflicts resolve **last-write-wins by revision**, except the first time a device
+links an account, when local + cloud data are **union-merged by record id** so
+neither side's existing entries are lost. It works offline (Firestore caches
+locally) and pushes when you reconnect. Your Firebase config lives only on each
+device (not in the synced data), and the security rules above ensure only you
+can read/write your document.
 
 ## Project layout
 
@@ -160,6 +193,7 @@ js/charts.js            dependency-free SVG bar / line / donut charts
 js/parse.js             CSV parsing + OCR/free-text field extraction
 js/ocr.js               lazy Tesseract.js loader for screenshot OCR
 js/geo.js               GPS auto-mileage tracker (Haversine + jitter filtering)
+js/sync.js              optional Firebase (Firestore) cloud sync
 js/app.js               UI wiring
 manifest.webmanifest    PWA manifest
 sw.js                   offline service worker

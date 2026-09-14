@@ -293,6 +293,34 @@ try {
   const after = await page.evaluate(async () => { const s = await import('./js/store.js'); return { inc: s.getIncomes().length, shifts: s.getShifts().length }; });
   ok(after.inc === 0 && after.shifts === 1, 'deleting ledger income removed income, kept the gig shift');
 
+  console.log('\n17) Cloud sync — store hooks + UI (no network)');
+  const syncStore = await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    s.clearAll();
+    s.addShift({ platform: 'flex', date: '2026-09-14', gross: 100, tips: 20, hours: 3 });
+    const rev1 = s.getRev();
+    s.applyRemote({ rev: 999, shifts: [{ id: 'r1', platform: 'doordash', date: '2026-09-13', gross: 50, tips: 10, hours: 2 }], expenses: [], trips: [], incomes: [], settings: {} });
+    const afterApply = { rev: s.getRev(), ids: s.getShifts().map((x) => x.id) };
+    s.mergeRemote({ shifts: [{ id: 'r2', platform: 'flex', date: '2026-09-12', gross: 80, tips: 0, hours: 2 }], expenses: [], trips: [], incomes: [], settings: {} });
+    return { rev1, afterApply, afterMerge: s.getShifts().map((x) => x.id).sort() };
+  });
+  ok(syncStore.rev1 > 0, 'getRev bumps on a local change');
+  ok(syncStore.afterApply.rev === 999, 'applyRemote keeps the remote rev (last-write-wins)');
+  ok(syncStore.afterApply.ids.length === 1 && syncStore.afterApply.ids[0] === 'r1', 'applyRemote replaced local data');
+  ok(syncStore.afterMerge.length === 2 && syncStore.afterMerge.includes('r1') && syncStore.afterMerge.includes('r2'), 'mergeRemote unions both sides by id');
+
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.locator('.tab[data-view=settings]').click();
+  await page.waitForTimeout(100);
+  ok((await page.locator('#sync-card').count()) === 1, 'Cloud sync card present in Settings');
+  ok((await page.locator('#sync-pill').innerText()).trim() === 'Off', 'sync pill shows Off when unconfigured');
+  ok((await page.locator('#sync-config-field:not(.hidden)').count()) === 1, 'config field shown when unconfigured');
+  ok((await page.locator('#sync-auth.hidden').count()) === 1, 'sign-in hidden until configured');
+  await page.fill('#sync-config', 'not a config');
+  await page.locator('#sync-save-config').click();
+  await page.waitForTimeout(100);
+  ok((await page.locator('#sync-error:not(.hidden)').count()) === 1, 'invalid config shows an error (no network)');
+
   ok(errors.length === 0, 'no console/page errors' + (errors.length ? ': ' + errors.slice(0, 3).join(' | ') : ''));
 } catch (e) {
   console.error('TEST CRASH:', e);
