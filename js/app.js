@@ -477,7 +477,7 @@ function initForms() {
   $('#income-form [name=date]').value = store.todayISO();
 
   // live metrics on shift form
-  ['gross', 'tips', 'hours', 'miles', 'jobs'].forEach((n) => {
+  ['gross', 'tips', 'hoursH', 'hoursM', 'miles', 'jobs'].forEach((n) => {
     $(`#shift-form [name=${n}]`).addEventListener('input', updateShiftLive);
   });
   updateShiftLive();
@@ -506,6 +506,21 @@ function setChip(sel, val) {
   $$(`${sel} .chip`).forEach((c) => c.classList.toggle('active', c.dataset.val === val));
 }
 
+// Time worked is entered as hours + minutes but stored as decimal hours, so
+// finishing a block at, say, 2h20m records 2.333 h (not rounded to :15/:30).
+function getFormHours(f) {
+  return (parseFloat(f.hoursH.value) || 0) + (parseFloat(f.hoursM.value) || 0) / 60;
+}
+function setFormHours(f, decimal) {
+  const d = Number(decimal) || 0;
+  if (!d) { f.hoursH.value = ''; f.hoursM.value = ''; return; }
+  let h = Math.floor(d + 1e-9);
+  let m = Math.round((d - h) * 60);
+  if (m === 60) { h += 1; m = 0; }
+  f.hoursH.value = String(h);
+  f.hoursM.value = String(m);
+}
+
 // Show/hide the Flex-only fields and adapt the hours label to the platform.
 function updateFlexUI() {
   const isFlex = chipValue('#shift-platform') === 'flex';
@@ -524,7 +539,7 @@ function bindBlockPresets() {
     if (isCustom) { custom.focus(); }
     else {
       const f = $('#shift-form');
-      if (!f.hours.value) f.hours.value = c.dataset.val; // prefill actual = scheduled
+      if (!f.hoursH.value && !f.hoursM.value) setFormHours(f, parseFloat(c.dataset.val)); // prefill actual = scheduled
     }
     updateShiftLive();
   }));
@@ -555,7 +570,7 @@ function setBlockPreset(scheduledHours) {
 
 function updateShiftLive() {
   const f = $('#shift-form');
-  const gross = +f.gross.value || 0, tips = +f.tips.value || 0, hours = +f.hours.value || 0;
+  const gross = +f.gross.value || 0, tips = +f.tips.value || 0, hours = getFormHours(f);
   const miles = +f.miles.value || 0, jobs = +f.jobs.value || 0;
   const income = gross + tips;
   const rate = store.getSettings().mileageRate;
@@ -577,7 +592,7 @@ function onSaveShift(e) {
   const data = {
     platform: chipValue('#shift-platform') || 'other',
     date: f.date.value,
-    hours: f.hours.value, gross: f.gross.value, tips: f.tips.value,
+    hours: getFormHours(f), gross: f.gross.value, tips: f.tips.value,
     jobs: f.jobs.value, miles: f.miles.value, fuel: f.fuel.value, notes: f.notes.value,
     scheduledHours: isFlex ? getScheduledHours() : 0,
     tag: isFlex ? chipValue('#shift-tag') : '',
@@ -642,7 +657,7 @@ function editShift(id) {
   setChip('#shift-platform', s.platform);
   setChip('#shift-tag', s.tag || '');
   setBlockPreset(s.scheduledHours || 0);
-  f.date.value = s.date; f.hours.value = s.hours || ''; f.gross.value = s.gross || '';
+  f.date.value = s.date; setFormHours(f, s.hours || 0); f.gross.value = s.gross || '';
   f.tips.value = s.tips || ''; f.jobs.value = s.jobs || ''; f.miles.value = s.miles || '';
   f.fuel.value = ''; f.notes.value = s.notes || '';
   state.editShiftId = id;

@@ -161,7 +161,12 @@
         </div>
         <div class="row">
           <div class="field"><label>Date</label><input type="date" name="date" required /></div>
-          <div class="field"><label id="hours-label">Actual time worked</label><input type="number" name="hours" step="0.25" min="0" inputmode="decimal" placeholder="3.5" /></div>
+          <div class="field"><label id="hours-label">Actual time worked</label>
+            <div class="hm-input">
+              <input type="number" name="hoursH" min="0" step="1" inputmode="numeric" placeholder="3" aria-label="hours" /><span class="hm-unit">h</span>
+              <input type="number" name="hoursM" min="0" max="59" step="1" inputmode="numeric" placeholder="20" aria-label="minutes" /><span class="hm-unit">m</span>
+            </div>
+          </div>
         </div>
         <div class="row">
           <div class="field"><label>Base pay ($)</label><input type="number" name="gross" step="0.01" min="0" inputmode="decimal" placeholder="42.00" /></div>

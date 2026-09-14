@@ -62,7 +62,8 @@ await page.screenshot({ path: path.join(root, 'scripts/import.png') });
 // flex shift form with block preset + tag selected
 await page.locator('.tab[data-view=log]').click();
 await page.locator('#shift-blockpreset .chip[data-val="3"]').click();
-await page.fill('#shift-form [name=hours]', '2.5');
+await page.fill('#shift-form [name=hoursH]', '2');
+await page.fill('#shift-form [name=hoursM]', '30');
 await page.locator('#shift-tag .chip[data-val="Rapid Express"]').click();
 await page.fill('#shift-form [name=gross]', '54');
 await page.fill('#shift-form [name=tips]', '8');

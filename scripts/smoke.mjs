@@ -45,7 +45,7 @@ try {
   await page.locator('.tab[data-view=log]').click();
   await page.locator('#shift-platform .chip[data-val=doordash]').click();
   await page.fill('#shift-form [name=date]', '2026-07-06');
-  await page.fill('#shift-form [name=hours]', '4');
+  await page.fill('#shift-form [name=hoursH]', '4');
   await page.fill('#shift-form [name=gross]', '40');
   await page.fill('#shift-form [name=tips]', '20');
   await page.fill('#shift-form [name=jobs]', '12');
@@ -162,19 +162,20 @@ try {
   await page.locator('.tab[data-view=log]').click();
   ok((await page.locator('#flex-block-field:not(.hidden)').count()) === 1, 'Flex block field visible for Flex (default)');
   await page.locator('#shift-blockpreset .chip[data-val="3"]').click();
-  ok((await page.locator('#shift-form [name=hours]').inputValue()) === '3', 'actual hours prefilled to scheduled block (3)');
-  await page.fill('#shift-form [name=hours]', '2.25'); // finished early
+  ok((await page.locator('#shift-form [name=hoursH]').inputValue()) === '3' && (await page.locator('#shift-form [name=hoursM]').inputValue()) === '0', 'actual time prefilled to 3h 0m from block');
+  await page.fill('#shift-form [name=hoursH]', '2'); // finished a 3:00 block at 2h20m
+  await page.fill('#shift-form [name=hoursM]', '20');
   await page.locator('#shift-tag .chip[data-val="Rapid Express"]').click();
   await page.fill('#shift-form [name=date]', '2026-07-07');
   await page.fill('#shift-form [name=gross]', '66');
   await page.locator('#shift-form [name=gross]').dispatchEvent('input');
-  ok(/75%/.test(await page.locator('#shift-live').innerText()), 'live "Block time" = 75% (2.25/3)');
+  ok(/78%/.test(await page.locator('#shift-live').innerText()), 'live "Block time" = 78% (2h20m / 3h, not rounded)');
   await page.locator('#shift-submit').click();
   await page.waitForTimeout(150);
   const fx = await page.evaluate(async () => (await import('./js/store.js')).getShifts()[0]);
-  ok(fx.scheduledHours === 3 && Math.abs(fx.hours - 2.25) < 0.01, 'saved scheduled=3, actual=2.25');
+  ok(fx.scheduledHours === 3 && Math.abs(fx.hours - 2 - 20 / 60) < 0.001, 'saved scheduled=3, actual=2h20m (2.333h, minute-precise)');
   ok(fx.tag === 'Rapid Express', 'saved tag = Rapid Express');
-  ok(/特急/.test(await page.locator('#log-list').innerText()) && /75%\)/.test(await page.locator('#log-list').innerText()), 'shift row shows 種別 badge (特急) + (75%)');
+  ok(/特急/.test(await page.locator('#log-list').innerText()) && /78%\)/.test(await page.locator('#log-list').innerText()), 'shift row shows 種別 badge (特急) + (78%)');
 
   await page.locator('#shift-platform .chip[data-val="doordash"]').click();
   ok((await page.locator('#flex-block-field.hidden').count()) === 1, 'Flex fields hidden for DoorDash');
@@ -184,7 +185,7 @@ try {
   await page.locator('#period-pills .pill[data-period=all]').click();
   await page.waitForTimeout(150);
   ok((await page.locator('#flex-eff-card:not(.hidden)').count()) === 1, 'Flex efficiency card shown on dashboard');
-  ok(/75%/.test(await page.locator('#flex-eff-card').innerText()), 'efficiency card shows 75%');
+  ok(/78%/.test(await page.locator('#flex-eff-card').innerText()), 'efficiency card shows 78%');
 
   const eff = await page.evaluate(async () => {
     const s = await import('./js/store.js');
