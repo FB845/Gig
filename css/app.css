@@ -576,6 +576,45 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 .sync-error { color: var(--danger); }
 #sync-config-field code { font-family: var(--font-led); }
 
+/* ---------- "Worth it?" offer calculator ---------- */
+.offer-avg { font-size: 11px; font-family: var(--font-led); }
+.offer-inputs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.offer-inputs .field { margin-bottom: 0; min-width: 0; }
+.offer-inputs input { text-align: center; }
+.offer-verdict { margin-top: 12px; }
+.ov-hint { font-size: 13px; text-align: center; padding: 6px 0; }
+.ov-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-radius: 12px; padding: 12px 14px; border: 1px solid var(--border); }
+.ov-verdict-label { font-family: var(--font-board); font-weight: 900; font-size: 22px; letter-spacing: .01em; display: flex; flex-direction: column; line-height: 1; }
+.ov-verdict-label small { font-family: var(--font-jp); font-size: 12px; font-weight: 800; margin-top: 4px; letter-spacing: .12em; opacity: .9; }
+.ov-stats { display: flex; gap: 16px; }
+.ov-stat { font-family: var(--font-led); text-align: right; }
+.ov-stat b { font-size: 18px; font-weight: 800; display: block; color: var(--text); }
+.ov-stat.good b { color: var(--accent); }
+.ov-stat.bad b { color: var(--danger); }
+.ov-stat small { color: var(--muted); font-size: 10px; letter-spacing: .03em; }
+.ov-banner.take { background: color-mix(in srgb, var(--accent) 13%, transparent); border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+.ov-banner.take .ov-verdict-label { color: var(--accent); }
+.ov-banner.marginal { background: color-mix(in srgb, #f5a524 13%, transparent); border-color: color-mix(in srgb, #f5a524 45%, var(--border)); }
+.ov-banner.marginal .ov-verdict-label { color: #f5a524; }
+.ov-banner.skip { background: color-mix(in srgb, var(--danger) 13%, transparent); border-color: color-mix(in srgb, var(--danger) 45%, var(--border)); }
+.ov-banner.skip .ov-verdict-label { color: var(--danger); }
+
+/* ---------- Tax summary ---------- */
+#tax-year { width: auto; padding: 6px 30px 6px 10px; font-size: 13px; }
+.tax-rows { display: flex; flex-direction: column; }
+.tax-subhead { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 16px 0 4px; }
+.tax-subhead:first-child { margin-top: 0; }
+.tax-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.tax-row:last-child { border-bottom: none; }
+.tax-row .tr-label { font-size: 13px; }
+.tax-row .tr-label small { color: var(--muted); }
+.tax-row .tr-val { font-family: var(--font-led); font-size: 14px; font-weight: 700; white-space: nowrap; }
+.tax-row.sub .tr-label { padding-left: 12px; color: var(--muted); font-size: 12px; }
+.tax-row.total .tr-label { font-weight: 800; }
+.tax-row.total .tr-val { font-size: 16px; font-weight: 800; }
+.tax-row.total.accent .tr-val { color: var(--accent); }
+.tax-disclaimer { font-size: 11px; margin-top: 10px; line-height: 1.5; }
+
 /* Cut animations/transitions — saves repaints/GPU wake-ups (and honors the OS
    reduce-motion setting). */
 @media (prefers-reduced-motion: reduce) {

@@ -322,6 +322,55 @@ try {
   await page.waitForTimeout(100);
   ok((await page.locator('#sync-error:not(.hidden)').count()) === 1, 'invalid config shows an error (no network)');
 
+  console.log('\n18) "Worth it?" offer calculator + tax summary');
+  const ov = await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    const set = { minPerMile: 1.5, minPerHour: 20 };
+    return {
+      take: s.offerVerdict(20, 8, 25, set),
+      skip: s.offerVerdict(4, 8, 25, set),
+      marginal: s.offerVerdict(14, 8, 60, set),
+      noMin: s.offerVerdict(20, 8, 0, set),
+      invalid: s.offerVerdict(0, 8, 25, set),
+    };
+  });
+  ok(ov.take.verdict === 'take' && Math.abs(ov.take.perMile - 2.5) < 0.01, 'offer $20/8mi/25min → TAKE (2.5/mi, 48/hr)');
+  ok(ov.skip.verdict === 'skip', 'offer $4/8mi → SKIP');
+  ok(ov.marginal.verdict === 'marginal', 'offer $14/8mi/60min → MARGINAL (mile ok, hour low)');
+  ok(ov.noMin.verdict === 'take' && ov.noMin.hourOK === null, 'no minutes → judged on $/mi only');
+  ok(ov.invalid.valid === false, 'no pay → invalid');
+
+  const tx = await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    s.clearAll();
+    s.updateSettings({ mileageRate: 0.70, taxRate: 0.25 });
+    s.addShift({ platform: 'flex', date: '2026-03-01', gross: 1000, tips: 200, hours: 40, miles: 500, jobs: 100 });
+    s.addExpense({ date: '2026-04-01', category: 'Phone', amount: 100 });
+    s.addIncome({ date: '2026-05-01', source: 'TraceHaus', amount: 3000 });
+    s.addShift({ platform: 'flex', date: '2025-12-31', gross: 999, tips: 0, hours: 1, miles: 1 }); // other year — ignored
+    return s.taxSummary('2026');
+  });
+  ok(Math.abs(tx.totalIncome - 4200) < 0.01, 'tax: total income = gig 1200 + manual 3000 = 4200');
+  ok(Math.abs(tx.mileageDeduction - 350) < 0.01, 'tax: standard mileage = 500×0.70 = 350');
+  ok(Math.abs(tx.deduction - 350) < 0.01, 'tax: deduction applied = larger(exp 100, mileage 350)');
+  ok(Math.abs(tx.taxable - 3850) < 0.01, 'tax: taxable = 4200 − 350 = 3850');
+  ok(Math.abs(tx.estTax - 962.5) < 0.01, 'tax: estimated tax = 3850×25% = 962.50');
+  ok(Math.abs(tx.quarterly - 240.625) < 0.01, 'tax: quarterly set-aside = 240.63');
+  ok(tx.byCat.Phone === 100, 'tax: expenses grouped by category');
+
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.evaluate(async () => { const s = await import('./js/store.js'); s.clearAll(); s.addShift({ platform: 'flex', date: '2026-06-01', gross: 400, tips: 50, hours: 20, miles: 200, jobs: 40 }); s.addIncome({ date: '2026-06-02', source: 'TraceHaus', amount: 1000 }); });
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.fill('#offer-pay', '20'); await page.fill('#offer-miles', '8');
+  ok((await page.locator('#offer-verdict .ov-banner.take').count()) === 1, 'dashboard offer calc shows TAKE');
+  await page.fill('#offer-pay', '4');
+  ok((await page.locator('#offer-verdict .ov-banner.skip').count()) === 1, 'offer calc flips to SKIP live');
+  await page.locator('.tab[data-view=trends]').click();
+  await page.waitForTimeout(150);
+  ok((await page.locator('#tax-summary-card').count()) === 1, 'tax summary card present in Trends');
+  ok((await page.locator('#tax-summary-body .tax-row').count()) >= 5, 'tax summary rows rendered');
+  ok(/Total income/.test(await page.locator('#tax-summary-body').innerText()), 'tax summary shows Total income');
+
   ok(errors.length === 0, 'no console/page errors' + (errors.length ? ': ' + errors.slice(0, 3).join(' | ') : ''));
 } catch (e) {
   console.error('TEST CRASH:', e);

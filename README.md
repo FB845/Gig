@@ -35,8 +35,17 @@ mileage tracking** — without asking for a cent.
   combined income ledger. Gig shift income is reused directly (never
   duplicated); non-gig income is logged in the **Log → Income** tab and is
   **Campaign-only** so it never distorts the gig $/hr, $/mi or tax metrics.
-- **Fast logging** — log a shift (platform, hours, base pay, tips, deliveries,
-  miles, fuel) with live $/hr, $/mi and tax-deduction math as you type.
+- **"Worth it?" offer calculator** — on the dashboard, punch in an offer's pay,
+  miles and (optional) minutes for an instant **TAKE / MARGINAL / SKIP** verdict
+  with $/mi and $/hr against your own minimums (set in Settings) and your
+  historical averages.
+- **Year-end tax summary** — in Trends, a per-year breakdown combining gig +
+  manual income, standard-mileage vs actual-expense deduction, expenses by
+  category, taxable profit, estimated tax and quarterly set-aside — with CSV
+  export and Print / Save-PDF. (Estimate, not tax advice.)
+- **Fast logging** — log a shift (platform, hours + minutes, base pay, tips,
+  deliveries, miles, fuel) with live $/hr, $/mi and tax-deduction math as you
+  type.
 - **Amazon Flex block tools** — one-tap **block-length presets** (1:00–4:30 +
   custom) for the scheduled block, **block-type tags** (Rapid Express, Express,
   Rescue, Normal), and an **actual-vs-scheduled %** so you can see how often you

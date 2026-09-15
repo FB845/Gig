@@ -28,6 +28,9 @@ const DEFAULT_DB = {
     // Set-aside % of net profit for self-employment + income tax. 25% is a
     // common rule-of-thumb starting point for gig drivers.
     taxRate: 0.25,
+    // Minimum acceptable rates for the "Worth it?" offer calculator.
+    minPerMile: 1.5,
+    minPerHour: 20,
     weekStart: 1, // 0=Sun, 1=Mon
     currency: 'USD',
   },
@@ -419,6 +422,59 @@ export function flexByTag(shifts) {
       effPct: o.schedPlanned ? (o.schedActual / o.schedPlanned) * 100 : 0,
     };
   });
+}
+
+// "Worth it?" — grade a delivery offer against your minimum acceptable rates.
+export function offerVerdict(pay, miles, minutes, settings = db.settings) {
+  pay = num(pay); miles = num(miles); minutes = num(minutes);
+  if (!(pay > 0) || !(miles > 0)) return { valid: false };
+  const minPerMile = num(settings.minPerMile) || 1.5;
+  const minPerHour = num(settings.minPerHour) || 20;
+  const perMile = pay / miles;
+  const perHour = minutes > 0 ? pay / (minutes / 60) : 0;
+  const mileOK = perMile >= minPerMile;
+  const hourOK = minutes > 0 ? perHour >= minPerHour : null;
+  let verdict;
+  if (hourOK === null) verdict = mileOK ? 'take' : 'skip';
+  else if (mileOK && hourOK) verdict = 'take';
+  else if (!mileOK && !hourOK) verdict = 'skip';
+  else verdict = 'marginal';
+  return { valid: true, perMile, perHour, minPerMile, minPerHour, mileOK, hourOK, verdict };
+}
+
+// Year-end tax summary (estimate). Combines gig income + manual (e.g. TraceHaus)
+// income; standard mileage deduction vs actual expenses; estimated tax + quarterly.
+export function taxSummary(year) {
+  const from = `${year}-01-01`, to = `${year}-12-31`;
+  const shifts = inRange(getShifts(), from, to);
+  const expenses = inRange(getExpenses(), from, to);
+  const incomes = inRange(getIncomes(), from, to);
+  const s = summarize(shifts, expenses);
+  const manualIncome = incomes.reduce((a, i) => a + num(i.amount), 0);
+  const totalIncome = s.income + manualIncome;
+  const rate = num(db.settings.taxRate);
+  const deduction = Math.max(s.expenseTotal, s.mileageDeduction);
+  const taxable = Math.max(0, totalIncome - deduction);
+  const estTax = taxable * rate;
+  const byCat = {};
+  expenses.forEach((e) => { byCat[e.category] = (byCat[e.category] || 0) + num(e.amount); });
+  return {
+    year,
+    gigGross: s.gross, gigTips: s.tips, gigIncome: s.income,
+    manualIncome, totalIncome,
+    miles: s.miles, mileageRate: num(db.settings.mileageRate), mileageDeduction: s.mileageDeduction,
+    expenseTotal: s.expenseTotal, byCat,
+    deduction, taxable, taxRate: rate, estTax, quarterly: estTax / 4,
+    shiftCount: s.shiftCount, incomeCount: incomes.length,
+  };
+}
+
+// Distinct calendar years present across all records (newest first).
+export function dataYears() {
+  const set = new Set();
+  for (const arr of [db.shifts, db.expenses, db.incomes]) for (const r of arr) if (r.date) set.add(r.date.slice(0, 4));
+  set.add(String(new Date().getFullYear()));
+  return [...set].sort().reverse();
 }
 
 // =====================================================================

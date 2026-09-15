@@ -130,6 +130,7 @@ function renderDashboard() {
   renderPlatformDonut(shifts);
   renderExpensesDonut(expenses);
   renderRecentShifts(store.getShifts().slice(0, 6));
+  updateOfferAvg();
 }
 
 // ---- desktop train-infotainment graphics ----
@@ -906,6 +907,7 @@ function renderCampaign() {
 function renderTrends() {
   const shifts = store.getShifts();
   const expenses = store.getExpenses();
+  renderTaxSummary();
 
   // Flex pay by block type — which tag actually pays best per hour
   const byTag = store.flexByTag(shifts);
@@ -1236,6 +1238,10 @@ function initSettings() {
   const s = store.getSettings();
   $('#set-mileage').value = s.mileageRate;
   $('#set-taxrate').value = Math.round(s.taxRate * 100);
+  $('#set-minmile').value = s.minPerMile;
+  $('#set-minhour').value = s.minPerHour;
+  $('#set-minmile').addEventListener('change', (e) => { store.updateSettings({ minPerMile: parseFloat(e.target.value) || 0 }); toast('Saved'); renderOfferVerdict(); });
+  $('#set-minhour').addEventListener('change', (e) => { store.updateSettings({ minPerHour: parseFloat(e.target.value) || 0 }); toast('Saved'); renderOfferVerdict(); });
   $('#set-weekstart').value = String(s.weekStart);
   $('#set-mileage').addEventListener('change', (e) => { store.updateSettings({ mileageRate: parseFloat(e.target.value) || 0 }); toast('Saved'); updateShiftLive(); });
   $('#set-taxrate').addEventListener('change', (e) => { store.updateSettings({ taxRate: (parseFloat(e.target.value) || 0) / 100 }); toast('Saved'); renderDashboard(); });
@@ -1373,6 +1379,130 @@ function escapeHtml(s) {
 }
 
 // =====================================================================
+// "Worth it?" offer calculator (dashboard)
+// =====================================================================
+function initOfferCalc() {
+  if (!$('#offer-card')) return;
+  ['#offer-pay', '#offer-miles', '#offer-min'].forEach((s) => $(s).addEventListener('input', renderOfferVerdict));
+  updateOfferAvg();
+  renderOfferVerdict();
+}
+
+function updateOfferAvg() {
+  const el = $('#offer-avg');
+  if (!el) return;
+  const s = store.summarize(store.getShifts(), store.getExpenses());
+  el.textContent = s.perMile ? `your avg ${fmtMoney(s.perMile)}/mi${s.perHour ? ' · ' + fmtMoney(s.perHour) + '/hr' : ''}` : '';
+}
+
+function renderOfferVerdict() {
+  const host = $('#offer-verdict');
+  if (!host) return;
+  const v = store.offerVerdict($('#offer-pay').value, $('#offer-miles').value, $('#offer-min').value);
+  if (!v.valid) {
+    host.innerHTML = '<div class="ov-hint muted">Enter an offer’s pay and miles for an instant take / skip.</div>';
+    return;
+  }
+  const label = v.verdict === 'take' ? 'TAKE IT' : v.verdict === 'skip' ? 'SKIP' : 'MARGINAL';
+  const jp = v.verdict === 'take' ? '受注' : v.verdict === 'skip' ? '見送り' : '要検討';
+  const hourStat = v.hourOK === null ? ''
+    : `<div class="ov-stat ${v.hourOK ? 'good' : 'bad'}"><b>${fmtMoney(v.perHour)}</b><small>/hr · min ${fmtMoney0(v.minPerHour)}</small></div>`;
+  host.innerHTML = `<div class="ov-banner ${v.verdict}">
+    <div class="ov-verdict-label">${label}<small>${jp}</small></div>
+    <div class="ov-stats">
+      <div class="ov-stat ${v.mileOK ? 'good' : 'bad'}"><b>${fmtMoney(v.perMile)}</b><small>/mi · min ${fmtMoney(v.minPerMile)}</small></div>
+      ${hourStat}
+    </div>
+  </div>`;
+}
+
+// =====================================================================
+// Year-end tax summary (Trends)
+// =====================================================================
+function initTaxSummary() {
+  if (!$('#tax-summary-card')) return;
+  $('#tax-year').addEventListener('change', renderTaxSummary);
+  $('#tax-export-csv').addEventListener('click', exportTaxCSV);
+  $('#tax-print').addEventListener('click', printTaxSummary);
+}
+
+function currentTaxYear() {
+  const sel = $('#tax-year');
+  return (sel && sel.value) || String(new Date().getFullYear());
+}
+
+function taxRowsHTML(t) {
+  const row = (label, val, cls = '') => `<div class="tax-row ${cls}"><span class="tr-label">${label}</span><span class="tr-val">${val}</span></div>`;
+  const cats = Object.entries(t.byCat).sort((a, b) => b[1] - a[1]).map(([c, v]) => row(escapeHtml(c), fmtMoney(v), 'sub')).join('');
+  return `<div class="tax-rows">
+    <div class="tax-subhead">Income</div>
+    ${row('Gig base pay', fmtMoney(t.gigGross))}
+    ${row('Gig tips', fmtMoney(t.gigTips))}
+    ${row('Other income <small>(manual)</small>', fmtMoney(t.manualIncome))}
+    ${row('Total income', fmtMoney(t.totalIncome), 'total')}
+    <div class="tax-subhead">Deductions</div>
+    ${row(`Standard mileage <small>(${fmt1(t.miles)} mi × ${fmtMoney(t.mileageRate)})</small>`, fmtMoney(t.mileageDeduction))}
+    ${row('Actual expenses', fmtMoney(t.expenseTotal))}
+    ${cats}
+    ${row('Deduction applied <small>(larger)</small>', fmtMoney(t.deduction), 'total')}
+    <div class="tax-subhead">Estimated tax</div>
+    ${row('Taxable profit', fmtMoney(t.taxable))}
+    ${row(`Estimated tax <small>(${Math.round(t.taxRate * 100)}%)</small>`, fmtMoney(t.estTax), 'total')}
+    ${row('Set aside per quarter', fmtMoney(t.quarterly), 'total accent')}
+  </div>`;
+}
+
+function renderTaxSummary() {
+  const sel = $('#tax-year');
+  if (!sel) return;
+  const years = store.dataYears();
+  const cur = sel.value || String(new Date().getFullYear());
+  sel.innerHTML = years.map((y) => `<option value="${y}"${y === cur ? ' selected' : ''}>${y}</option>`).join('');
+  $('#tax-summary-body').innerHTML = taxRowsHTML(store.taxSummary(sel.value || cur));
+}
+
+function exportTaxCSV() {
+  const t = store.taxSummary(currentTaxYear());
+  const rows = [['Section', 'Item', 'Amount']];
+  rows.push(['Income', 'Gig base pay', t.gigGross.toFixed(2)]);
+  rows.push(['Income', 'Gig tips', t.gigTips.toFixed(2)]);
+  rows.push(['Income', 'Other income (manual)', t.manualIncome.toFixed(2)]);
+  rows.push(['Income', 'Total income', t.totalIncome.toFixed(2)]);
+  rows.push(['Deductions', `Standard mileage (${t.miles} mi @ ${t.mileageRate})`, t.mileageDeduction.toFixed(2)]);
+  Object.entries(t.byCat).forEach(([c, v]) => rows.push(['Expenses', c, v.toFixed(2)]));
+  rows.push(['Deductions', 'Actual expenses total', t.expenseTotal.toFixed(2)]);
+  rows.push(['Deductions', 'Deduction applied (larger)', t.deduction.toFixed(2)]);
+  rows.push(['Tax', 'Taxable profit', t.taxable.toFixed(2)]);
+  rows.push(['Tax', `Estimated tax (${Math.round(t.taxRate * 100)}%)`, t.estTax.toFixed(2)]);
+  rows.push(['Tax', 'Set aside per quarter', t.quarterly.toFixed(2)]);
+  const csv = rows.map((r) => r.map((c) => (/[",\n]/.test(String(c)) ? `"${String(c).replace(/"/g, '""')}"` : c)).join(',')).join('\n');
+  download(`gig-tax-summary-${t.year}.csv`, csv, 'text/csv');
+}
+
+function printTaxSummary() {
+  const t = store.taxSummary(currentTaxYear());
+  const w = window.open('', '_blank');
+  if (!w) { toast('Allow pop-ups to print'); return; }
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Gig Tracker — Tax summary ${t.year}</title>
+    <style>
+      body{font-family:-apple-system,Arial,sans-serif;max-width:640px;margin:32px auto;padding:0 20px;color:#111}
+      h1{font-size:20px;margin:0 0 4px}.sub{color:#666;font-size:13px;margin:0 0 20px}
+      .tax-subhead{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#888;margin:18px 0 4px}
+      .tax-row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid #eee;font-size:14px}
+      .tax-row.total{font-weight:800}.tax-row.sub .tr-label{padding-left:12px;color:#666;font-size:13px}
+      .tr-val{font-variant-numeric:tabular-nums}.disc{color:#888;font-size:11px;margin-top:18px;line-height:1.5}
+    </style></head><body>
+    <h1>Tax summary — ${t.year}</h1>
+    <p class="sub">Gig Tracker · generated ${new Date().toLocaleDateString()} · estimate only</p>
+    ${taxRowsHTML(t)}
+    <p class="disc">Estimate only — not tax advice. Deduct the larger of the standard mileage rate or actual vehicle expenses (not both); other business expenses are separate. Confirm with a tax professional.</p>
+    </body></html>`);
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 300);
+}
+
+// =====================================================================
 // Boot
 // =====================================================================
 function boot() {
@@ -1386,6 +1516,8 @@ function boot() {
   initSyncUI();
   initInstall();
   initDrive();
+  initOfferCalc();
+  initTaxSummary();
   setChip('#shift-platform', 'flex');
   renderDashboard();
   renderLogList();
