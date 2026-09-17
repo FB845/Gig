@@ -564,6 +564,25 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 .camp-hero.is-hit .ch-bar > span { background: var(--accent); }
 .camp-hero.is-part .ch-bar > span { background: #f5a524; }
 
+/* Weekly goal card ($2,450/week → days off) */
+.week-goal { border: 1px solid var(--border); }
+.week-goal.is-met { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); box-shadow: 0 0 30px -14px var(--accent); }
+.week-goal.is-part { border-color: color-mix(in srgb, #f5a524 50%, var(--border)); }
+.wg-top { display: flex; align-items: flex-start; justify-content: space-between; }
+.wg-title { font-family: var(--font-board); font-weight: 800; font-size: 13px; letter-spacing: .14em; color: var(--muted); }
+.wg-title .jp { margin-left: 6px; }
+.wg-days { font-family: var(--font-led); font-weight: 800; font-size: 22px; color: var(--text); display: flex; flex-direction: column; align-items: flex-end; line-height: 1; }
+.wg-days em { font-style: normal; font-family: var(--font-jp); font-size: 10px; letter-spacing: .06em; color: var(--muted); margin-top: 4px; }
+.week-goal.is-met .wg-days { color: var(--accent); }
+.wg-amount { font-family: var(--font-led); font-weight: 800; font-size: 24px; margin-top: 12px; color: var(--text); }
+.wg-goal { font-size: 13px; color: var(--muted); font-weight: 600; }
+.week-goal.is-met .ch-bar > span { background: var(--accent); }
+.week-goal.is-part .ch-bar > span { background: #f5a524; }
+.wg-msg { margin-top: 12px; font-size: 13px; color: var(--muted); }
+.week-goal.is-met .wg-msg { color: var(--accent); }
+.week-goal.is-met .wg-msg b, .wg-msg b { color: var(--text); }
+.week-goal.is-met .wg-msg b { color: var(--accent); }
+
 /* ---------- Cloud sync ---------- */
 .sync-pill { font-size: 11px; font-weight: 800; letter-spacing: .06em; padding: 3px 9px; border-radius: 999px; background: var(--card-2); color: var(--muted); border: 1px solid var(--border); white-space: nowrap; }
 .sync-pill.ok { background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }

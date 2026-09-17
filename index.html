@@ -111,6 +111,7 @@
     <!-- ================= CAMPAIGN 350 ================= -->
     <section id="view-campaign" class="view" aria-label="Campaign 350">
       <div class="card camp-hero" id="camp-hero"></div>
+      <div class="card week-goal" id="week-goal"></div>
       <div class="kpi-grid camp-kpis" id="camp-kpis"></div>
       <div class="card">
         <div class="card-head"><h2>Last 14 days<span class="jp">直近14日</span></h2></div>
@@ -186,7 +187,7 @@
           <div class="field"><label>Deliveries / packages</label><input type="number" name="jobs" step="1" min="0" inputmode="numeric" placeholder="12" /></div>
           <div class="field"><label>Miles driven</label><input type="number" name="miles" step="0.1" min="0" inputmode="decimal" placeholder="34.5" /></div>
         </div>
-        <div class="field"><label>Fuel cost this shift ($) <span class="hint">optional — logged as an expense</span></label><input type="number" name="fuel" step="0.01" min="0" inputmode="decimal" placeholder="15.00" /></div>
+        <div class="field"><label>MPG this shift <span class="hint">optional — fuel cost auto-calculated (blank = default from Settings)</span></label><input type="number" name="mpg" step="0.1" min="0" inputmode="decimal" placeholder="25" /></div>
         <div class="field"><label>Notes</label><input type="text" name="notes" placeholder="Morning block, downtown" /></div>
         <div class="live-metrics" id="shift-live"></div>
         <div class="form-actions">
@@ -341,6 +342,10 @@
         <div class="row">
           <div class="field"><label>Min $/mile <span class="hint">Worth it?</span></label><input type="number" id="set-minmile" step="0.05" min="0" inputmode="decimal" /></div>
           <div class="field"><label>Min $/hour <span class="hint">Worth it?</span></label><input type="number" id="set-minhour" step="1" min="0" inputmode="numeric" /></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>Fuel price ($/gal) <span class="hint">for auto fuel cost</span></label><input type="number" id="set-fuelprice" step="0.01" min="0" inputmode="decimal" /></div>
+          <div class="field"><label>Vehicle MPG <span class="hint">default miles/gallon</span></label><input type="number" id="set-mpg" step="0.1" min="0" inputmode="decimal" /></div>
         </div>
         <div class="field">
           <label>Week starts on</label>

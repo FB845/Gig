@@ -32,7 +32,9 @@ mileage tracking** — without asking for a cent.
   (e.g. TraceHaus). Shows today's hit/miss, earned-vs-goal-to-date,
   ahead/behind pace, required daily pace (flagged when you've fallen behind),
   current $350+ streak, a 14-day bar chart with a dashed $350 line, and a
-  combined income ledger. Gig shift income is reused directly (never
+  combined income ledger. It also tracks a **weekly goal of $2,450** ($350 × 7):
+  hit it before the week is out and the card shows how many **days off** you've
+  earned for the rest of the week. Gig shift income is reused directly (never
   duplicated); non-gig income is logged in the **Log → Income** tab and is
   **Campaign-only** so it never distorts the gig $/hr, $/mi or tax metrics.
 - **"Worth it?" offer calculator** — on the dashboard, punch in an offer's pay,
@@ -44,8 +46,11 @@ mileage tracking** — without asking for a cent.
   category, taxable profit, estimated tax and quarterly set-aside — with CSV
   export and Print / Save-PDF. (Estimate, not tax advice.)
 - **Fast logging** — log a shift (platform, hours + minutes, base pay, tips,
-  deliveries, miles, fuel) with live $/hr, $/mi and tax-deduction math as you
-  type.
+  deliveries, miles, MPG) with live $/hr, $/mi, tax-deduction and **fuel-cost**
+  math as you type. Fuel is **auto-calculated** from your miles, the shift's MPG
+  (or a default vehicle MPG) and a fuel price — both set in **Settings** like the
+  tax and mileage rates — and logged as a linked expense; no more typing dollar
+  amounts at the pump.
 - **Amazon Flex block tools** — one-tap **block-length presets** (1:00–4:30 +
   custom) for the scheduled block, **block-type tags** (Rapid Express, Express,
   Rescue, Normal), and an **actual-vs-scheduled %** so you can see how often you

@@ -31,6 +31,10 @@ const DEFAULT_DB = {
     // Minimum acceptable rates for the "Worth it?" offer calculator.
     minPerMile: 1.5,
     minPerHour: 20,
+    // Fuel auto-cost: shift fuel expense = miles / mpg × fuelPrice. Both editable
+    // in Settings; a per-shift MPG can override the default vehicle MPG.
+    fuelPrice: 3.50, // $/gallon
+    mpg: 25,         // default vehicle miles per gallon
     weekStart: 1, // 0=Sun, 1=Mon
     currency: 'USD',
   },
@@ -41,7 +45,8 @@ const DEFAULT_DB = {
 };
 
 // Campaign 350: earn $350/day, every day, 2026-09-12 → 2026-12-31.
-export const CAMPAIGN = { start: '2026-09-12', end: '2026-12-31', daily: 350 };
+// Weekly goal = daily × 7 ($2,450); hitting it early earns days off.
+export const CAMPAIGN = { start: '2026-09-12', end: '2026-12-31', daily: 350, weekly: 2450 };
 
 let db = load();
 const listeners = new Set();
@@ -143,17 +148,29 @@ export function getShifts() {
   return [...db.shifts].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
 }
 
+// Auto fuel cost for a shift: miles / mpg × fuelPrice. Uses the shift's own MPG
+// if set, else the default vehicle MPG from settings. Returns 0 when it can't be
+// computed (no miles, no mpg, or no fuel price). Rounded to cents.
+export function fuelCostFor(shift, settings = db.settings) {
+  const miles = num(shift.miles);
+  const mpg = num(shift.mpg) > 0 ? num(shift.mpg) : num(settings.mpg);
+  const price = num(settings.fuelPrice);
+  if (!(miles > 0) || !(mpg > 0) || !(price > 0)) return 0;
+  return Math.round((miles / mpg) * price * 100) / 100;
+}
+
 export function addShift(data) {
   const shift = normalizeShift({ id: uid(), createdAt: new Date().toISOString(), ...data });
   db.shifts.push(shift);
-  // optional linked fuel expense created by the form
-  if (data.fuel && Number(data.fuel) > 0) {
+  // Auto-log a linked fuel expense computed from miles / MPG × fuel price.
+  const fuel = fuelCostFor(shift);
+  if (fuel > 0) {
     addExpense({
       date: shift.date,
       category: 'Fuel',
-      amount: Number(data.fuel),
+      amount: fuel,
       platform: shift.platform,
-      note: 'Logged with shift',
+      note: 'Auto (miles ÷ MPG × fuel price)',
       linkedShiftId: shift.id,
     }, true);
   }
@@ -165,6 +182,21 @@ export function updateShift(id, data) {
   const i = db.shifts.findIndex((s) => s.id === id);
   if (i === -1) return null;
   db.shifts[i] = normalizeShift({ ...db.shifts[i], ...data });
+  const shift = db.shifts[i];
+  // Recompute the auto fuel expense: drop the old auto-linked one, recreate from
+  // the new miles/MPG. Leaves any manually-added Fuel expense untouched.
+  db.expenses = db.expenses.filter((e) => !(e.linkedShiftId === id && e.category === 'Fuel'));
+  const fuel = fuelCostFor(shift);
+  if (fuel > 0) {
+    addExpense({
+      date: shift.date,
+      category: 'Fuel',
+      amount: fuel,
+      platform: shift.platform,
+      note: 'Auto (miles ÷ MPG × fuel price)',
+      linkedShiftId: shift.id,
+    }, true);
+  }
   persist();
   return db.shifts[i];
 }
@@ -188,6 +220,7 @@ function normalizeShift(s) {
     tips: num(s.tips),
     jobs: Math.round(num(s.jobs)),
     miles: num(s.miles),
+    mpg: num(s.mpg),  // per-shift MPG override (0 = use default from settings)
     notes: s.notes || '',
     createdAt: s.createdAt || new Date().toISOString(),
   };
@@ -306,10 +339,13 @@ export function importShifts(rows) {
 function addShiftQuiet(data) {
   const shift = normalizeShift({ id: uid(), createdAt: new Date().toISOString(), ...data });
   db.shifts.push(shift);
-  if (data.fuel && Number(data.fuel) > 0) {
+  // Prefer an explicit imported fuel figure; otherwise auto-compute from MPG.
+  const fuel = (data.fuel && Number(data.fuel) > 0) ? Number(data.fuel) : fuelCostFor(shift);
+  if (fuel > 0) {
     db.expenses.push({
-      id: uid(), date: shift.date, category: 'Fuel', amount: Number(data.fuel),
-      note: 'Imported', platform: shift.platform, linkedShiftId: shift.id,
+      id: uid(), date: shift.date, category: 'Fuel', amount: fuel,
+      note: (data.fuel && Number(data.fuel) > 0) ? 'Imported' : 'Auto (miles ÷ MPG × fuel price)',
+      platform: shift.platform, linkedShiftId: shift.id,
       createdAt: new Date().toISOString(),
     });
   }
@@ -556,6 +592,37 @@ export function campaignStats(nowISO = todayISO()) {
     earnedToDate, goalToDate, ahead,
     remainingGoal, requiredPace, behindPace: requiredPace > daily,
     streak,
+  };
+}
+
+// Weekly goal for Campaign 350: earn $2,450 (= $350 × 7) in the current week.
+// Hit it before the week is out and the rest of the week's days are "earned off".
+export function weeklyGoalStats(nowISO = todayISO()) {
+  const weekly = CAMPAIGN.weekly;
+  const daily = CAMPAIGN.daily;
+  const startD = startOfWeek(new Date(nowISO + 'T00:00:00'));
+  const endD = new Date(startD);
+  endD.setDate(endD.getDate() + 6);
+  const weekStartISO = isoDate(startD);
+  const weekEndISO = isoDate(endD);
+
+  const m = incomeByDateMap();
+  let weekEarned = 0;
+  for (const [d, v] of m) if (d >= weekStartISO && d <= weekEndISO) weekEarned += v;
+
+  const daysElapsed = Math.min(7, Math.max(1, daysInclusive(weekStartISO, nowISO)));
+  const daysLeft = 7 - daysElapsed; // days remaining after today
+  const met = weekEarned >= weekly;
+  const remaining = Math.max(0, weekly - weekEarned);
+  // Per-day needed to still finish the week, counting today.
+  const perDayNeeded = met ? 0 : remaining / (daysLeft + 1);
+  // Days off earned: once the week's goal is met, every remaining day is free.
+  const daysOff = met ? daysLeft : 0;
+  const pct = weekly > 0 ? Math.min(100, (weekEarned / weekly) * 100) : 0;
+
+  return {
+    weekly, daily, weekStart: weekStartISO, weekEnd: weekEndISO,
+    weekEarned, daysElapsed, daysLeft, met, remaining, perDayNeeded, daysOff, pct,
   };
 }
 

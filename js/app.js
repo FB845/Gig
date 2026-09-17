@@ -478,7 +478,7 @@ function initForms() {
   $('#income-form [name=date]').value = store.todayISO();
 
   // live metrics on shift form
-  ['gross', 'tips', 'hoursH', 'hoursM', 'miles', 'jobs'].forEach((n) => {
+  ['gross', 'tips', 'hoursH', 'hoursM', 'miles', 'jobs', 'mpg'].forEach((n) => {
     $(`#shift-form [name=${n}]`).addEventListener('input', updateShiftLive);
   });
   updateShiftLive();
@@ -574,13 +574,16 @@ function updateShiftLive() {
   const gross = +f.gross.value || 0, tips = +f.tips.value || 0, hours = getFormHours(f);
   const miles = +f.miles.value || 0, jobs = +f.jobs.value || 0;
   const income = gross + tips;
-  const rate = store.getSettings().mileageRate;
+  const settings = store.getSettings();
+  const rate = settings.mileageRate;
   const parts = [];
   parts.push(`<span class="lm">Income <b>${fmtMoney(income)}</b></span>`);
   if (hours) parts.push(`<span class="lm">$/hr <b>${fmtMoney(income / hours)}</b></span>`);
   if (miles) parts.push(`<span class="lm">$/mi <b>${fmtMoney(income / miles)}</b></span>`);
   if (jobs) parts.push(`<span class="lm">$/job <b>${fmtMoney(income / jobs)}</b></span>`);
   if (miles) parts.push(`<span class="lm">Tax mi-deduction <b>${fmtMoney(miles * rate)}</b></span>`);
+  const fuel = store.fuelCostFor({ miles, mpg: +f.mpg.value || 0 }, settings);
+  if (fuel > 0) parts.push(`<span class="lm">Fuel est. <b>${fmtMoney(fuel)}</b></span>`);
   const sched = chipValue('#shift-platform') === 'flex' ? getScheduledHours() : 0;
   if (sched && hours) parts.push(`<span class="lm">Block time <b>${Math.round((hours / sched) * 100)}%</b></span>`);
   $('#shift-live').innerHTML = parts.join('');
@@ -594,14 +597,13 @@ function onSaveShift(e) {
     platform: chipValue('#shift-platform') || 'other',
     date: f.date.value,
     hours: getFormHours(f), gross: f.gross.value, tips: f.tips.value,
-    jobs: f.jobs.value, miles: f.miles.value, fuel: f.fuel.value, notes: f.notes.value,
+    jobs: f.jobs.value, miles: f.miles.value, mpg: f.mpg.value, notes: f.notes.value,
     scheduledHours: isFlex ? getScheduledHours() : 0,
     tag: isFlex ? chipValue('#shift-tag') : '',
   };
   if (!data.date) { toast('Pick a date'); return; }
   if (state.editShiftId) {
     store.updateShift(state.editShiftId, data);
-    // fuel edit not linked-updated to keep it simple; inform user
     toast('Shift updated');
   } else {
     store.addShift(data);
@@ -660,7 +662,7 @@ function editShift(id) {
   setBlockPreset(s.scheduledHours || 0);
   f.date.value = s.date; setFormHours(f, s.hours || 0); f.gross.value = s.gross || '';
   f.tips.value = s.tips || ''; f.jobs.value = s.jobs || ''; f.miles.value = s.miles || '';
-  f.fuel.value = ''; f.notes.value = s.notes || '';
+  f.mpg.value = s.mpg || ''; f.notes.value = s.notes || '';
   state.editShiftId = id;
   $('#shift-form-title').textContent = 'Edit shift';
   $('#shift-submit').textContent = 'Update shift';
@@ -858,6 +860,31 @@ function renderCampaign() {
     <div class="ch-status">${label}<span class="ch-status-jp">${jp}</span></div>
     <div class="ch-amount">${fmtMoney0(c.todayTotal)} <span class="ch-goal">/ ${fmtMoney0(c.daily)} today</span></div>
     <div class="ch-bar"><span style="width:${pct}%"></span></div>`;
+
+  // Weekly goal — $2,450/week; hit it early and the rest of the week is days off
+  const w = store.weeklyGoalStats();
+  const wg = $('#week-goal');
+  const wst = w.met ? 'is-met' : (w.weekEarned > 0 ? 'is-part' : 'is-none');
+  wg.className = `card week-goal ${wst}`;
+  const dayN = (n) => `${n} day${n === 1 ? '' : 's'}`;
+  let wgMsg;
+  if (w.met) {
+    wgMsg = w.daysOff > 0
+      ? `<b>${dayN(w.daysOff)} off earned</b> — weekly goal met with days to spare 🎉`
+      : `<b>Weekly goal met</b> — nice finish to the week 🎉`;
+  } else if (w.daysLeft === 0) {
+    wgMsg = `${fmtMoney0(w.remaining)} short — last day of the week`;
+  } else {
+    wgMsg = `${fmtMoney0(w.remaining)} to go · ${fmtMoney0(w.perDayNeeded)}/day over ${dayN(w.daysLeft + 1)}`;
+  }
+  wg.innerHTML = `
+    <div class="wg-top">
+      <span class="wg-title">WEEKLY GOAL<span class="jp">週間目標</span></span>
+      <span class="wg-days">${w.met ? dayN(w.daysOff) : dayN(w.daysLeft)}<em>${w.met ? 'off · 休み' : 'left · 残り'}</em></span>
+    </div>
+    <div class="wg-amount">${fmtMoney0(w.weekEarned)} <span class="wg-goal">/ ${fmtMoney0(w.weekly)} this week</span></div>
+    <div class="ch-bar"><span style="width:${w.pct}%"></span></div>
+    <div class="wg-msg">${wgMsg}</div>`;
 
   // Stat tiles
   const aheadPos = c.ahead >= 0;
@@ -1240,8 +1267,12 @@ function initSettings() {
   $('#set-taxrate').value = Math.round(s.taxRate * 100);
   $('#set-minmile').value = s.minPerMile;
   $('#set-minhour').value = s.minPerHour;
+  $('#set-fuelprice').value = s.fuelPrice;
+  $('#set-mpg').value = s.mpg;
   $('#set-minmile').addEventListener('change', (e) => { store.updateSettings({ minPerMile: parseFloat(e.target.value) || 0 }); toast('Saved'); renderOfferVerdict(); });
   $('#set-minhour').addEventListener('change', (e) => { store.updateSettings({ minPerHour: parseFloat(e.target.value) || 0 }); toast('Saved'); renderOfferVerdict(); });
+  $('#set-fuelprice').addEventListener('change', (e) => { store.updateSettings({ fuelPrice: parseFloat(e.target.value) || 0 }); toast('Saved'); updateShiftLive(); });
+  $('#set-mpg').addEventListener('change', (e) => { store.updateSettings({ mpg: parseFloat(e.target.value) || 0 }); toast('Saved'); updateShiftLive(); });
   $('#set-weekstart').value = String(s.weekStart);
   $('#set-mileage').addEventListener('change', (e) => { store.updateSettings({ mileageRate: parseFloat(e.target.value) || 0 }); toast('Saved'); updateShiftLive(); });
   $('#set-taxrate').addEventListener('change', (e) => { store.updateSettings({ taxRate: (parseFloat(e.target.value) || 0) / 100 }); toast('Saved'); renderDashboard(); });
@@ -1341,6 +1372,7 @@ function onImportJSON(e) {
       const s = store.getSettings();
       $('#set-mileage').value = s.mileageRate; $('#set-weekstart').value = String(s.weekStart);
       $('#set-taxrate').value = Math.round(s.taxRate * 100);
+      $('#set-fuelprice').value = s.fuelPrice; $('#set-mpg').value = s.mpg;
       renderDashboard(); renderLogList();
     } catch (err) { toast('Invalid backup file'); }
   };

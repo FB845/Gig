@@ -50,25 +50,28 @@ try {
   await page.fill('#shift-form [name=tips]', '20');
   await page.fill('#shift-form [name=jobs]', '12');
   await page.fill('#shift-form [name=miles]', '30');
-  await page.fill('#shift-form [name=fuel]', '10');
+  // MPG-based auto fuel: 30 mi ÷ 25 mpg × $3.50/gal (default) = $4.20
+  await page.fill('#shift-form [name=mpg]', '25');
   const live = await page.locator('#shift-live').innerText();
   ok(/\$15\.00/.test(live), 'live $/hr = $15.00 (60/4)');
+  ok(/Fuel est\./.test(live) && /\$4\.20/.test(live), 'live fuel estimate = $4.20 (30/25 × $3.50)');
   await page.locator('#shift-submit').click();
   await page.waitForTimeout(150);
   ok((await page.locator('#log-list .record').count()) === 1, 'shift appears in list');
 
-  console.log('\n3) Fuel created a linked expense');
+  console.log('\n3) MPG auto-created a linked fuel expense');
   await page.locator('#log-segmented .seg[data-log=expense]').click();
   await page.waitForTimeout(100);
   const expText = await page.locator('#log-list').innerText();
-  ok(/Fuel/.test(expText) && /\$10\.00/.test(expText), 'linked Fuel expense of $10 exists');
+  ok(/Fuel/.test(expText) && /\$4\.20/.test(expText), 'auto Fuel expense of $4.20 exists');
 
   console.log('\n4) Dashboard KPIs reflect the data');
   await page.locator('.tab[data-view=dashboard]').click();
   await page.locator('#period-pills .pill[data-period=all]').click();
-  await page.waitForTimeout(150);
+  await page.waitForTimeout(700); // let the LED count-up settle
   const kpi = await page.locator('#kpi-grid').innerText();
-  ok(/\$50/.test(kpi), 'net income = $50 (60 income - 10 fuel)');
+  ok(/\$56\b/.test(kpi), 'net income = $56 (60 income - $4.20 fuel, rounded)');
+  ok(/\$4\b/.test(kpi), 'expenses out = $4 ($4.20 auto fuel, rounded)');
   ok(/\$15\.00/.test(kpi), '$/hour = $15.00');
   ok((await page.locator('#chart-earnings svg .bar').count()) >= 1, 'earnings chart drew bars');
   ok((await page.locator('#chart-platform svg .slice').count()) >= 1, 'platform donut drew slices');
@@ -262,6 +265,54 @@ try {
   ok(c.todayHit === true && Math.abs(c.todayTotal - 400) < 0.01, 'today HIT at $400');
   ok(c.streak === 2, 'streak = 2 (10/1 + 9/30, broken by 9/29 miss)');
 
+  console.log('\n15b) MPG auto fuel-cost logic (store)');
+  const fuel = await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    s.clearAll();
+    // default settings: mpg 25, fuelPrice $3.50
+    const perShiftMpg = s.fuelCostFor({ miles: 30, mpg: 25 });      // 30/25 × 3.50 = 4.20
+    const defaultMpg = s.fuelCostFor({ miles: 50 });                // 50/25 × 3.50 = 7.00
+    const noMiles = s.fuelCostFor({ miles: 0, mpg: 25 });           // 0
+    s.updateSettings({ fuelPrice: 4.00, mpg: 20 });
+    const afterSettings = s.fuelCostFor({ miles: 40 });             // 40/20 × 4.00 = 8.00
+    s.updateSettings({ fuelPrice: 3.50, mpg: 25 });                 // restore
+    // updateShift should recompute the single linked fuel expense
+    const shift = s.addShift({ platform: 'flex', date: '2026-10-01', gross: 100, hours: 2, miles: 30, mpg: 25 });
+    const fuel1 = s.getExpenses().filter((e) => e.category === 'Fuel' && e.linkedShiftId === shift.id);
+    s.updateShift(shift.id, { miles: 60 });
+    const fuel2 = s.getExpenses().filter((e) => e.category === 'Fuel' && e.linkedShiftId === shift.id);
+    return { perShiftMpg, defaultMpg, noMiles, afterSettings,
+      f1: fuel1.length, f1amt: fuel1[0] ? fuel1[0].amount : null,
+      f2: fuel2.length, f2amt: fuel2[0] ? fuel2[0].amount : null };
+  });
+  ok(Math.abs(fuel.perShiftMpg - 4.20) < 0.001, 'per-shift MPG: 30/25 × $3.50 = $4.20');
+  ok(Math.abs(fuel.defaultMpg - 7.00) < 0.001, 'default MPG: 50/25 × $3.50 = $7.00');
+  ok(fuel.noMiles === 0, 'no miles → $0 fuel');
+  ok(Math.abs(fuel.afterSettings - 8.00) < 0.001, 'editable price/MPG: 40/20 × $4.00 = $8.00');
+  ok(fuel.f1 === 1 && Math.abs(fuel.f1amt - 4.20) < 0.001, 'addShift auto-created one $4.20 fuel expense');
+  ok(fuel.f2 === 1 && Math.abs(fuel.f2amt - 8.40) < 0.001, 'updateShift recomputed to one $8.40 fuel expense (60/25 × $3.50)');
+
+  console.log('\n15c) Weekly goal $2,450 → days off (store)');
+  const wk = await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    // 2026-10-07 is a Wednesday; week (Mon-start) = Oct 5–11, day 3 of 7.
+    s.clearAll();
+    s.addIncome({ date: '2026-10-05', source: 'X', amount: 2500 });
+    const met = s.weeklyGoalStats('2026-10-07');
+    s.clearAll();
+    s.addIncome({ date: '2026-10-05', source: 'X', amount: 1000 });
+    const notMet = s.weeklyGoalStats('2026-10-07');
+    s.clearAll();
+    return { met, notMet };
+  });
+  ok(wk.met.weekly === 2450, 'weekly goal = $2,450');
+  ok(wk.met.weekStart === '2026-10-05' && wk.met.weekEnd === '2026-10-11', 'week span Mon 10/5 → Sun 10/11');
+  ok(wk.met.daysElapsed === 3 && wk.met.daysLeft === 4, 'Wed = day 3, 4 days left');
+  ok(wk.met.met === true && wk.met.daysOff === 4, 'goal met early → 4 days off earned');
+  ok(wk.notMet.met === false && wk.notMet.daysOff === 0, 'goal not met → 0 days off');
+  ok(Math.abs(wk.notMet.remaining - 1450) < 0.01, 'remaining = $1,450 (2450 - 1000)');
+  ok(Math.abs(wk.notMet.perDayNeeded - 290) < 0.01, 'per-day needed = $290 (1450 / 5 days incl today)');
+
   console.log('\n16) Income entry + campaign ledger (UI)');
   await page.evaluate(async () => { (await import('./js/store.js')).clearAll(); });
   await page.reload({ waitUntil: 'networkidle' });
@@ -282,6 +333,7 @@ try {
   ok((await page.locator('#view-campaign.active').count()) === 1, 'campaign view active');
   ok(/CAMPAIGN 350/.test(await page.locator('#camp-hero').innerText()), 'hero renders');
   ok(await page.evaluate(() => { const h = document.querySelector('#camp-hero'); return h.offsetHeight >= h.scrollHeight - 2; }), 'hero card not clipped (no class collision)');
+  ok(/WEEKLY GOAL/.test(await page.locator('#week-goal').innerText()) && /2,450/.test(await page.locator('#week-goal').innerText()), 'weekly goal card renders with $2,450 target');
   ok((await page.locator('#camp-kpis .kpi').count()) === 6, 'six campaign stat tiles');
   ok((await page.locator('#camp-chart svg .bar').count()) >= 1, '14-day chart drew bars');
   ok((await page.locator('#camp-chart svg .refline').count()) === 1, '$350 reference line drawn');

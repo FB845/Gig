@@ -38,7 +38,7 @@ await page.evaluate(async () => {
     const rate = isFlex ? 14 + Math.random() * 10 : 12 + Math.random() * 6;
     const gross = Math.round((hours * rate) * 100) / 100;
     const tips = p === 'doordash' ? Math.round(Math.random() * 25 * 100) / 100 : Math.round(Math.random() * 8 * 100) / 100;
-    s.addShift({ platform: p, date: s.isoDate(d), hours, gross, tips, jobs: 4 + Math.round(Math.random() * 14), miles: Math.round((hours * 9) * 10) / 10, fuel: Math.random() < 0.4 ? Math.round(Math.random() * 25 * 100) / 100 : 0, scheduledHours: isFlex ? sched : 0, tag: isFlex ? tags[Math.floor(Math.random() * 4)] : '' });
+    s.addShift({ platform: p, date: s.isoDate(d), hours, gross, tips, jobs: 4 + Math.round(Math.random() * 14), miles: Math.round((hours * 9) * 10) / 10, mpg: Math.random() < 0.4 ? 20 + Math.round(Math.random() * 12) : 0, scheduledHours: isFlex ? sched : 0, tag: isFlex ? tags[Math.floor(Math.random() * 4)] : '' });
   }
   s.addExpense({ date: '2026-06-15', category: 'Maintenance', amount: 89.99, note: 'Oil change' });
   s.addExpense({ date: '2026-06-20', category: 'Phone', amount: 45 });
