@@ -398,8 +398,12 @@ export function shiftIncome(s) {
 }
 
 // Aggregate income/expense/derived metrics over a set of shifts + expenses.
-export function summarize(shifts, expenses, settings = db.settings) {
-  const income = shifts.reduce((a, s) => a + shiftIncome(s), 0);
+// Pass `incomes` (manual non-gig income, e.g. TraceHaus) to fold it into the
+// TOTAL money figures — net, taxable, tax set-aside, take-home. The per-unit
+// efficiency rates ($/hr, $/mi, $/job) stay on GIG income only, because manual
+// income has no hours/miles/deliveries to divide by.
+export function summarize(shifts, expenses, settings = db.settings, incomes = []) {
+  const gigIncome = shifts.reduce((a, s) => a + shiftIncome(s), 0);
   const gross = shifts.reduce((a, s) => a + num(s.gross), 0);
   const tips = shifts.reduce((a, s) => a + num(s.tips), 0);
   const hours = shifts.reduce((a, s) => a + num(s.hours), 0);
@@ -409,24 +413,28 @@ export function summarize(shifts, expenses, settings = db.settings) {
   const schedPlanned = schedShifts.reduce((a, s) => a + num(s.scheduledHours), 0);
   const schedActual = schedShifts.reduce((a, s) => a + num(s.hours), 0);
   const jobs = shifts.reduce((a, s) => a + num(s.jobs), 0);
+  const manualIncome = incomes.reduce((a, i) => a + num(i.amount), 0);
+  const totalIncome = gigIncome + manualIncome;
   const expenseTotal = expenses.reduce((a, e) => a + num(e.amount), 0);
   const mileageDeduction = miles * num(settings.mileageRate);
-  const net = income - expenseTotal;
+  const net = totalIncome - expenseTotal;
   // Taxable profit uses the larger of actual expenses or the standard mileage
   // deduction (you can't claim both). Never below zero.
-  const taxableEstimate = Math.max(0, income - Math.max(expenseTotal, mileageDeduction));
+  const taxableEstimate = Math.max(0, totalIncome - Math.max(expenseTotal, mileageDeduction));
   const taxSetAside = taxableEstimate * num(settings.taxRate);
   return {
-    income, gross, tips, hours, miles, jobs,
+    // `income` stays gig income for backward-compat + the rate metrics below.
+    income: gigIncome, gigIncome, manualIncome, totalIncome,
+    gross, tips, hours, miles, jobs,
     expenseTotal, net, mileageDeduction,
     taxableEstimate, taxSetAside,
     takeHomeAfterTax: net - taxSetAside,
     schedPlanned, schedActual, schedShiftCount: schedShifts.length,
     // % of scheduled block time actually spent (<100% = finished blocks early).
     actualVsScheduledPct: schedPlanned ? (schedActual / schedPlanned) * 100 : 0,
-    perHour: hours ? income / hours : 0,
-    perMile: miles ? income / miles : 0,
-    perJob: jobs ? income / jobs : 0,
+    perHour: hours ? gigIncome / hours : 0,
+    perMile: miles ? gigIncome / miles : 0,
+    perJob: jobs ? gigIncome / jobs : 0,
     netPerHour: hours ? net / hours : 0,
     shiftCount: shifts.length,
   };

@@ -22,8 +22,13 @@ mileage tracking** — without asking for a cent.
   estimated take-home, using the larger of your real expenses or the standard
   mileage deduction.
 - **Dashboard KPIs** — net income, effective **$/hour**, **$/mile**, and
-  **$/delivery**, for the week, month, year, or all time.
-- **Charts** — earnings over time (stacked by platform), platform split,
+  **$/delivery**, for the week, month, year, or all time. **Net income (and the
+  tax set-aside / take-home) combines gig earnings with your manual non-gig
+  income** (e.g. TraceHaus) for a true bottom line, while the per-unit rates
+  ($/hour, $/mile, $/delivery) stay **gig-only** — manual income has no
+  hours/miles/deliveries to divide by, so folding it in would distort them.
+- **Charts** — earnings over time (stacked by platform, with an **Other income**
+  segment for manual income), platform split,
   expense breakdown, weekly net, hourly-rate trend, income-vs-expenses, your
   best day of the week, and **Flex $/hour by block type** (which of Rapid
   Express / Express / Rescue / Normal actually pays best per hour).

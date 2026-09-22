@@ -410,6 +410,44 @@ try {
   ok(Math.abs(tx.quarterly - 240.625) < 0.01, 'tax: quarterly set-aside = 240.63');
   ok(tx.byCat.Phone === 100, 'tax: expenses grouped by category');
 
+  console.log('\n18b) summarize folds manual income into totals, rates stay gig-only');
+  const sum = await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    const shifts = [{ platform: 'flex', date: '2026-06-01', gross: 200, tips: 0, hours: 10, miles: 50, jobs: 20 }];
+    const expenses = [{ date: '2026-06-01', category: 'Fuel', amount: 20 }];
+    const incomes = [{ date: '2026-06-01', source: 'TraceHaus', amount: 300 }];
+    const settings = { mileageRate: 0.70, taxRate: 0.25 };
+    const gigOnly = s.summarize(shifts, expenses, settings);          // no incomes
+    const combined = s.summarize(shifts, expenses, settings, incomes); // with manual income
+    return { gigOnly, combined };
+  });
+  ok(sum.combined.gigIncome === 200 && sum.combined.manualIncome === 300 && sum.combined.totalIncome === 500,
+    'combined: gig 200 + manual 300 = total 500');
+  ok(Math.abs(sum.combined.net - 480) < 0.01, 'combined net = 500 total − 20 expense = 480');
+  ok(Math.abs(sum.gigOnly.net - 180) < 0.01, 'gig-only net (no incomes) = 200 − 20 = 180 (back-compat)');
+  ok(Math.abs(sum.combined.perHour - 20) < 0.01, '$/hr stays gig-only: 200/10 = $20 (manual excluded)');
+  ok(Math.abs(sum.combined.perMile - 4) < 0.01, '$/mi stays gig-only: 200/50 = $4');
+  ok(Math.abs(sum.combined.perJob - 10) < 0.01, 'per-delivery stays gig-only: 200/20 = $10');
+  // taxable uses total income: max(0, 500 − max(20 exp, 50×0.70=35 mileage)) = 465
+  ok(Math.abs(sum.combined.taxableEstimate - 465) < 0.01, 'taxable uses total income = 500 − 35 = 465');
+
+  console.log('\n18c) Dashboard net income combines gig + manual (UI)');
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    s.clearAll();
+    s.addShift({ platform: 'doordash', date: s.todayISO(), gross: 100, tips: 0, hours: 5, miles: 25, jobs: 10, mpg: 0 });
+    s.addIncome({ date: s.todayISO(), source: 'TraceHaus', amount: 250 });
+  });
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.locator('#period-pills .pill[data-period=all]').click();
+  await page.waitForTimeout(700);
+  const dash = await page.locator('#kpi-grid').innerText();
+  ok(/\$350\b/.test(dash), 'net income shows $350 (100 gig + 250 manual)');
+  ok(/250 other/.test(dash) || /\$250/.test(dash), 'net sub shows the manual-income split');
+  ok(/\$20\.00/.test(dash), '$/hour = $20.00 (100/5, gig-only — manual not folded in)');
+  ok((await page.locator('#earn-legend').innerText()).includes('Other income'), 'earnings chart legend gains an "Other income" segment');
+
   await page.reload({ waitUntil: 'networkidle' });
   await page.evaluate(async () => { const s = await import('./js/store.js'); s.clearAll(); s.addShift({ platform: 'flex', date: '2026-06-01', gross: 400, tips: 50, hours: 20, miles: 200, jobs: 40 }); s.addIncome({ date: '2026-06-02', source: 'TraceHaus', amount: 1000 }); });
   await page.reload({ waitUntil: 'networkidle' });

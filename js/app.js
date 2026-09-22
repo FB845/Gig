@@ -73,15 +73,22 @@ function renderDashboard() {
   const { from, to } = currentRange();
   const shifts = store.inRange(store.getShifts(), from, to);
   const expenses = store.inRange(store.getExpenses(), from, to);
-  const s = store.summarize(shifts, expenses);
+  const incomes = store.inRange(store.getIncomes(), from, to);
+  const s = store.summarize(shifts, expenses, undefined, incomes);
+
+  // Net income now combines gig + manual income; show the split in the sub when
+  // there's manual income so it's clear where the total comes from.
+  const inSub = s.manualIncome > 0
+    ? `${fmtMoney0(s.totalIncome)} in (${fmtMoney0(s.gigIncome)} gig + ${fmtMoney0(s.manualIncome)} other) · ${fmtMoney0(s.expenseTotal)} out`
+    : `${fmtMoney0(s.totalIncome)} in · ${fmtMoney0(s.expenseTotal)} out`;
 
   // KPIs (with LED count-up + sparklines on desktop)
   const spark = dailyMetricSeries(14);
   const kpis = [
-    { label: 'Net income', jp: '純利益', target: s.net, fmt: 'money0', sub: `${fmtMoney0(s.income)} in · ${fmtMoney0(s.expenseTotal)} out`, cls: s.net >= 0 ? 'accent' : 'neg', series: spark.net, color: '#34d399' },
-    { label: '$ / hour', jp: '時給', target: s.perHour, fmt: 'money2', empty: !s.hours, sub: `${fmt1(s.hours)} hrs worked`, series: spark.perHour, color: '#60a5fa' },
-    { label: '$ / mile', jp: '距離単価', target: s.perMile, fmt: 'money2', empty: !s.miles, sub: `${fmt1(s.miles)} mi driven`, series: spark.perMile, color: '#a78bfa' },
-    { label: 'Per delivery', jp: '配達単価', target: s.perJob, fmt: 'money2', empty: !s.jobs, sub: `${s.jobs} deliveries`, series: spark.perJob, color: '#f5a524' },
+    { label: 'Net income', jp: '純利益', target: s.net, fmt: 'money0', sub: inSub, cls: s.net >= 0 ? 'accent' : 'neg', series: spark.net, color: '#34d399' },
+    { label: '$ / hour', jp: '時給', target: s.perHour, fmt: 'money2', empty: !s.hours, sub: `${fmt1(s.hours)} hrs worked · gig`, series: spark.perHour, color: '#60a5fa' },
+    { label: '$ / mile', jp: '距離単価', target: s.perMile, fmt: 'money2', empty: !s.miles, sub: `${fmt1(s.miles)} mi driven · gig`, series: spark.perMile, color: '#a78bfa' },
+    { label: 'Per delivery', jp: '配達単価', target: s.perJob, fmt: 'money2', empty: !s.jobs, sub: `${s.jobs} deliveries · gig`, series: spark.perJob, color: '#f5a524' },
   ];
   $('#kpi-grid').innerHTML = kpis.map((k) => `
     <div class="kpi ${k.cls || ''}">
@@ -126,7 +133,7 @@ function renderDashboard() {
   renderTicker(s);
   renderRouteStrip();
 
-  renderEarningsChart(shifts);
+  renderEarningsChart(shifts, incomes);
   renderPlatformDonut(shifts);
   renderExpensesDonut(expenses);
   renderRecentShifts(store.getShifts().slice(0, 6));
@@ -164,16 +171,18 @@ function dailyMetricSeries(days) {
   const today = new Date();
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date(today); d.setDate(d.getDate() - i);
-    map.set(store.isoDate(d), { income: 0, expense: 0, hours: 0, miles: 0, jobs: 0 });
+    map.set(store.isoDate(d), { income: 0, manual: 0, expense: 0, hours: 0, miles: 0, jobs: 0 });
   }
   store.getShifts().forEach((sh) => {
     const o = map.get(sh.date); if (!o) return;
     o.income += store.shiftIncome(sh); o.hours += sh.hours; o.miles += sh.miles; o.jobs += sh.jobs;
   });
   store.getExpenses().forEach((e) => { const o = map.get(e.date); if (o) o.expense += e.amount; });
+  store.getIncomes().forEach((inc) => { const o = map.get(inc.date); if (o) o.manual += store.num(inc.amount); });
   const rows = [...map.values()];
   return {
-    net: rows.map((r) => r.income - r.expense),
+    // Net folds in manual income; the rate sparklines stay gig-only.
+    net: rows.map((r) => r.income + r.manual - r.expense),
     perHour: rows.map((r) => (r.hours ? r.income / r.hours : 0)),
     perMile: rows.map((r) => (r.miles ? r.income / r.miles : 0)),
     perJob: rows.map((r) => (r.jobs ? r.income / r.jobs : 0)),
@@ -366,18 +375,21 @@ function allMonthStops(cap) {
   return entries.map(([k, v], i) => ({ label: monthLabel(k), value: v, now: i === entries.length - 1 }));
 }
 
-function bucketByPeriod(shifts) {
+function bucketByPeriod(shifts, incomes = []) {
   // choose bucket granularity based on selected period
   const gran = state.period === 'week' || state.period === 'month' ? 'day'
     : state.period === 'year' ? 'month' : 'month';
-  const buckets = new Map(); // key -> {flex,doordash,other}
-  for (const sh of shifts) {
-    let key, label;
-    if (gran === 'day') { key = sh.date; label = friendlyDate(sh.date).replace(/^[A-Za-z]+, /, ''); }
-    else { key = sh.date.slice(0, 7); label = monthLabel(key); }
-    if (!buckets.has(key)) buckets.set(key, { label, values: { flex: 0, doordash: 0, other: 0 } });
-    buckets.get(key).values[sh.platform in PLATFORMS ? sh.platform : 'other'] += store.shiftIncome(sh);
-  }
+  const buckets = new Map(); // key -> {flex,doordash,other,manual}
+  const keyLabel = (iso) => gran === 'day'
+    ? { key: iso, label: friendlyDate(iso).replace(/^[A-Za-z]+, /, '') }
+    : { key: iso.slice(0, 7), label: monthLabel(iso.slice(0, 7)) };
+  const bucket = (iso) => {
+    const { key, label } = keyLabel(iso);
+    if (!buckets.has(key)) buckets.set(key, { label, values: { flex: 0, doordash: 0, other: 0, manual: 0 } });
+    return buckets.get(key);
+  };
+  for (const sh of shifts) bucket(sh.date).values[sh.platform in PLATFORMS ? sh.platform : 'other'] += store.shiftIncome(sh);
+  for (const inc of incomes) bucket(inc.date).values.manual += store.num(inc.amount);
   return [...buckets.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1)).map((e) => e[1]);
 }
 
@@ -386,13 +398,18 @@ function monthLabel(ym) {
   return new Date(y, m - 1, 1).toLocaleDateString(undefined, { month: 'short' });
 }
 
-function renderEarningsChart(shifts) {
-  const data = bucketByPeriod(shifts);
+function renderEarningsChart(shifts, incomes = []) {
+  const data = bucketByPeriod(shifts, incomes);
   const series = [
     { key: 'flex', label: 'Amazon Flex', color: PLATFORMS.flex.color },
     { key: 'doordash', label: 'DoorDash', color: PLATFORMS.doordash.color },
     { key: 'other', label: 'Other', color: PLATFORMS.other.color },
   ];
+  // Only surface the manual-income segment when there is any (keeps the legend
+  // clean for pure-gig users).
+  if (incomes.some((i) => store.num(i.amount) > 0)) {
+    series.push({ key: 'manual', label: 'Other income', color: '#2dd4bf' });
+  }
   charts.barChart($('#chart-earnings'), data, series, { empty: 'Log a shift to see earnings here' });
   charts.legend($('#earn-legend'), series);
 }
