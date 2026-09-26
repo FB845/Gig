@@ -878,30 +878,10 @@ function renderCampaign() {
     <div class="ch-amount">${fmtMoney0(c.todayTotal)} <span class="ch-goal">/ ${fmtMoney0(c.daily)} today</span></div>
     <div class="ch-bar"><span style="width:${pct}%"></span></div>`;
 
-  // Weekly goal — $2,450/week; hit it early and the rest of the week is days off
-  const w = store.weeklyGoalStats();
-  const wg = $('#week-goal');
-  const wst = w.met ? 'is-met' : (w.weekEarned > 0 ? 'is-part' : 'is-none');
-  wg.className = `card week-goal ${wst}`;
-  const dayN = (n) => `${n} day${n === 1 ? '' : 's'}`;
-  let wgMsg;
-  if (w.met) {
-    wgMsg = w.daysOff > 0
-      ? `<b>${dayN(w.daysOff)} off earned</b> — weekly goal met with days to spare 🎉`
-      : `<b>Weekly goal met</b> — nice finish to the week 🎉`;
-  } else if (w.daysLeft === 0) {
-    wgMsg = `${fmtMoney0(w.remaining)} short — last day of the week`;
-  } else {
-    wgMsg = `${fmtMoney0(w.remaining)} to go · ${fmtMoney0(w.perDayNeeded)}/day over ${dayN(w.daysLeft + 1)}`;
-  }
-  wg.innerHTML = `
-    <div class="wg-top">
-      <span class="wg-title">WEEKLY GOAL<span class="jp">週間目標</span></span>
-      <span class="wg-days">${w.met ? dayN(w.daysOff) : dayN(w.daysLeft)}<em>${w.met ? 'off · 休み' : 'left · 残り'}</em></span>
-    </div>
-    <div class="wg-amount">${fmtMoney0(w.weekEarned)} <span class="wg-goal">/ ${fmtMoney0(w.weekly)} this week</span></div>
-    <div class="ch-bar"><span style="width:${w.pct}%"></span></div>
-    <div class="wg-msg">${wgMsg}</div>`;
+  // Weekly + monthly goals — hit early and the rest of the period is days off;
+  // income logged on a day off rolls over and lowers the next period's goal.
+  renderGoalCard($('#week-goal'), store.weeklyGoalStats(), { unit: 'week', title: 'WEEKLY GOAL', jp: '週間目標' });
+  renderGoalCard($('#month-goal'), store.monthlyGoalStats(), { unit: 'month', title: 'MONTHLY GOAL', jp: '月間目標' });
 
   // Stat tiles
   const aheadPos = c.ahead >= 0;
@@ -943,6 +923,38 @@ function renderCampaign() {
   $('#camp-ledger').innerHTML = rows.length
     ? rows.map((r) => (r.kind === 'shift' ? recordRow(r.item, 'shift', false) : recordRow(r.item, 'income', true))).join('')
     : '<li class="empty-list">No income logged in the last 60 days.</li>';
+}
+
+// One goal card (weekly or monthly) from store.periodGoalStats-shaped data.
+function renderGoalCard(el, g, { unit, title, jp }) {
+  if (!el) return;
+  const dayN = (n) => `${n} day${n === 1 ? '' : 's'}`;
+  el.className = `card week-goal ${g.met ? 'is-met' : (g.earned > 0 ? 'is-part' : 'is-none')}`;
+  let msg;
+  if (g.met) {
+    msg = g.daysOff > 0
+      ? `<b>${dayN(g.daysOff)} off earned</b> — ${unit}ly goal met with days to spare 🎉`
+      : `<b>${unit === 'week' ? 'Weekly' : 'Monthly'} goal met</b> — nice finish to the ${unit} 🎉`;
+  } else if (g.daysLeft === 0) {
+    msg = `${fmtMoney0(g.remaining)} short — last day of the ${unit}`;
+  } else {
+    msg = `${fmtMoney0(g.remaining)} to go · ${fmtMoney0(g.perDayNeeded)}/day over ${dayN(g.daysLeft + 1)}`;
+  }
+  const notes = [];
+  if (g.carryIn > 0) {
+    notes.push(`↻ ${fmtMoney0(g.carryIn)} rolled over from last ${unit} — goal lowered from ${fmtMoney0(g.baseGoal)}`);
+  }
+  if (g.todayOff) notes.push(`Today is an earned day off — anything you log rolls into next ${unit}`);
+  if (g.banked > 0) notes.push(`+${fmtMoney0(g.banked)} logged on days off → next ${unit}'s goal drops by that much`);
+  el.innerHTML = `
+    <div class="wg-top">
+      <span class="wg-title">${title}<span class="jp">${jp}</span></span>
+      <span class="wg-days">${g.met ? dayN(g.daysOff) : dayN(g.daysLeft)}<em>${g.met ? 'off · 休み' : 'left · 残り'}</em></span>
+    </div>
+    <div class="wg-amount">${fmtMoney0(g.earned)} <span class="wg-goal">/ ${fmtMoney0(g.goal)} this ${unit}</span></div>
+    <div class="ch-bar"><span style="width:${g.pct}%"></span></div>
+    <div class="wg-msg">${msg}</div>
+    ${notes.map((n) => `<div class="wg-note">${n}</div>`).join('')}`;
 }
 
 // =====================================================================

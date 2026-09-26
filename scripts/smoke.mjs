@@ -305,13 +305,54 @@ try {
     s.clearAll();
     return { met, notMet };
   });
-  ok(wk.met.weekly === 2450, 'weekly goal = $2,450');
-  ok(wk.met.weekStart === '2026-10-05' && wk.met.weekEnd === '2026-10-11', 'week span Mon 10/5 → Sun 10/11');
+  ok(wk.met.baseGoal === 2450 && wk.met.goal === 2450 && wk.met.carryIn === 0, 'weekly goal = $2,450 (no carry-in)');
+  ok(wk.met.start === '2026-10-05' && wk.met.end === '2026-10-11', 'week span Mon 10/5 → Sun 10/11');
   ok(wk.met.daysElapsed === 3 && wk.met.daysLeft === 4, 'Wed = day 3, 4 days left');
   ok(wk.met.met === true && wk.met.daysOff === 4, 'goal met early → 4 days off earned');
   ok(wk.notMet.met === false && wk.notMet.daysOff === 0, 'goal not met → 0 days off');
   ok(Math.abs(wk.notMet.remaining - 1450) < 0.01, 'remaining = $1,450 (2450 - 1000)');
   ok(Math.abs(wk.notMet.perDayNeeded - 290) < 0.01, 'per-day needed = $290 (1450 / 5 days incl today)');
+
+  console.log('\n15d) Day-off income rolls over; monthly goal');
+  const ro = await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    s.clearAll();
+    // Week of Oct 5: goal met Monday, then $400 logged Wednesday (an earned day off).
+    s.addIncome({ date: '2026-10-05', source: 'X', amount: 2450 });
+    s.addIncome({ date: '2026-10-07', source: 'X', amount: 400 });
+    const wThis = s.weeklyGoalStats('2026-10-07');
+    const wNext = s.weeklyGoalStats('2026-10-13');
+    // Overshoot on the day the goal is met is NOT day-off income.
+    s.clearAll();
+    s.addIncome({ date: '2026-10-05', source: 'X', amount: 2800 });
+    const wOvershootNext = s.weeklyGoalStats('2026-10-13');
+    // Carry bigger than a whole week → next week's goal is $0, excess keeps rolling.
+    s.clearAll();
+    s.addIncome({ date: '2026-10-05', source: 'X', amount: 2450 });
+    s.addIncome({ date: '2026-10-06', source: 'X', amount: 3000 });
+    const wBig = s.weeklyGoalStats('2026-10-13');
+    // Month: September is 9/12–9/30 = 19 days = $6,650. Met 9/12, $300 on 9/15 (day off).
+    s.clearAll();
+    s.addIncome({ date: '2026-09-12', source: 'X', amount: 6650 });
+    s.addIncome({ date: '2026-09-15', source: 'X', amount: 300 });
+    const mSep = s.monthlyGoalStats('2026-09-20');
+    const mOct = s.monthlyGoalStats('2026-10-02');
+    s.clearAll();
+    const mNov = s.monthlyGoalStats('2026-11-10');
+    const mDec = s.monthlyGoalStats('2026-12-31');
+    return { wThis, wNext, wOvershootNext, wBig, mSep, mOct, mNov, mDec };
+  });
+  ok(ro.wThis.met && ro.wThis.metOn === '2026-10-05', 'week met on Mon 10/5');
+  ok(ro.wThis.todayOff === true && Math.abs(ro.wThis.banked - 400) < 0.01, 'Wed is an earned day off; $400 banked');
+  ok(ro.wNext.carryIn === 400 && ro.wNext.goal === 2050 && ro.wNext.baseGoal === 2450, 'next week: $400 rolled over → goal $2,050');
+  ok(ro.wOvershootNext.carryIn === 0, 'overshoot on the goal day does not roll over');
+  ok(ro.wBig.goal === 0 && ro.wBig.met === true && ro.wBig.todayOff === true, 'carry ≥ a week → next week fully off');
+  ok(ro.mSep.baseGoal === 6650 && ro.mSep.start === '2026-09-12', 'Sept monthly goal = 19 days × $350 = $6,650');
+  ok(ro.mSep.met && ro.mSep.daysOff === 10 && Math.abs(ro.mSep.banked - 300) < 0.01, 'Sept met early: 10 days off left, $300 banked');
+  ok(ro.mOct.baseGoal === 10850 && ro.mOct.carryIn === 300 && ro.mOct.goal === 10550, 'Oct goal $10,850 − $300 rolled over = $10,550');
+  ok(ro.mNov.baseGoal === 10500 && ro.mDec.baseGoal === 10850, 'Nov $10,500 / Dec $10,850');
+  ok(6650 + ro.mOct.baseGoal + ro.mNov.baseGoal + ro.mDec.baseGoal === 38850, 'monthly goals sum to the $38,850 campaign');
+  ok(ro.mDec.daysLeft === 0, 'Dec 31 = last day of the month');
 
   console.log('\n16) Income entry + campaign ledger (UI)');
   await page.evaluate(async () => { (await import('./js/store.js')).clearAll(); });
@@ -334,6 +375,7 @@ try {
   ok(/CAMPAIGN 350/.test(await page.locator('#camp-hero').innerText()), 'hero renders');
   ok(await page.evaluate(() => { const h = document.querySelector('#camp-hero'); return h.offsetHeight >= h.scrollHeight - 2; }), 'hero card not clipped (no class collision)');
   ok(/WEEKLY GOAL/.test(await page.locator('#week-goal').innerText()) && /2,450/.test(await page.locator('#week-goal').innerText()), 'weekly goal card renders with $2,450 target');
+  ok(/MONTHLY GOAL/.test(await page.locator('#month-goal').innerText()), 'monthly goal card renders');
   ok((await page.locator('#camp-kpis .kpi').count()) === 6, 'six campaign stat tiles');
   ok((await page.locator('#camp-chart svg .bar').count()) >= 1, '14-day chart drew bars');
   ok((await page.locator('#camp-chart svg .refline').count()) === 1, '$350 reference line drawn');

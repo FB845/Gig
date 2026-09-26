@@ -582,6 +582,7 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 .week-goal.is-met .wg-msg { color: var(--accent); }
 .week-goal.is-met .wg-msg b, .wg-msg b { color: var(--text); }
 .week-goal.is-met .wg-msg b { color: var(--accent); }
+.wg-note { margin-top: 6px; font-size: 12px; color: var(--muted); padding-left: 10px; border-left: 2px solid color-mix(in srgb, var(--jr-teal) 60%, var(--border)); }
 
 /* ---------- Cloud sync ---------- */
 .sync-pill { font-size: 11px; font-weight: 800; letter-spacing: .06em; padding: 3px 9px; border-radius: 999px; background: var(--card-2); color: var(--muted); border: 1px solid var(--border); white-space: nowrap; }

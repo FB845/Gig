@@ -37,9 +37,13 @@ mileage tracking** — without asking for a cent.
   (e.g. TraceHaus). Shows today's hit/miss, earned-vs-goal-to-date,
   ahead/behind pace, required daily pace (flagged when you've fallen behind),
   current $350+ streak, a 14-day bar chart with a dashed $350 line, and a
-  combined income ledger. It also tracks a **weekly goal of $2,450** ($350 × 7):
-  hit it before the week is out and the card shows how many **days off** you've
-  earned for the rest of the week. Gig shift income is reused directly (never
+  combined income ledger. It also tracks a **weekly goal of $2,450** ($350 × 7)
+  and a **monthly goal** ($350 × the month's campaign days — Sept $6,650, Oct
+  $10,850, Nov $10,500, Dec $10,850): hit one early and the card shows how many
+  **days off** you've earned for the rest of that week/month. Work anyway on an
+  earned day off and that income **rolls over**, lowering the next week's /
+  month's goal by the same amount (overshoot on the day you hit the goal doesn't
+  roll over — only income logged on the days off). Gig shift income is reused directly (never
   duplicated); non-gig income is logged in the **Log → Income** tab and is
   **Campaign-only** so it never distorts the gig $/hr, $/mi or tax metrics.
 - **"Worth it?" offer calculator** — on the dashboard, punch in an offer's pay,

@@ -45,8 +45,9 @@ const DEFAULT_DB = {
 };
 
 // Campaign 350: earn $350/day, every day, 2026-09-12 → 2026-12-31.
-// Weekly goal = daily × 7 ($2,450); hitting it early earns days off.
-export const CAMPAIGN = { start: '2026-09-12', end: '2026-12-31', daily: 350, weekly: 2450 };
+// Weekly ($2,450) and monthly (daily × days) goals are derived from `daily`;
+// hitting one early earns days off (see periodGoalStats).
+export const CAMPAIGN = { start: '2026-09-12', end: '2026-12-31', daily: 350 };
 
 let db = load();
 const listeners = new Set();
@@ -603,36 +604,88 @@ export function campaignStats(nowISO = todayISO()) {
   };
 }
 
-// Weekly goal for Campaign 350: earn $2,450 (= $350 × 7) in the current week.
-// Hit it before the week is out and the rest of the week's days are "earned off".
-export function weeklyGoalStats(nowISO = todayISO()) {
-  const weekly = CAMPAIGN.weekly;
-  const daily = CAMPAIGN.daily;
-  const startD = startOfWeek(new Date(nowISO + 'T00:00:00'));
-  const endD = new Date(startD);
-  endD.setDate(endD.getDate() + 6);
-  const weekStartISO = isoDate(startD);
-  const weekEndISO = isoDate(endD);
+// ---- Weekly / monthly goals with day-off roll-over ----
+//
+// Each period's base goal is $350 × its days inside the campaign window (a full
+// week = $2,450; September, which starts 9/12, = 19 days = $6,650). Once the
+// running total meets the goal, the rest of the period's days are EARNED DAYS
+// OFF. Income logged on an earned day off is "banked" and rolls over, lowering
+// the NEXT period's goal (week → next week, month → next month). If the carry
+// exceeds a whole period's goal, the excess keeps rolling forward.
 
-  const m = incomeByDateMap();
-  let weekEarned = 0;
-  for (const [d, v] of m) if (d >= weekStartISO && d <= weekEndISO) weekEarned += v;
-
-  const daysElapsed = Math.min(7, Math.max(1, daysInclusive(weekStartISO, nowISO)));
-  const daysLeft = 7 - daysElapsed; // days remaining after today
-  const met = weekEarned >= weekly;
-  const remaining = Math.max(0, weekly - weekEarned);
-  // Per-day needed to still finish the week, counting today.
-  const perDayNeeded = met ? 0 : remaining / (daysLeft + 1);
-  // Days off earned: once the week's goal is met, every remaining day is free.
-  const daysOff = met ? daysLeft : 0;
-  const pct = weekly > 0 ? Math.min(100, (weekEarned / weekly) * 100) : 0;
-
-  return {
-    weekly, daily, weekStart: weekStartISO, weekEnd: weekEndISO,
-    weekEarned, daysElapsed, daysLeft, met, remaining, perDayNeeded, daysOff, pct,
-  };
+function addDaysISO(iso, n) {
+  const d = new Date(iso + 'T00:00:00');
+  d.setDate(d.getDate() + n);
+  return isoDate(d);
 }
+
+// Full calendar bounds of the week/month containing `iso`.
+function periodBounds(kind, iso) {
+  if (kind === 'month') {
+    const [y, m] = iso.split('-').map(Number);
+    return { start: isoDate(new Date(y, m - 1, 1)), end: isoDate(new Date(y, m, 0)) };
+  }
+  const start = isoDate(startOfWeek(new Date(iso + 'T00:00:00')));
+  return { start, end: addDaysISO(start, 6) };
+}
+
+// Clip a period to the campaign window; outside the campaign, use it as-is.
+function clipToCampaign(b) {
+  const start = b.start < CAMPAIGN.start ? CAMPAIGN.start : b.start;
+  const end = b.end > CAMPAIGN.end ? CAMPAIGN.end : b.end;
+  return start <= end ? { start, end } : b;
+}
+
+function periodGoalStats(kind, nowISO = todayISO()) {
+  const { daily } = CAMPAIGN;
+  const m = incomeByDateMap();
+  // Walk the roll-over chain from the period containing the campaign start (or
+  // now, if earlier) up to the period containing `nowISO`.
+  let full = periodBounds(kind, nowISO < CAMPAIGN.start ? nowISO : CAMPAIGN.start);
+  let carryIn = 0;
+  for (;;) {
+    const p = clipToCampaign(full);
+    const totalDays = daysInclusive(p.start, p.end);
+    const baseGoal = daily * totalDays;
+    const goal = Math.max(0, baseGoal - carryIn);
+    const excess = Math.max(0, carryIn - baseGoal);
+    const isCurrent = nowISO >= full.start && nowISO <= full.end;
+    const through = isCurrent && nowISO < p.end ? nowISO : p.end;
+
+    let earned = 0, banked = 0;
+    // A zero goal (fully covered by roll-over) is met before the period starts.
+    let metOn = goal === 0 ? addDaysISO(p.start, -1) : null;
+    for (let d = p.start; d <= through; d = addDaysISO(d, 1)) {
+      const v = m.get(d) || 0;
+      if (earned >= goal) banked += v; // goal already met before this day → earned day off
+      earned += v;
+      if (metOn === null && earned >= goal) metOn = d;
+    }
+
+    if (isCurrent) {
+      const clampedNow = nowISO < p.start ? p.start : nowISO > p.end ? p.end : nowISO;
+      const daysElapsed = daysInclusive(p.start, clampedNow);
+      const daysLeft = totalDays - daysElapsed; // days remaining after today
+      const met = earned >= goal;
+      const remaining = Math.max(0, goal - earned);
+      return {
+        kind, daily, start: p.start, end: p.end, totalDays,
+        baseGoal, carryIn, goal, earned,
+        daysElapsed, daysLeft, met, metOn, remaining,
+        perDayNeeded: met ? 0 : remaining / (daysLeft + 1), // counting today
+        daysOff: met ? daysLeft : 0,                         // after today
+        todayOff: met && metOn < clampedNow,                 // met before today
+        banked,                                              // rolls into next period
+        pct: goal > 0 ? Math.min(100, (earned / goal) * 100) : 100,
+      };
+    }
+    carryIn = excess + banked;
+    full = periodBounds(kind, addDaysISO(full.end, 1));
+  }
+}
+
+export function weeklyGoalStats(nowISO = todayISO()) { return periodGoalStats('week', nowISO); }
+export function monthlyGoalStats(nowISO = todayISO()) { return periodGoalStats('month', nowISO); }
 
 // ---- date helpers ----
 export function todayISO() {
