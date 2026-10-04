@@ -44,8 +44,9 @@ mileage tracking** — without asking for a cent.
   earned day off and that income **rolls over**, lowering the next week's /
   month's goal by the same amount (overshoot on the day you hit the goal doesn't
   roll over — only income logged on the days off). Gig shift income is reused directly (never
-  duplicated); non-gig income is logged in the **Log → Income** tab and is
-  **Campaign-only** so it never distorts the gig $/hr, $/mi or tax metrics.
+  duplicated); non-gig income is logged with **Platform → Income** in the Log
+  form and counts toward Campaign 350, the dashboard totals and tax — but never
+  the gig $/hr, $/mi or per-delivery rates.
 - **"Worth it?" offer calculator** — on the dashboard, punch in an offer's pay,
   miles and (optional) minutes for an instant **TAKE / MARGINAL / SKIP** verdict
   with $/mi and $/hr against your own minimums (set in Settings) and your
@@ -54,6 +55,12 @@ mileage tracking** — without asking for a cent.
   manual income, standard-mileage vs actual-expense deduction, expenses by
   category, taxable profit, estimated tax and quarterly set-aside — with CSV
   export and Print / Save-PDF. (Estimate, not tax advice.)
+- **One form for shifts + income** — pick **Income** under Platform (next to
+  Amazon Flex / DoorDash / Other) to log non-gig money, with a **Flat rate |
+  Paid by hour** toggle: flat takes an amount; hourly takes a rate plus time
+  worked (same Duration / Start – Finish input) and works the amount out.
+  Shifts and income share one date-sorted list in Log; editing an entry and
+  switching its platform between a gig and Income converts it in place.
 - **Flexible time entry** — toggle between **Duration** (hours + minutes) and
   **Start – Finish** clock times; the length is worked out for you, overnight
   shifts included (22:10 → 01:25 = 3h 15m). Your choice is remembered per

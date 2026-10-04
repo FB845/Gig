@@ -132,7 +132,6 @@
       <div class="segmented" id="log-segmented">
         <button class="seg active" data-log="shift">Shifts</button>
         <button class="seg" data-log="expense">Expenses</button>
-        <button class="seg" data-log="income">Income</button>
         <button class="seg" data-log="trip">Trips</button>
       </div>
 
@@ -145,7 +144,24 @@
             <button type="button" class="chip active" data-val="flex">Amazon Flex</button>
             <button type="button" class="chip" data-val="doordash">DoorDash</button>
             <button type="button" class="chip" data-val="other">Other</button>
+            <button type="button" class="chip" data-val="income">Income</button>
           </div>
+        </div>
+        <div class="field income-only hidden">
+          <label>Source</label>
+          <input type="text" name="source" list="income-sources" placeholder="TraceHaus" autocomplete="off" />
+          <datalist id="income-sources"><option value="TraceHaus"></option><option value="Invoice"></option><option value="Consulting"></option><option value="Retainer"></option></datalist>
+        </div>
+        <div class="field income-only hidden">
+          <div class="time-head">
+            <label id="pay-label">Amount ($)</label>
+            <div class="mini-seg" id="pay-type" role="tablist" aria-label="Pay type">
+              <button type="button" class="active" data-pay="flat">Flat rate</button>
+              <button type="button" data-pay="hourly">Paid by hour</button>
+            </div>
+          </div>
+          <input type="number" name="amount" step="0.01" min="0" inputmode="decimal" placeholder="500.00" aria-label="flat amount" />
+          <input type="number" name="rate" class="hidden" step="0.01" min="0" inputmode="decimal" placeholder="45.00" aria-label="hourly rate" />
         </div>
         <div class="field flex-only" id="flex-block-field">
           <label>Block length <span class="hint">scheduled</span></label>
@@ -172,7 +188,7 @@
           </div>
         </div>
         <div class="field"><label>Date</label><input type="date" name="date" required /></div>
-        <div class="field">
+        <div class="field" id="time-field">
           <div class="time-head">
             <label id="hours-label">Actual time worked</label>
             <div class="mini-seg" id="time-mode" role="tablist" aria-label="Time input mode">
@@ -191,15 +207,15 @@
           </div>
           <div class="tr-dur hidden" id="time-range-dur"></div>
         </div>
-        <div class="row">
+        <div class="row gig-only">
           <div class="field"><label>Base pay ($)</label><input type="number" name="gross" step="0.01" min="0" inputmode="decimal" placeholder="42.00" /></div>
           <div class="field"><label>Tips ($)</label><input type="number" name="tips" step="0.01" min="0" inputmode="decimal" placeholder="18.00" /></div>
         </div>
-        <div class="row">
+        <div class="row gig-only">
           <div class="field"><label>Deliveries / packages</label><input type="number" name="jobs" step="1" min="0" inputmode="numeric" placeholder="12" /></div>
           <div class="field"><label>Miles driven</label><input type="number" name="miles" step="0.1" min="0" inputmode="decimal" placeholder="34.5" /></div>
         </div>
-        <div class="field"><label>MPG this shift <span class="hint">optional — fuel cost auto-calculated (blank = default from Settings)</span></label><input type="number" name="mpg" step="0.1" min="0" inputmode="decimal" placeholder="25" /></div>
+        <div class="field gig-only"><label>MPG this shift <span class="hint">optional — fuel cost auto-calculated (blank = default from Settings)</span></label><input type="number" name="mpg" step="0.1" min="0" inputmode="decimal" placeholder="25" /></div>
         <div class="field"><label>Notes</label><input type="text" name="notes" placeholder="Morning block, downtown" /></div>
         <div class="live-metrics" id="shift-live"></div>
         <div class="form-actions">
@@ -227,23 +243,6 @@
         <div class="form-actions">
           <button type="button" class="btn ghost" id="expense-reset">Clear</button>
           <button type="submit" class="btn primary" id="expense-submit">Save expense</button>
-        </div>
-      </form>
-
-      <form id="income-form" class="card form hidden">
-        <div class="card-head"><h2 id="income-form-title">Log income</h2></div>
-        <div class="row">
-          <div class="field"><label>Date</label><input type="date" name="date" required /></div>
-          <div class="field"><label>Amount ($)</label><input type="number" name="amount" step="0.01" min="0" inputmode="decimal" placeholder="500.00" required /></div>
-        </div>
-        <div class="field"><label>Source</label>
-          <input type="text" name="source" list="income-sources" placeholder="TraceHaus" autocomplete="off" required />
-          <datalist id="income-sources"><option value="TraceHaus"></option><option value="Invoice"></option><option value="Consulting"></option><option value="Retainer"></option></datalist>
-        </div>
-        <div class="field"><label>Note <span class="hint">optional</span></label><input type="text" name="note" placeholder="Invoice #123" /></div>
-        <div class="form-actions">
-          <button type="button" class="btn ghost" id="income-reset">Clear</button>
-          <button type="submit" class="btn primary" id="income-submit">Save income</button>
         </div>
       </form>
 

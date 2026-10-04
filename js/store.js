@@ -331,12 +331,23 @@ export function deleteIncome(id) {
   persist();
 }
 
+// Manual income is either a flat amount or paid by the hour. For hourly income
+// the amount is always derived (rate × hours) so it can't drift; the optional
+// start/finish clock times mirror shifts. Older records (no payType) are flat.
 function normalizeIncome(i) {
+  const hourly = i.payType === 'hourly';
+  const rate = hourly ? num(i.rate) : 0;
+  const hours = hourly ? num(i.hours) : 0;
   return {
     id: i.id,
     date: i.date,
     source: (i.source || '').trim() || 'Income',
-    amount: num(i.amount),
+    payType: hourly ? 'hourly' : 'flat',
+    rate,
+    hours,
+    startTime: hourly && HHMM.test(i.startTime || '') ? i.startTime : '',
+    endTime: hourly && HHMM.test(i.endTime || '') ? i.endTime : '',
+    amount: hourly ? Math.round(rate * hours * 100) / 100 : num(i.amount),
     note: i.note || '',
     createdAt: i.createdAt || new Date().toISOString(),
   };

@@ -470,7 +470,6 @@ function initForms() {
     $$('#log-segmented .seg').forEach((x) => x.classList.toggle('active', x === b));
     $('#shift-form').classList.toggle('hidden', state.logMode !== 'shift');
     $('#expense-form').classList.toggle('hidden', state.logMode !== 'expense');
-    $('#income-form').classList.toggle('hidden', state.logMode !== 'income');
     renderLogList();
   }));
 
@@ -492,22 +491,22 @@ function initForms() {
   // default dates
   $('#shift-form [name=date]').value = store.todayISO();
   $('#expense-form [name=date]').value = store.todayISO();
-  $('#income-form [name=date]').value = store.todayISO();
 
   // live metrics on shift form
-  ['gross', 'tips', 'hoursH', 'hoursM', 'startTime', 'endTime', 'miles', 'jobs', 'mpg'].forEach((n) => {
+  ['gross', 'tips', 'hoursH', 'hoursM', 'startTime', 'endTime', 'miles', 'jobs', 'mpg', 'amount', 'rate'].forEach((n) => {
     $(`#shift-form [name=${n}]`).addEventListener('input', updateShiftLive);
   });
   $$('#time-mode button').forEach((b) => b.addEventListener('click', () => setTimeMode(b.dataset.mode, true)));
   setTimeMode(loadTimeMode());
+  // Income pay type: Flat rate | Paid by hour
+  $$('#pay-type button').forEach((b) => b.addEventListener('click', () => setPayType(b.dataset.pay, true)));
+  setPayType(loadPayType());
   updateShiftLive();
 
   $('#shift-form').addEventListener('submit', onSaveShift);
   $('#expense-form').addEventListener('submit', onSaveExpense);
-  $('#income-form').addEventListener('submit', onSaveIncome);
   $('#shift-reset').addEventListener('click', () => resetShiftForm());
   $('#expense-reset').addEventListener('click', () => resetExpenseForm());
-  $('#income-reset').addEventListener('click', () => resetIncomeForm());
   $('#camp-add-income').addEventListener('click', () => { openIncomeForm(); });
 }
 
@@ -575,11 +574,46 @@ function setFormHours(f, decimal) {
 }
 
 // Show/hide the Flex-only fields and adapt the hours label to the platform.
+// Adapt the shared shift/income form to the selected platform: Flex-only
+// block fields, gig-only pay/miles fields, income-only source + pay type, and
+// the time input (hidden for flat-rate income — no hours needed).
 function updateFlexUI() {
-  const isFlex = chipValue('#shift-platform') === 'flex';
+  const plat = chipValue('#shift-platform');
+  const isFlex = plat === 'flex';
+  const isIncome = plat === 'income';
   $$('#shift-form .flex-only').forEach((el) => el.classList.toggle('hidden', !isFlex));
+  $$('#shift-form .gig-only').forEach((el) => el.classList.toggle('hidden', isIncome));
+  $$('#shift-form .income-only').forEach((el) => el.classList.toggle('hidden', !isIncome));
+  $('#time-field').classList.toggle('hidden', isIncome && payType() !== 'hourly');
   $('#hours-label').textContent = isFlex ? 'Actual time worked' : 'Hours worked';
+  $('#shift-form [name=notes]').placeholder = isIncome ? 'Invoice #123' : 'Morning block, downtown';
+  const editing = state.editShiftId || state.editIncomeId;
+  $('#shift-form-title').textContent = `${editing ? 'Edit' : 'Log'} ${isIncome ? 'income' : editing ? 'shift' : 'a shift'}`;
+  $('#shift-submit').textContent = `${editing ? 'Update' : 'Save'} ${isIncome ? 'income' : 'shift'}`;
   updateShiftLive();
+}
+
+const PAY_TYPE_KEY = 'gigtracker.payType';
+function loadPayType() {
+  try { return localStorage.getItem(PAY_TYPE_KEY) === 'hourly' ? 'hourly' : 'flat'; } catch { return 'flat'; }
+}
+function payType() {
+  return $('#pay-type button.active')?.dataset.pay === 'hourly' ? 'hourly' : 'flat';
+}
+// Switch income between a flat amount and an hourly rate × time worked.
+function setPayType(type, remember = false) {
+  $$('#pay-type button').forEach((b) => b.classList.toggle('active', b.dataset.pay === type));
+  const f = $('#shift-form');
+  f.amount.classList.toggle('hidden', type !== 'flat');
+  f.rate.classList.toggle('hidden', type !== 'hourly');
+  $('#pay-label').textContent = type === 'hourly' ? 'Hourly rate ($/hr)' : 'Amount ($)';
+  if (remember) { try { localStorage.setItem(PAY_TYPE_KEY, type); } catch { /* private mode */ } }
+  updateFlexUI();
+}
+// The income amount the form currently describes (flat, or rate × hours).
+function incomeFormAmount(f) {
+  if (payType() === 'hourly') return Math.round((parseFloat(f.rate.value) || 0) * getFormHours(f) * 100) / 100;
+  return parseFloat(f.amount.value) || 0;
 }
 
 function bindBlockPresets() {
@@ -633,15 +667,23 @@ function updateShiftLive() {
   const settings = store.getSettings();
   const rate = settings.mileageRate;
   const parts = [];
-  parts.push(`<span class="lm">Income <b>${fmtMoney(income)}</b></span>`);
-  if (hours) parts.push(`<span class="lm">$/hr <b>${fmtMoney(income / hours)}</b></span>`);
-  if (miles) parts.push(`<span class="lm">$/mi <b>${fmtMoney(income / miles)}</b></span>`);
-  if (jobs) parts.push(`<span class="lm">$/job <b>${fmtMoney(income / jobs)}</b></span>`);
-  if (miles) parts.push(`<span class="lm">Tax mi-deduction <b>${fmtMoney(miles * rate)}</b></span>`);
-  const fuel = store.fuelCostFor({ miles, mpg: +f.mpg.value || 0 }, settings);
-  if (fuel > 0) parts.push(`<span class="lm">Fuel est. <b>${fmtMoney(fuel)}</b></span>`);
-  const sched = chipValue('#shift-platform') === 'flex' ? getScheduledHours() : 0;
-  if (sched && hours) parts.push(`<span class="lm">Block time <b>${Math.round((hours / sched) * 100)}%</b></span>`);
+  if (chipValue('#shift-platform') === 'income') {
+    // Manual income: the amount (flat, or rate × time), and a reminder that it
+    // feeds the totals but not the gig-efficiency rates.
+    parts.push(`<span class="lm">Income <b>${fmtMoney(incomeFormAmount(f))}</b></span>`);
+    if (payType() === 'hourly' && hours) parts.push(`<span class="lm">${fmtHM(hours)} × <b>${fmtMoney(+f.rate.value || 0)}/hr</b></span>`);
+    parts.push('<span class="lm">Counts toward Campaign 350 + totals, not gig $/hr</span>');
+  } else {
+    parts.push(`<span class="lm">Income <b>${fmtMoney(income)}</b></span>`);
+    if (hours) parts.push(`<span class="lm">$/hr <b>${fmtMoney(income / hours)}</b></span>`);
+    if (miles) parts.push(`<span class="lm">$/mi <b>${fmtMoney(income / miles)}</b></span>`);
+    if (jobs) parts.push(`<span class="lm">$/job <b>${fmtMoney(income / jobs)}</b></span>`);
+    if (miles) parts.push(`<span class="lm">Tax mi-deduction <b>${fmtMoney(miles * rate)}</b></span>`);
+    const fuel = store.fuelCostFor({ miles, mpg: +f.mpg.value || 0 }, settings);
+    if (fuel > 0) parts.push(`<span class="lm">Fuel est. <b>${fmtMoney(fuel)}</b></span>`);
+    const sched = chipValue('#shift-platform') === 'flex' ? getScheduledHours() : 0;
+    if (sched && hours) parts.push(`<span class="lm">Block time <b>${Math.round((hours / sched) * 100)}%</b></span>`);
+  }
   $('#shift-live').innerHTML = parts.join('');
 
   // Start–finish mode: show the computed length (and flag overnight shifts).
@@ -659,6 +701,7 @@ function onSaveShift(e) {
   const f = e.target;
   const isFlex = chipValue('#shift-platform') === 'flex';
   const range = timeMode() === 'range';
+  if (chipValue('#shift-platform') === 'income') { saveIncomeFromForm(f, range); return; }
   const data = {
     platform: chipValue('#shift-platform') || 'other',
     date: f.date.value,
@@ -677,8 +720,46 @@ function onSaveShift(e) {
     store.updateShift(state.editShiftId, data);
     toast('Shift updated');
   } else {
+    // Editing an income entry but switched the platform to a gig → convert it.
+    if (state.editIncomeId) store.deleteIncome(state.editIncomeId);
     store.addShift(data);
-    toast('Shift saved ✓');
+    toast(state.editIncomeId ? 'Converted to a shift ✓' : 'Shift saved ✓');
+  }
+  resetShiftForm();
+  renderLogList();
+}
+
+// Income chosen under Platform: save to the manual-income store (kept apart
+// from gig shifts so gig $/hr, $/mi and $/delivery stay pure).
+function saveIncomeFromForm(f, range) {
+  const hourly = payType() === 'hourly';
+  const data = {
+    date: f.date.value,
+    source: f.source.value,
+    payType: hourly ? 'hourly' : 'flat',
+    amount: hourly ? 0 : f.amount.value,
+    rate: hourly ? f.rate.value : 0,
+    hours: hourly ? getFormHours(f) : 0,
+    startTime: hourly && range ? f.startTime.value : '',
+    endTime: hourly && range ? f.endTime.value : '',
+    note: f.notes.value,
+  };
+  if (!data.date) { toast('Pick a date'); return; }
+  if (!data.source.trim()) { toast('Enter a source'); return; }
+  if (hourly) {
+    if (range && !f.startTime.value !== !f.endTime.value) { toast('Enter both start and finish times'); return; }
+    if (range && f.startTime.value && f.startTime.value === f.endTime.value) { toast('Finish time must differ from start'); return; }
+    if (!(+data.rate > 0) || !(data.hours > 0)) { toast('Enter an hourly rate and time worked'); return; }
+  } else if (!(+data.amount > 0)) { toast('Enter an amount'); return; }
+
+  if (state.editIncomeId) {
+    store.updateIncome(state.editIncomeId, data);
+    toast('Income updated');
+  } else {
+    // Editing a gig shift but switched the platform to Income → convert it.
+    if (state.editShiftId) store.deleteShift(state.editShiftId);
+    store.addIncome(data);
+    toast(state.editShiftId ? 'Converted to income ✓' : 'Income saved ✓');
   }
   resetShiftForm();
   renderLogList();
@@ -707,9 +788,8 @@ function resetShiftForm() {
   setChip('#shift-tag', '');
   setBlockPreset(0);
   state.editShiftId = null;
-  $('#shift-form-title').textContent = 'Log a shift';
-  $('#shift-submit').textContent = 'Save shift';
-  updateFlexUI();
+  state.editIncomeId = null;
+  setPayType(loadPayType()); // also refreshes the platform UI + title
 }
 function resetExpenseForm() {
   const f = $('#expense-form');
@@ -721,78 +801,71 @@ function resetExpenseForm() {
   $('#expense-submit').textContent = 'Save expense';
 }
 
-function editShift(id) {
-  const s = store.getShifts().find((x) => x.id === id);
-  if (!s) return;
+// Show the Log view's shared shift/income form (Shifts segment).
+function showShiftForm() {
   state.logMode = 'shift';
   $$('#log-segmented .seg').forEach((x) => x.classList.toggle('active', x.dataset.log === 'shift'));
   $('#shift-form').classList.remove('hidden');
   $('#expense-form').classList.add('hidden');
-  const f = $('#shift-form');
-  setChip('#shift-platform', s.platform);
-  setChip('#shift-tag', s.tag || '');
-  setBlockPreset(s.scheduledHours || 0);
-  // Reopen in the mode the shift was logged with.
-  if (s.startTime && s.endTime) {
-    f.startTime.value = s.startTime; f.endTime.value = s.endTime;
+  renderLogList();
+  showView('log');
+}
+
+// Put a stored entry's clock times / duration back into the time input.
+function fillFormTime(f, rec) {
+  if (rec.startTime && rec.endTime) {
+    f.startTime.value = rec.startTime; f.endTime.value = rec.endTime;
     setTimeMode('range');
   } else {
     setTimeMode('duration');
     f.startTime.value = ''; f.endTime.value = '';
   }
-  f.date.value = s.date; setFormHours(f, s.hours || 0); f.gross.value = s.gross || '';
+  setFormHours(f, rec.hours || 0);
+}
+
+function editShift(id) {
+  const s = store.getShifts().find((x) => x.id === id);
+  if (!s) return;
+  resetShiftForm();
+  showShiftForm();
+  const f = $('#shift-form');
+  setChip('#shift-platform', s.platform);
+  setChip('#shift-tag', s.tag || '');
+  setBlockPreset(s.scheduledHours || 0);
+  fillFormTime(f, s); // reopen in the time mode the shift was logged with
+  f.date.value = s.date; f.gross.value = s.gross || '';
   f.tips.value = s.tips || ''; f.jobs.value = s.jobs || ''; f.miles.value = s.miles || '';
   f.mpg.value = s.mpg || ''; f.notes.value = s.notes || '';
   state.editShiftId = id;
-  $('#shift-form-title').textContent = 'Edit shift';
-  $('#shift-submit').textContent = 'Update shift';
   updateFlexUI();
-  showView('log');
   f.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function onSaveIncome(e) {
-  e.preventDefault();
-  const f = e.target;
-  const data = { date: f.date.value, amount: f.amount.value, source: f.source.value, note: f.note.value };
-  if (!data.date || !(+data.amount > 0)) { toast('Enter a date and amount'); return; }
-  if (!data.source.trim()) { toast('Enter a source'); return; }
-  if (state.editIncomeId) { store.updateIncome(state.editIncomeId, data); toast('Income updated'); }
-  else { store.addIncome(data); toast('Income saved ✓'); }
-  resetIncomeForm();
-  renderLogList();
-}
-
-function resetIncomeForm() {
-  const f = $('#income-form');
-  f.reset();
-  f.date.value = store.todayISO();
-  state.editIncomeId = null;
-  $('#income-form-title').textContent = 'Log income';
-  $('#income-submit').textContent = 'Save income';
-}
-
-// Jump to the Log view's Income segment (used by the Campaign "+ Income" button).
+// Open the shared form with Income selected (Campaign "+ Income" button).
 function openIncomeForm() {
-  state.logMode = 'income';
-  $$('#log-segmented .seg').forEach((x) => x.classList.toggle('active', x.dataset.log === 'income'));
-  $('#shift-form').classList.add('hidden');
-  $('#expense-form').classList.add('hidden');
-  $('#income-form').classList.remove('hidden');
-  renderLogList();
-  showView('log');
-  $('#income-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  resetShiftForm();
+  showShiftForm();
+  setChip('#shift-platform', 'income');
+  updateFlexUI();
+  $('#shift-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function editIncome(id) {
   const inc = store.getIncomes().find((x) => x.id === id);
   if (!inc) return;
   openIncomeForm();
-  const f = $('#income-form');
-  f.date.value = inc.date; f.amount.value = inc.amount; f.source.value = inc.source; f.note.value = inc.note || '';
+  const f = $('#shift-form');
   state.editIncomeId = id;
-  $('#income-form-title').textContent = 'Edit income';
-  $('#income-submit').textContent = 'Update income';
+  f.date.value = inc.date; f.source.value = inc.source; f.notes.value = inc.note || '';
+  if (inc.payType === 'hourly') {
+    setPayType('hourly');
+    f.rate.value = inc.rate || '';
+    fillFormTime(f, inc);
+  } else {
+    setPayType('flat');
+    f.amount.value = inc.amount;
+  }
+  updateFlexUI();
 }
 
 function editExpense(id) {
@@ -848,11 +921,14 @@ function recordRow(item, type, deletable = true) {
     </li>`;
   }
   if (type === 'income') {
+    const how = item.payType === 'hourly'
+      ? `${fmtHM(item.hours)} × ${fmtMoney(item.rate)}/hr${item.startTime ? ` (${item.startTime}–${item.endTime})` : ''}`
+      : 'flat';
     return `<li class="record" data-id="${item.id}" data-type="income">
       <span class="rec-badge" style="background:#f5a524"></span>
       <div class="rec-main">
-        <div class="rec-title">${escapeHtml(item.source)}</div>
-        <div class="rec-sub">${friendlyDate(item.date)} · manual${item.note ? ' · ' + escapeHtml(item.note) : ''}</div>
+        <div class="rec-title">${friendlyDate(item.date)} <span class="inc-tag">Income</span></div>
+        <div class="rec-sub">${escapeHtml(item.source)} · ${how}${item.note ? ' · ' + escapeHtml(item.note) : ''}</div>
       </div>
       <div class="rec-amount">${fmtMoney(item.amount)}</div>
       ${deletable ? `<button class="rec-del" data-del="income" data-id="${item.id}" aria-label="Delete">✕</button>` : ''}
@@ -872,20 +948,20 @@ function recordRow(item, type, deletable = true) {
 function renderLogList() {
   const list = $('#log-list');
   if (state.logMode === 'shift') {
-    $('#log-list-title').textContent = 'All shifts';
-    const shifts = store.getShifts();
-    list.innerHTML = shifts.length ? shifts.map((s) => recordRow(s, 'shift')).join('')
-      : '<li class="empty-list">No shifts logged yet.</li>';
+    // Gig shifts and manual income together, newest first.
+    $('#log-list-title').textContent = 'Shifts & income';
+    const rows = [
+      ...store.getShifts().map((item) => ({ item, type: 'shift' })),
+      ...store.getIncomes().map((item) => ({ item, type: 'income' })),
+    ].sort((a, b) => (a.item.date < b.item.date ? 1 : a.item.date > b.item.date ? -1
+      : (b.item.createdAt || '').localeCompare(a.item.createdAt || '')));
+    list.innerHTML = rows.length ? rows.map((r) => recordRow(r.item, r.type)).join('')
+      : '<li class="empty-list">Nothing logged yet — pick a platform above (or Income).</li>';
   } else if (state.logMode === 'expense') {
     $('#log-list-title').textContent = 'All expenses';
     const exp = store.getExpenses();
     list.innerHTML = exp.length ? exp.map((e) => recordRow(e, 'expense')).join('')
       : '<li class="empty-list">No expenses logged yet.</li>';
-  } else if (state.logMode === 'income') {
-    $('#log-list-title').textContent = 'Manual income';
-    const inc = store.getIncomes();
-    list.innerHTML = inc.length ? inc.map((i) => recordRow(i, 'income')).join('')
-      : '<li class="empty-list">No manual income yet — for TraceHaus invoices etc.</li>';
   } else {
     $('#log-list-title').textContent = 'GPS mileage log';
     const trips = store.getTrips();
@@ -1322,6 +1398,9 @@ function endDrive(save) {
   $('#shift-form').classList.remove('hidden');
   $('#expense-form').classList.add('hidden');
   const f = $('#shift-form');
+  // Miles belong to a gig shift — if the form is on Income (miles hidden, maybe
+  // mid-edit of an income entry), start a fresh shift instead.
+  if (chipValue('#shift-platform') === 'income') resetShiftForm();
   f.date.value = trip.date;
   f.miles.value = (parseFloat(f.miles.value || '0') + trip.miles).toFixed(1);
   // The drive's start/stop times become the shift's start–finish (if not set).

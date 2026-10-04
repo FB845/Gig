@@ -358,16 +358,20 @@ try {
   await page.evaluate(async () => { (await import('./js/store.js')).clearAll(); });
   await page.reload({ waitUntil: 'networkidle' });
   await page.locator('.tab[data-view=log]').click();
-  await page.locator('#log-segmented .seg[data-log=income]').click();
+  ok((await page.locator('#log-segmented .seg[data-log=income]').count()) === 0, 'no separate Income segment any more');
+  await page.locator('#shift-platform .chip[data-val=income]').click();
   await page.waitForTimeout(100);
-  ok((await page.locator('#income-form:not(.hidden)').count()) === 1, 'Income segment shows income form');
+  ok(await page.locator('#shift-form [name=source]').isVisible() && !(await page.locator('#shift-form [name=gross]').isVisible()), 'Income platform swaps in source/amount, hides gig fields');
+  ok(!(await page.locator('#time-field').isVisible()), 'flat-rate income hides the time input');
+  ok(/Log income/.test(await page.locator('#shift-form-title').innerText()), 'form title becomes "Log income"');
   const today = await page.evaluate(async () => (await import('./js/store.js')).todayISO());
-  await page.fill('#income-form [name=date]', today);
-  await page.fill('#income-form [name=amount]', '500');
-  await page.fill('#income-form [name=source]', 'TraceHaus');
-  await page.locator('#income-submit').click();
+  await page.fill('#shift-form [name=date]', today);
+  await page.fill('#shift-form [name=amount]', '500');
+  await page.fill('#shift-form [name=source]', 'TraceHaus');
+  await page.locator('#shift-submit').click();
   await page.waitForTimeout(120);
   ok(/TraceHaus/.test(await page.locator('#log-list').innerText()) && /\$500/.test(await page.locator('#log-list').innerText()), 'manual income saved + listed');
+  ok(await page.evaluate(async () => { const s = await import('./js/store.js'); return s.getIncomes().length === 1 && s.getShifts().length === 0; }), 'saved to income, not as a gig shift');
   await page.evaluate(async () => { const s = await import('./js/store.js'); s.addShift({ platform: 'flex', date: s.todayISO(), gross: 100, tips: 20, hours: 3, jobs: 8, miles: 20 }); });
   await page.locator('.tab[data-view=campaign]').click();
   await page.waitForTimeout(150);
@@ -564,6 +568,82 @@ try {
   await page.waitForTimeout(150);
   const dur = await page.evaluate(async () => (await import('./js/store.js')).getShifts()[0]);
   ok(Math.abs(dur.hours - 10 / 3) < 1e-6 && dur.startTime === '' && dur.endTime === '', 'saving in Duration mode keeps hours, clears clock times');
+
+  console.log('\n20) Income under Platform: flat vs paid by hour, combined list, convert');
+  const ni = await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    s.clearAll();
+    const h = s.addIncome({ date: '2026-10-01', source: 'TraceHaus', payType: 'hourly', rate: 45, hours: 10 / 3, startTime: '13:00', endTime: '16:20' });
+    const toFlat = s.updateIncome(h.id, { payType: 'flat', amount: 300 });
+    const legacy = s.addIncome({ date: '2026-10-02', source: 'Old', amount: 200 });
+    const flatTimes = s.addIncome({ date: '2026-10-03', source: 'X', amount: 50, startTime: '09:00', endTime: '10:00' });
+    s.clearAll();
+    return { h, toFlat, legacy, flatTimes };
+  });
+  ok(ni.h.payType === 'hourly' && ni.h.amount === 150, 'hourly income: $45/hr × 3h20m = $150.00 (derived)');
+  ok(ni.toFlat.payType === 'flat' && ni.toFlat.amount === 300 && ni.toFlat.rate === 0 && ni.toFlat.hours === 0 && ni.toFlat.startTime === '', 'switching to flat clears rate/hours/times');
+  ok(ni.legacy.payType === 'flat' && ni.legacy.amount === 200, 'older income records read as flat (back-compat)');
+  ok(ni.flatTimes.startTime === '' && ni.flatTimes.endTime === '', 'flat income keeps no clock times');
+
+  await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    localStorage.removeItem('gigtracker.payType'); localStorage.removeItem('gigtracker.timeMode');
+    const y = new Date(); y.setDate(y.getDate() - 1);
+    s.addShift({ platform: 'doordash', date: s.isoDate(y), gross: 60, tips: 10, hours: 3 });
+  });
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.locator('.tab[data-view=log]').click();
+  await page.locator('#shift-platform .chip[data-val=income]').click();
+  await page.locator('#pay-type button[data-pay=hourly]').click();
+  ok(await page.locator('#time-field').isVisible() && await page.locator('#shift-form [name=rate]').isVisible() && !(await page.locator('#shift-form [name=amount]').isVisible()), 'Paid by hour shows rate + time input');
+  ok(await page.evaluate(() => localStorage.getItem('gigtracker.payType')) === 'hourly', 'pay type remembered on this device');
+  await page.fill('#shift-form [name=source]', 'TraceHaus');
+  await page.fill('#shift-form [name=rate]', '45');
+  await page.locator('#shift-submit').click(); // no time yet → blocked
+  await page.waitForTimeout(100);
+  ok(await page.evaluate(async () => (await import('./js/store.js')).getIncomes().length) === 0, 'hourly income without time is not saved');
+  await page.locator('#time-mode button[data-mode=range]').click();
+  await page.fill('#shift-form [name=startTime]', '13:00');
+  await page.fill('#shift-form [name=endTime]', '16:20');
+  ok(/\$150\.00/.test(await page.locator('#shift-live').innerText()), 'live income = $150.00 (3h20m × $45)');
+  await page.locator('#shift-submit').click();
+  await page.waitForTimeout(150);
+  const hi = await page.evaluate(async () => (await import('./js/store.js')).getIncomes()[0]);
+  ok(hi && hi.payType === 'hourly' && hi.amount === 150 && hi.startTime === '13:00' && hi.endTime === '16:20', 'saved hourly income with start/finish');
+  const firstRow = page.locator('#log-list .record').first();
+  ok(await firstRow.getAttribute('data-type') === 'income' && /3h 20m × \$45\.00\/hr \(13:00–16:20\)/.test(await firstRow.innerText()), 'combined list: today\'s income first, shows rate × time');
+  ok((await page.locator('#log-list .record[data-type=shift]').count()) === 1, 'combined list still has yesterday\'s shift');
+
+  // Edit reopens on Income / Paid by hour / start–finish, then convert to a gig shift.
+  await firstRow.click();
+  await page.waitForTimeout(150);
+  ok(await page.locator('#shift-platform .chip.active').getAttribute('data-val') === 'income'
+    && await page.locator('#pay-type button.active').getAttribute('data-pay') === 'hourly'
+    && await page.inputValue('#shift-form [name=rate]') === '45'
+    && await page.inputValue('#shift-form [name=startTime]') === '13:00', 'editing income restores platform, pay type, rate and times');
+  ok(/Edit income/.test(await page.locator('#shift-form-title').innerText()), 'title reads "Edit income"');
+  await page.locator('#shift-platform .chip[data-val=doordash]').click();
+  await page.fill('#shift-form [name=gross]', '80');
+  await page.locator('#shift-submit').click();
+  await page.waitForTimeout(150);
+  const conv = await page.evaluate(async () => { const s = await import('./js/store.js'); return { inc: s.getIncomes().length, shifts: s.getShifts().length }; });
+  ok(conv.inc === 0 && conv.shifts === 2, 'switching an income entry to DoorDash converts it (no duplicate)');
+  await page.locator('#log-list .record[data-type=shift]').first().click();
+  await page.waitForTimeout(150);
+  await page.locator('#shift-platform .chip[data-val=income]').click();
+  await page.locator('#pay-type button[data-pay=flat]').click();
+  await page.fill('#shift-form [name=source]', 'Consulting');
+  await page.fill('#shift-form [name=amount]', '70');
+  await page.locator('#shift-submit').click();
+  await page.waitForTimeout(150);
+  const conv2 = await page.evaluate(async () => { const s = await import('./js/store.js'); return { inc: s.getIncomes().length, shifts: s.getShifts().length }; });
+  ok(conv2.inc === 1 && conv2.shifts === 1, 'switching a shift to Income converts it the other way');
+
+  // Campaign "+ Income" opens the shared form on Income.
+  await page.locator('.tab[data-view=campaign]').click();
+  await page.locator('#camp-add-income').click();
+  await page.waitForTimeout(150);
+  ok(await page.locator('#view-log.active').count() === 1 && await page.locator('#shift-platform .chip.active').getAttribute('data-val') === 'income', 'Campaign "+ Income" opens the form with Income selected');
 
   ok(errors.length === 0, 'no console/page errors' + (errors.length ? ': ' + errors.slice(0, 3).join(' | ') : ''));
 } catch (e) {
