@@ -32,6 +32,8 @@ console.log('odometer miles after ~1mi drive:', miles);
 console.log('overlay closed after stop:', hiddenAfter===1);
 console.log('switched to Log w/ shift prefilled miles =', milesField, '| on log view:', onLog===1);
 console.log('trips stored:', tripCount);
+const st = await pg.locator('#shift-form [name=startTime]').inputValue(), et = await pg.locator('#shift-form [name=endTime]').inputValue();
+console.log('start/finish prefilled from drive:', JSON.stringify(st), '→', JSON.stringify(et), '(blank if the drive was under a minute)');
 console.log('page errors:', errs.length? errs.slice(0,2).join(' | ') : 'none');
 const pass = overlayVisible===1 && miles>0.8 && miles<1.2 && hiddenAfter===1 && onLog===1 && parseFloat(milesField)>0.8 && tripCount===1 && errs.length===0;
 await pg.evaluate(async()=>{(await import('./js/store.js')).clearAll();});

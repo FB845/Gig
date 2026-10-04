@@ -209,12 +209,29 @@ export function deleteShift(id) {
   persist();
 }
 
+const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+// Decimal hours between two "HH:MM" clock times. A finish before the start is
+// treated as crossing midnight (e.g. 22:00 → 01:30 = 3.5 h); identical times
+// are 0 (far likelier a slip than a 24-hour shift).
+export function hoursBetween(start, end) {
+  if (!HHMM.test(start || '') || !HHMM.test(end || '')) return 0;
+  const toMin = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+  let diff = toMin(end) - toMin(start);
+  if (diff < 0) diff += 24 * 60;
+  return diff / 60;
+}
+
 function normalizeShift(s) {
   return {
     id: s.id,
     platform: s.platform in PLATFORMS ? s.platform : 'other',
     date: s.date,
     hours: num(s.hours),                 // actual time worked
+    // Optional clock times ("HH:MM") when logged as start–finish; `hours` is
+    // still the source of truth for every metric.
+    startTime: HHMM.test(s.startTime || '') ? s.startTime : '',
+    endTime: HHMM.test(s.endTime || '') ? s.endTime : '',
     scheduledHours: num(s.scheduledHours), // Flex block length (scheduled)
     tag: FLEX_TAGS.includes(s.tag) ? s.tag : '', // Flex block type
     gross: num(s.gross),

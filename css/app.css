@@ -129,6 +129,18 @@ textarea { font-family: var(--font-led); font-size: 13px; line-height: 1.5; resi
 .hm-input { display: flex; align-items: center; gap: 6px; }
 .hm-input input { flex: 1; width: auto; min-width: 0; text-align: center; padding-left: 6px; padding-right: 6px; }
 .hm-unit { color: var(--muted); font-size: 13px; font-weight: 700; flex-shrink: 0; }
+/* Time input mode toggle: Duration | Start – Finish */
+.time-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.time-head label { margin-bottom: 0; }
+.mini-seg { display: inline-flex; background: var(--card-2); border: 1px solid var(--border); border-radius: 9px; padding: 2px; }
+.mini-seg button { border: none; background: transparent; color: var(--muted); font-weight: 700; font-size: 12px; padding: 5px 10px; border-radius: 7px; cursor: pointer; white-space: nowrap; }
+.mini-seg button.active { background: var(--accent-2); color: #06182f; }
+.time-range { display: flex; align-items: center; gap: 8px; }
+.time-range input { flex: 1; width: auto; min-width: 0; text-align: center; }
+.tr-arrow { color: var(--muted); font-weight: 700; flex-shrink: 0; }
+.tr-dur { margin-top: 6px; font-size: 13px; color: var(--muted); }
+.tr-dur b { color: var(--text); font-family: var(--font-led); }
+.tr-night { color: var(--jr-teal); font-weight: 700; }
 input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent-2); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 25%, transparent); }
 select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%2394a3b8' stroke-width='1.6' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
 

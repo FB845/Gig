@@ -54,7 +54,13 @@ mileage tracking** — without asking for a cent.
   manual income, standard-mileage vs actual-expense deduction, expenses by
   category, taxable profit, estimated tax and quarterly set-aside — with CSV
   export and Print / Save-PDF. (Estimate, not tax advice.)
-- **Fast logging** — log a shift (platform, hours + minutes, base pay, tips,
+- **Flexible time entry** — toggle between **Duration** (hours + minutes) and
+  **Start – Finish** clock times; the length is worked out for you, overnight
+  shifts included (22:10 → 01:25 = 3h 15m). Your choice is remembered per
+  device, editing a shift reopens it in the mode it was logged with, a Flex
+  block preset fills the finish time from your start time, and a GPS drive
+  prefills start/finish from when you started and stopped driving.
+- **Fast logging** — log a shift (platform, time worked, base pay, tips,
   deliveries, miles, MPG) with live $/hr, $/mi, tax-deduction and **fuel-cost**
   math as you type. Fuel is **auto-calculated** from your miles, the shift's MPG
   (or a default vehicle MPG) and a fuel price — both set in **Settings** like the

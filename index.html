@@ -171,14 +171,25 @@
             <button type="button" class="chip type-chip" data-val="Rapid Express" style="--tc:var(--jr-red);--ink:#fff"><b>特急</b><em>LTD.EXP</em><i>Rapid Exp</i></button>
           </div>
         </div>
-        <div class="row">
-          <div class="field"><label>Date</label><input type="date" name="date" required /></div>
-          <div class="field"><label id="hours-label">Actual time worked</label>
-            <div class="hm-input">
-              <input type="number" name="hoursH" min="0" step="1" inputmode="numeric" placeholder="3" aria-label="hours" /><span class="hm-unit">h</span>
-              <input type="number" name="hoursM" min="0" max="59" step="1" inputmode="numeric" placeholder="20" aria-label="minutes" /><span class="hm-unit">m</span>
+        <div class="field"><label>Date</label><input type="date" name="date" required /></div>
+        <div class="field">
+          <div class="time-head">
+            <label id="hours-label">Actual time worked</label>
+            <div class="mini-seg" id="time-mode" role="tablist" aria-label="Time input mode">
+              <button type="button" class="active" data-mode="duration">Duration</button>
+              <button type="button" data-mode="range">Start – Finish</button>
             </div>
           </div>
+          <div class="hm-input" id="time-duration">
+            <input type="number" name="hoursH" min="0" step="1" inputmode="numeric" placeholder="3" aria-label="hours" /><span class="hm-unit">h</span>
+            <input type="number" name="hoursM" min="0" max="59" step="1" inputmode="numeric" placeholder="20" aria-label="minutes" /><span class="hm-unit">m</span>
+          </div>
+          <div class="time-range hidden" id="time-range">
+            <input type="time" name="startTime" aria-label="start time" />
+            <span class="tr-arrow">→</span>
+            <input type="time" name="endTime" aria-label="finish time" />
+          </div>
+          <div class="tr-dur hidden" id="time-range-dur"></div>
         </div>
         <div class="row">
           <div class="field"><label>Base pay ($)</label><input type="number" name="gross" step="0.01" min="0" inputmode="decimal" placeholder="42.00" /></div>

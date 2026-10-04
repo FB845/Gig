@@ -503,6 +503,68 @@ try {
   ok((await page.locator('#tax-summary-body .tax-row').count()) >= 5, 'tax summary rows rendered');
   ok(/Total income/.test(await page.locator('#tax-summary-body').innerText()), 'tax summary shows Total income');
 
+  console.log('\n19) Time input: Duration ⇄ Start – Finish toggle');
+  const hb = await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    return { day: s.hoursBetween('09:00', '12:20'), night: s.hoursBetween('22:00', '01:30'), bad: s.hoursBetween('9am', '12:00'), same: s.hoursBetween('09:00', '09:00') };
+  });
+  ok(hb.same === 0, 'identical start/finish → 0 (not a 24 h shift)');
+  ok(Math.abs(hb.day - 10 / 3) < 1e-9, 'hoursBetween 09:00 → 12:20 = 3h20m');
+  ok(Math.abs(hb.night - 3.5) < 1e-9, 'hoursBetween 22:00 → 01:30 = 3.5 h (overnight)');
+  ok(hb.bad === 0, 'invalid time → 0');
+
+  await page.evaluate(async () => { (await import('./js/store.js')).clearAll(); localStorage.removeItem('gigtracker.timeMode'); });
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.locator('.tab[data-view=log]').click();
+  ok(await page.locator('#time-duration').isVisible() && !(await page.locator('#time-range').isVisible()), 'defaults to Duration mode');
+  await page.locator('#time-mode button[data-mode=range]').click();
+  ok(await page.locator('#time-range').isVisible() && !(await page.locator('#time-duration').isVisible()), 'toggle shows start/finish inputs');
+  ok(await page.evaluate(() => localStorage.getItem('gigtracker.timeMode')) === 'range', 'mode remembered on this device');
+
+  // Flex block preset fills the finish time from the start time.
+  await page.fill('#shift-form [name=startTime]', '09:00');
+  await page.locator('#shift-blockpreset .chip[data-val="3"]').click();
+  ok(await page.inputValue('#shift-form [name=endTime]') === '12:00', '3:00 block preset → finish 12:00');
+  await page.fill('#shift-form [name=endTime]', '12:20');
+  await page.fill('#shift-form [name=gross]', '100');
+  ok(/3h 20m/.test(await page.locator('#time-range-dur').innerText()), 'live duration shows 3h 20m');
+  ok(/111/.test(await page.locator('#shift-live').innerText()) && /Block time/.test(await page.locator('#shift-live').innerText()), 'live block time = 111% (3h20 of 3h)');
+
+  // Only one of the two times → blocked.
+  await page.fill('#shift-form [name=endTime]', '');
+  await page.locator('#shift-submit').click();
+  await page.waitForTimeout(100);
+  ok(await page.evaluate(async () => (await import('./js/store.js')).getShifts().length) === 0, 'start without finish is not saved');
+  await page.fill('#shift-form [name=endTime]', '09:00');
+  await page.locator('#shift-submit').click();
+  await page.waitForTimeout(100);
+  ok(await page.evaluate(async () => (await import('./js/store.js')).getShifts().length) === 0, 'finish == start is not saved');
+
+  await page.fill('#shift-form [name=endTime]', '12:20');
+  await page.locator('#shift-submit').click();
+  await page.waitForTimeout(150);
+  const saved = await page.evaluate(async () => (await import('./js/store.js')).getShifts()[0]);
+  ok(saved && Math.abs(saved.hours - 10 / 3) < 1e-6 && saved.startTime === '09:00' && saved.endTime === '12:20', 'saved hours 3.333 + start/finish times');
+  ok(await page.locator('#time-range').isVisible() && await page.inputValue('#shift-form [name=startTime]') === '', 'form resets, stays in remembered mode');
+
+  // Overnight shift.
+  await page.fill('#shift-form [name=startTime]', '22:00');
+  await page.fill('#shift-form [name=endTime]', '01:30');
+  ok(/3h 30m/.test(await page.locator('#time-range-dur').innerText()) && /overnight/.test(await page.locator('#time-range-dur').innerText()), 'overnight 22:00 → 01:30 = 3h 30m, flagged');
+  await page.locator('#shift-reset').click();
+
+  // Editing a start–finish shift reopens in that mode; toggling copies the length over.
+  await page.locator('#time-mode button[data-mode=duration]').click(); // device preference → duration
+  await page.locator('#log-list .record[data-type=shift]').first().click();
+  await page.waitForTimeout(150);
+  ok(await page.locator('#time-range').isVisible() && await page.inputValue('#shift-form [name=startTime]') === '09:00', 'edit reopens a start–finish shift in that mode');
+  await page.locator('#time-mode button[data-mode=duration]').click();
+  ok(await page.inputValue('#shift-form [name=hoursH]') === '3' && await page.inputValue('#shift-form [name=hoursM]') === '20', 'switching to Duration carries 3h 20m over');
+  await page.locator('#shift-submit').click();
+  await page.waitForTimeout(150);
+  const dur = await page.evaluate(async () => (await import('./js/store.js')).getShifts()[0]);
+  ok(Math.abs(dur.hours - 10 / 3) < 1e-6 && dur.startTime === '' && dur.endTime === '', 'saving in Duration mode keeps hours, clears clock times');
+
   ok(errors.length === 0, 'no console/page errors' + (errors.length ? ': ' + errors.slice(0, 3).join(' | ') : ''));
 } catch (e) {
   console.error('TEST CRASH:', e);

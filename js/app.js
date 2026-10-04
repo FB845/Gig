@@ -495,9 +495,11 @@ function initForms() {
   $('#income-form [name=date]').value = store.todayISO();
 
   // live metrics on shift form
-  ['gross', 'tips', 'hoursH', 'hoursM', 'miles', 'jobs', 'mpg'].forEach((n) => {
+  ['gross', 'tips', 'hoursH', 'hoursM', 'startTime', 'endTime', 'miles', 'jobs', 'mpg'].forEach((n) => {
     $(`#shift-form [name=${n}]`).addEventListener('input', updateShiftLive);
   });
+  $$('#time-mode button').forEach((b) => b.addEventListener('click', () => setTimeMode(b.dataset.mode, true)));
+  setTimeMode(loadTimeMode());
   updateShiftLive();
 
   $('#shift-form').addEventListener('submit', onSaveShift);
@@ -524,10 +526,43 @@ function setChip(sel, val) {
   $$(`${sel} .chip`).forEach((c) => c.classList.toggle('active', c.dataset.val === val));
 }
 
-// Time worked is entered as hours + minutes but stored as decimal hours, so
-// finishing a block at, say, 2h20m records 2.333 h (not rounded to :15/:30).
+// Time worked is entered either as a duration (hours + minutes) or as start –
+// finish clock times, and stored as decimal hours either way — so finishing at,
+// say, 2h20m records 2.333 h (not rounded to :15/:30).
+const TIME_MODE_KEY = 'gigtracker.timeMode';
+function loadTimeMode() {
+  try { return localStorage.getItem(TIME_MODE_KEY) === 'range' ? 'range' : 'duration'; } catch { return 'duration'; }
+}
+function timeMode() {
+  return $('#time-mode button.active')?.dataset.mode === 'range' ? 'range' : 'duration';
+}
+// Switch the time input mode. `remember` saves it as this device's preference.
+// Values carry across: range → duration copies the computed length over.
+function setTimeMode(mode, remember = false) {
+  const f = $('#shift-form');
+  if (mode === 'duration' && timeMode() === 'range') {
+    const h = store.hoursBetween(f.startTime.value, f.endTime.value);
+    if (h) setFormHours(f, h);
+  }
+  $$('#time-mode button').forEach((b) => b.classList.toggle('active', b.dataset.mode === mode));
+  $('#time-duration').classList.toggle('hidden', mode !== 'duration');
+  $('#time-range').classList.toggle('hidden', mode !== 'range');
+  if (remember) { try { localStorage.setItem(TIME_MODE_KEY, mode); } catch { /* private mode */ } }
+  updateShiftLive();
+}
 function getFormHours(f) {
+  if (timeMode() === 'range') return store.hoursBetween(f.startTime.value, f.endTime.value);
   return (parseFloat(f.hoursH.value) || 0) + (parseFloat(f.hoursM.value) || 0) / 60;
+}
+function fmtHM(decimal) {
+  const total = Math.round((Number(decimal) || 0) * 60);
+  return `${Math.floor(total / 60)}h ${String(total % 60).padStart(2, '0')}m`;
+}
+// "HH:MM" plus decimal hours → "HH:MM" (wraps past midnight).
+function addHoursToTime(t, hours) {
+  const [h, m] = t.split(':').map(Number);
+  const total = ((h * 60 + m + Math.round(hours * 60)) % 1440 + 1440) % 1440;
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 }
 function setFormHours(f, decimal) {
   const d = Number(decimal) || 0;
@@ -557,7 +592,11 @@ function bindBlockPresets() {
     if (isCustom) { custom.focus(); }
     else {
       const f = $('#shift-form');
-      if (!f.hoursH.value && !f.hoursM.value) setFormHours(f, parseFloat(c.dataset.val)); // prefill actual = scheduled
+      // Prefill actual = scheduled: the duration, or (start–finish mode) the
+      // finish time from the start time.
+      if (timeMode() === 'range') {
+        if (f.startTime.value && !f.endTime.value) f.endTime.value = addHoursToTime(f.startTime.value, parseFloat(c.dataset.val));
+      } else if (!f.hoursH.value && !f.hoursM.value) setFormHours(f, parseFloat(c.dataset.val));
     }
     updateShiftLive();
   }));
@@ -604,21 +643,36 @@ function updateShiftLive() {
   const sched = chipValue('#shift-platform') === 'flex' ? getScheduledHours() : 0;
   if (sched && hours) parts.push(`<span class="lm">Block time <b>${Math.round((hours / sched) * 100)}%</b></span>`);
   $('#shift-live').innerHTML = parts.join('');
+
+  // Start–finish mode: show the computed length (and flag overnight shifts).
+  const dur = $('#time-range-dur');
+  const showDur = timeMode() === 'range' && hours > 0;
+  dur.classList.toggle('hidden', !showDur);
+  if (showDur) {
+    const overnight = f.endTime.value < f.startTime.value;
+    dur.innerHTML = `= <b>${fmtHM(hours)}</b> worked${overnight ? ' · <span class="tr-night">overnight</span>' : ''}`;
+  }
 }
 
 function onSaveShift(e) {
   e.preventDefault();
   const f = e.target;
   const isFlex = chipValue('#shift-platform') === 'flex';
+  const range = timeMode() === 'range';
   const data = {
     platform: chipValue('#shift-platform') || 'other',
     date: f.date.value,
     hours: getFormHours(f), gross: f.gross.value, tips: f.tips.value,
     jobs: f.jobs.value, miles: f.miles.value, mpg: f.mpg.value, notes: f.notes.value,
+    // Clock times are kept only when logged as start–finish (cleared otherwise).
+    startTime: range ? f.startTime.value : '',
+    endTime: range ? f.endTime.value : '',
     scheduledHours: isFlex ? getScheduledHours() : 0,
     tag: isFlex ? chipValue('#shift-tag') : '',
   };
   if (!data.date) { toast('Pick a date'); return; }
+  if (range && !f.startTime.value !== !f.endTime.value) { toast('Enter both start and finish times'); return; }
+  if (range && f.startTime.value && f.startTime.value === f.endTime.value) { toast('Finish time must differ from start'); return; }
   if (state.editShiftId) {
     store.updateShift(state.editShiftId, data);
     toast('Shift updated');
@@ -648,6 +702,7 @@ function resetShiftForm() {
   const f = $('#shift-form');
   f.reset();
   f.date.value = store.todayISO();
+  setTimeMode(loadTimeMode()); // back to this device's preferred time input
   setChip('#shift-platform', 'flex');
   setChip('#shift-tag', '');
   setBlockPreset(0);
@@ -677,6 +732,14 @@ function editShift(id) {
   setChip('#shift-platform', s.platform);
   setChip('#shift-tag', s.tag || '');
   setBlockPreset(s.scheduledHours || 0);
+  // Reopen in the mode the shift was logged with.
+  if (s.startTime && s.endTime) {
+    f.startTime.value = s.startTime; f.endTime.value = s.endTime;
+    setTimeMode('range');
+  } else {
+    setTimeMode('duration');
+    f.startTime.value = ''; f.endTime.value = '';
+  }
   f.date.value = s.date; setFormHours(f, s.hours || 0); f.gross.value = s.gross || '';
   f.tips.value = s.tips || ''; f.jobs.value = s.jobs || ''; f.miles.value = s.miles || '';
   f.mpg.value = s.mpg || ''; f.notes.value = s.notes || '';
@@ -1261,6 +1324,13 @@ function endDrive(save) {
   const f = $('#shift-form');
   f.date.value = trip.date;
   f.miles.value = (parseFloat(f.miles.value || '0') + trip.miles).toFixed(1);
+  // The drive's start/stop times become the shift's start–finish (if not set).
+  const hhmm = (ms) => { const d = new Date(ms); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
+  if (!f.startTime.value && !f.endTime.value && trip.startedAt && trip.endedAt
+      && hhmm(trip.startedAt) !== hhmm(trip.endedAt)) { // skip sub-minute drives
+    f.startTime.value = hhmm(trip.startedAt);
+    f.endTime.value = hhmm(trip.endedAt);
+  }
   updateShiftLive();
   showView('log');
   toast(`Logged ${trip.miles.toFixed(1)} mi ✓ — add pay to save the shift`);
@@ -1383,8 +1453,8 @@ function initSyncUI() {
 }
 
 function exportShiftsCSV() {
-  const rows = [['date', 'platform', 'hours', 'gross', 'tips', 'income', 'jobs', 'miles', 'notes']];
-  store.getShifts().forEach((s) => rows.push([s.date, s.platform, s.hours, s.gross, s.tips, store.shiftIncome(s), s.jobs, s.miles, (s.notes || '').replace(/"/g, '""')]));
+  const rows = [['date', 'platform', 'start', 'finish', 'hours', 'gross', 'tips', 'income', 'jobs', 'miles', 'notes']];
+  store.getShifts().forEach((s) => rows.push([s.date, s.platform, s.startTime || '', s.endTime || '', s.hours, s.gross, s.tips, store.shiftIncome(s), s.jobs, s.miles, (s.notes || '').replace(/"/g, '""')]));
   const csv = rows.map((r) => r.map((c) => (/[,"\n]/.test(String(c)) ? `"${c}"` : c)).join(',')).join('\n');
   download('gig-shifts.csv', csv, 'text/csv');
 }
