@@ -42,6 +42,7 @@ const DEFAULT_DB = {
   expenses: [], // { id, date, category, amount, note, platform, linkedShiftId, createdAt }
   trips: [],    // { id, date, miles, startedAt, endedAt, durationMs, fixes, linkedShiftId }
   incomes: [],  // manual non-gig income (e.g. TraceHaus): { id, date, source, amount, note, createdAt }
+  plans: [],    // planned blocks/shifts: { id, date, platform, startTime, endTime, hours, tag, estimate, source, note, loggedType, loggedId, createdAt }
 };
 
 // Campaign 350: earn $350/day, every day, 2026-09-12 → 2026-12-31.
@@ -62,6 +63,7 @@ function coerce(parsed) {
     expenses: parsed.expenses || [],
     trips: parsed.trips || [],
     incomes: parsed.incomes || [],
+    plans: parsed.plans || [],
   };
 }
 
@@ -113,6 +115,7 @@ export function mergeRemote(remote) {
     expenses: union(db.expenses, r.expenses),
     trips: union(db.trips, r.trips),
     incomes: union(db.incomes, r.incomes),
+    plans: union(db.plans, r.plans),
     settings: { ...r.settings, ...db.settings },
     rev: Date.now(),
   };
@@ -353,6 +356,127 @@ function normalizeIncome(i) {
   };
 }
 
+// ---- plans (planner: pre-planned blocks/shifts with estimated earnings) ----
+// A plan is a forecast, never income: it only feeds the "income trajectory"
+// until you log the real shift/income from it ("Log it"), which links the two.
+export const PLAN_PLATFORMS = ['flex', 'doordash', 'other', 'income'];
+
+function normalizePlan(p) {
+  const platform = PLAN_PLATFORMS.includes(p.platform) ? p.platform : 'other';
+  const startTime = HHMM.test(p.startTime || '') ? p.startTime : '';
+  const endTime = HHMM.test(p.endTime || '') ? p.endTime : '';
+  return {
+    id: p.id,
+    date: p.date,
+    platform,
+    startTime,
+    endTime,
+    hours: startTime && endTime ? hoursBetween(startTime, endTime) : num(p.hours),
+    tag: platform === 'flex' && FLEX_TAGS.includes(p.tag) ? p.tag : '',
+    estimate: num(p.estimate),
+    source: platform === 'income' ? (p.source || '').trim() : '',
+    note: p.note || '',
+    loggedType: p.loggedType === 'shift' || p.loggedType === 'income' ? p.loggedType : '',
+    loggedId: p.loggedId || '',
+    createdAt: p.createdAt || new Date().toISOString(),
+  };
+}
+
+// Oldest first (agenda order): by date, then start time.
+export function getPlans() {
+  return [...db.plans].sort((a, b) => (a.date + (a.startTime || '99')).localeCompare(b.date + (b.startTime || '99')));
+}
+
+export function addPlan(data) {
+  const plan = normalizePlan({ id: uid(), createdAt: new Date().toISOString(), ...data });
+  db.plans.push(plan);
+  persist();
+  return plan;
+}
+
+export function updatePlan(id, data) {
+  const i = db.plans.findIndex((p) => p.id === id);
+  if (i === -1) return null;
+  db.plans[i] = normalizePlan({ ...db.plans[i], ...data });
+  persist();
+  return db.plans[i];
+}
+
+export function deletePlan(id) {
+  db.plans = db.plans.filter((p) => p.id !== id);
+  persist();
+}
+
+// Link a plan to the shift/income that was logged from it.
+export function markPlanLogged(id, loggedType, loggedId) {
+  return updatePlan(id, { loggedType, loggedId });
+}
+
+// A plan counts as logged only while its linked record still exists (delete
+// the shift and the plan goes back to planned/missed).
+export function planLogged(p) {
+  if (!p.loggedId) return false;
+  const arr = p.loggedType === 'income' ? db.incomes : db.shifts;
+  return arr.some((x) => x.id === p.loggedId);
+}
+
+// 'logged' | 'missed' (past, never logged) | 'today' | 'upcoming'
+export function planStatus(p, nowISO = todayISO()) {
+  if (planLogged(p)) return 'logged';
+  if (p.date < nowISO) return 'missed';
+  return p.date === nowISO ? 'today' : 'upcoming';
+}
+
+// Your recent $/hr on a platform (last 60 days, else all-time; else all
+// platforms) — used to suggest an estimate for a planned block.
+export function suggestedRate(platform, nowISO = todayISO()) {
+  const cutoff = addDaysISO(nowISO, -59);
+  const rate = (list) => {
+    const h = list.reduce((a, s) => a + num(s.hours), 0);
+    return h > 0 ? list.reduce((a, s) => a + shiftIncome(s), 0) / h : 0;
+  };
+  const mine = db.shifts.filter((s) => s.platform === platform && num(s.hours) > 0);
+  return rate(mine.filter((s) => s.date >= cutoff)) || rate(mine) || rate(db.shifts.filter((s) => num(s.hours) > 0));
+}
+
+// Other plans on the same date whose clock times overlap `plan`.
+export function planOverlaps(plan, excludeId = plan.id) {
+  if (!HHMM.test(plan.startTime || '') || !HHMM.test(plan.endTime || '')) return [];
+  const span = (p) => {
+    const toMin = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+    const s = toMin(p.startTime);
+    let e = toMin(p.endTime);
+    if (e <= s) e += 1440; // overnight
+    return [s, e];
+  };
+  const [s1, e1] = span(plan);
+  return db.plans.filter((p) => p.id !== excludeId && p.date === plan.date && p.startTime && p.endTime && !planLogged(p))
+    .filter((p) => { const [s2, e2] = span(p); return s1 < e2 && s2 < e1; });
+}
+
+// date(ISO) -> sum of estimates for plans still to come (today onward, not yet
+// logged). Past un-logged plans are "missed" and drop out of the trajectory.
+function plannedByDateMap(nowISO = todayISO()) {
+  const m = new Map();
+  for (const p of db.plans) {
+    if (p.date < nowISO || planLogged(p)) continue;
+    m.set(p.date, (m.get(p.date) || 0) + num(p.estimate));
+  }
+  return m;
+}
+
+// [{ date, actual, planned }] for each day in [fromISO, toISO] — the income
+// trajectory (real income so far + what's planned ahead).
+export function trajectory(fromISO, toISO, nowISO = todayISO()) {
+  const actual = incomeByDateMap();
+  const planned = plannedByDateMap(nowISO);
+  const out = [];
+  for (let d = fromISO; d <= toISO; d = addDaysISO(d, 1)) {
+    out.push({ date: d, actual: actual.get(d) || 0, planned: planned.get(d) || 0 });
+  }
+  return out;
+}
+
 // ---- bulk import ----
 export function importShifts(rows) {
   let added = 0;
@@ -394,6 +518,7 @@ export function importJSON(text, { merge = false } = {}) {
     db.expenses.push(...(incoming.expenses || []));
     db.trips.push(...(incoming.trips || []));
     db.incomes.push(...(incoming.incomes || []).map(normalizeIncome));
+    db.plans.push(...(incoming.plans || []).map(normalizePlan));
   } else {
     db = {
       ...structuredClone(DEFAULT_DB),
@@ -403,6 +528,7 @@ export function importJSON(text, { merge = false } = {}) {
       expenses: incoming.expenses || [],
       trips: incoming.trips || [],
       incomes: (incoming.incomes || []).map(normalizeIncome),
+      plans: (incoming.plans || []).map(normalizePlan),
     };
   }
   persist();
@@ -696,7 +822,25 @@ function periodGoalStats(kind, nowISO = todayISO()) {
       const daysLeft = totalDays - daysElapsed; // days remaining after today
       const met = earned >= goal;
       const remaining = Math.max(0, goal - earned);
+
+      // Trajectory: add plans still to come in this period (today onward) and
+      // find the day the plan would reach the goal.
+      const plannedMap = plannedByDateMap(nowISO);
+      let planned = 0, cum = earned, projMetOn = met ? metOn : null;
+      for (let d = clampedNow; d <= p.end; d = addDaysISO(d, 1)) {
+        const v = plannedMap.get(d) || 0;
+        planned += v; cum += v;
+        if (projMetOn === null && cum >= goal) projMetOn = d;
+      }
+      const projected = earned + planned;
+      const projMet = projected >= goal;
+      // Days off the plan would earn: every day after the projected meet day
+      // (never fewer than today's real days off).
+      const projDaysOff = projMet ? Math.min(daysLeft, daysInclusive(projMetOn, p.end) - 1) : 0;
+
       return {
+        planned, projected, projMet, projMetOn, projDaysOff,
+        shortfall: Math.max(0, goal - projected),
         kind, daily, start: p.start, end: p.end, totalDays,
         baseGoal, carryIn, goal, earned,
         daysElapsed, daysLeft, met, metOn, remaining,

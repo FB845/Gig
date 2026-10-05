@@ -645,6 +645,149 @@ try {
   await page.waitForTimeout(150);
   ok(await page.locator('#view-log.active').count() === 1 && await page.locator('#shift-platform .chip.active').getAttribute('data-val') === 'income', 'Campaign "+ Income" opens the form with Income selected');
 
+  console.log('\n21) Planner (store): plans, status, overlaps, suggestion, trajectory');
+  const pl = await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    s.clearAll();
+    const flex = s.addPlan({ date: '2026-10-07', platform: 'flex', startTime: '09:00', endTime: '12:30', tag: 'Express', estimate: 84, source: 'ignored' });
+    const inc = s.addPlan({ date: '2026-10-07', platform: 'income', estimate: 300, source: 'TraceHaus', tag: 'Express' });
+    const overlap = s.planOverlaps({ date: '2026-10-07', startTime: '12:00', endTime: '14:00' }).length;
+    const adjacent = s.planOverlaps({ date: '2026-10-07', startTime: '12:30', endTime: '14:00' }).length;
+    const otherDay = s.planOverlaps({ date: '2026-10-08', startTime: '10:00', endTime: '11:00' }).length;
+    const statuses = { past: s.planStatus(flex, '2026-10-08'), today: s.planStatus(flex, '2026-10-07'), future: s.planStatus(flex, '2026-10-06') };
+    const sh = s.addShift({ platform: 'flex', date: '2026-10-07', gross: 90, hours: 3.5 });
+    s.markPlanLogged(flex.id, 'shift', sh.id);
+    const loggedStatus = s.planStatus(s.getPlans().find((p) => p.id === flex.id), '2026-10-08');
+    s.deleteShift(sh.id);
+    const afterDelete = s.planStatus(s.getPlans().find((p) => p.id === flex.id), '2026-10-08');
+    // suggested $/hr from history
+    s.clearAll();
+    s.addShift({ platform: 'doordash', date: '2026-10-01', gross: 100, hours: 4 });
+    s.addShift({ platform: 'doordash', date: '2026-10-02', gross: 60, hours: 2 });
+    s.addShift({ platform: 'flex', date: '2026-10-02', gross: 30, hours: 1 });
+    const rateDD = s.suggestedRate('doordash', '2026-10-05');
+    const rateOther = s.suggestedRate('other', '2026-10-05'); // no history → all platforms
+    // weekly trajectory: week Oct 5–11, now Wed 10/7
+    s.clearAll();
+    s.addIncome({ date: '2026-10-05', source: 'X', amount: 1000 });
+    s.addPlan({ date: '2026-10-06', platform: 'flex', startTime: '09:00', endTime: '12:00', estimate: 999 }); // missed → excluded
+    s.addPlan({ date: '2026-10-07', platform: 'flex', startTime: '09:00', endTime: '12:00', estimate: 500 });
+    s.addPlan({ date: '2026-10-08', platform: 'doordash', startTime: '17:00', endTime: '21:00', estimate: 600 });
+    const p9 = s.addPlan({ date: '2026-10-09', platform: 'flex', startTime: '09:00', endTime: '13:00', estimate: 400 });
+    const wk = s.weeklyGoalStats('2026-10-07');
+    const traj = s.trajectory('2026-10-05', '2026-10-09', '2026-10-07');
+    s.deletePlan(p9.id);
+    const wkShort = s.weeklyGoalStats('2026-10-07');
+    s.clearAll();
+    return { flex, inc, overlap, adjacent, otherDay, statuses, loggedStatus, afterDelete, rateDD, rateOther, wk, traj, wkShort };
+  });
+  ok(pl.flex.hours === 3.5 && pl.flex.tag === 'Express' && pl.flex.source === '', 'flex plan: 3.5 h from 09:00–12:30, keeps tag, no source');
+  ok(pl.inc.source === 'TraceHaus' && pl.inc.tag === '' && pl.inc.hours === 0, 'income plan: keeps source, no tag, times optional');
+  ok(pl.overlap === 1 && pl.adjacent === 0 && pl.otherDay === 0, 'overlap: 12:00–14:00 clashes; back-to-back and other days don\'t');
+  ok(pl.statuses.past === 'missed' && pl.statuses.today === 'today' && pl.statuses.future === 'upcoming', 'status: missed / today / upcoming');
+  ok(pl.loggedStatus === 'logged' && pl.afterDelete === 'missed', 'logged while its shift exists; back to missed if the shift is deleted');
+  ok(Math.abs(pl.rateDD - 160 / 6) < 0.01, 'suggested DoorDash rate = $160 / 6h = $26.67/hr');
+  ok(Math.abs(pl.rateOther - 190 / 7) < 0.01, 'no history on a platform → falls back to all platforms');
+  ok(pl.wk.planned === 1500 && pl.wk.projected === 2500, 'week: $1,000 earned + $1,500 planned (missed plan excluded) = $2,500');
+  ok(pl.wk.projMet && pl.wk.projMetOn === '2026-10-09' && pl.wk.projDaysOff === 2, 'plan reaches $2,450 on Fri → Sat & Sun off');
+  ok(pl.traj[1].planned === 0 && pl.traj[2].planned === 500 && pl.traj[0].actual === 1000, 'trajectory: actual by day, planned only from today on');
+  ok(!pl.wkShort.projMet && pl.wkShort.shortfall === 350, 'drop a plan → $350 short, flagged');
+  const plSync = await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    s.clearAll();
+    s.addPlan({ date: '2026-10-10', platform: 'flex', startTime: '09:00', endTime: '11:00', estimate: 50 });
+    s.mergeRemote({ rev: 1, shifts: [], expenses: [], trips: [], incomes: [], settings: {}, plans: [{ id: 'remote-plan', date: '2026-10-11', platform: 'doordash', startTime: '17:00', endTime: '20:00', estimate: 70 }] });
+    const merged = s.getPlans().length;
+    const backup = s.exportJSON();
+    s.clearAll();
+    s.importJSON(backup);
+    const restored = s.getPlans().map((p) => p.estimate).sort().join(',');
+    s.clearAll();
+    return { merged, restored };
+  });
+  ok(plSync.merged === 2, 'cloud sync first-link merge unions plans from both devices');
+  ok(plSync.restored === '50,70', 'plans survive backup export → restore');
+
+  console.log('\n22) Planner (UI): plan, suggest, overlap, trajectory, Log it');
+  await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    s.clearAll();
+    const d = new Date(); d.setDate(d.getDate() - 3);
+    s.addShift({ platform: 'doordash', date: s.isoDate(d), gross: 100, tips: 0, hours: 4 }); // → $25/hr
+  });
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.locator('.tab[data-view=log]').click();
+  await page.locator('#log-segmented .seg[data-log=plan]').click();
+  ok(await page.locator('#plan-form').isVisible() && !(await page.locator('#shift-form').isVisible()), 'Plan segment shows the plan form');
+  ok(/Planner/.test(await page.locator('#log-list-title').innerText()), 'list titled "Planner"');
+  await page.locator('#plan-platform .chip[data-val=doordash]').click();
+  ok(!(await page.locator('#plan-blockpreset').isVisible()), 'block length/type only for Flex');
+  await page.fill('#plan-form [name=startTime]', '18:00');
+  await page.fill('#plan-form [name=endTime]', '21:00');
+  ok(/blank = \$75 at your \$25\.00\/hr avg/.test(await page.locator('#plan-est-hint').innerText()), 'estimate suggestion: 3h × $25/hr = $75');
+  ok(/This week with this plan|reaches the/.test(await page.locator('#plan-check').innerText()), 'shows the week-goal impact');
+  await page.locator('#plan-submit').click();
+  await page.waitForTimeout(120);
+  const p1 = await page.evaluate(async () => (await import('./js/store.js')).getPlans()[0]);
+  ok(p1 && p1.estimate === 75 && p1.platform === 'doordash', 'blank estimate saved as the $75 suggestion');
+
+  await page.locator('#plan-platform .chip[data-val=flex]').click();
+  await page.locator('#plan-blockpreset .chip[data-val="3.5"]').click();
+  await page.fill('#plan-form [name=startTime]', '17:30');
+  ok(await page.inputValue('#plan-form [name=endTime]') === '21:00', '3:30 block from 17:30 → finish 21:00');
+  ok(/Overlaps 18:00–21:00 Dasher/.test(await page.locator('#plan-check').innerText()), 'overlap with the DoorDash plan flagged');
+  await page.fill('#plan-form [name=startTime]', '09:00');
+  ok(await page.inputValue('#plan-form [name=endTime]') === '12:30' && !/Overlaps/.test(await page.locator('#plan-check').innerText()), 'moving the start moves the finish; no overlap');
+  await page.locator('#plan-tag .chip[data-val=Express]').click();
+  await page.fill('#plan-form [name=estimate]', '84');
+  await page.locator('#plan-submit').click();
+  await page.waitForTimeout(120);
+  ok(await page.evaluate(async () => (await import('./js/store.js')).getPlans().length) === 2, 'second plan saved');
+  ok(/planned/.test(await page.locator('#log-list .plan-day').first().innerText()) && (await page.locator('#log-list .plan-log').count()) === 2, 'agenda: day header with total + "Log it" on today\'s plans');
+
+  // Campaign: hero, goal-card trajectory, trajectory chart.
+  await page.locator('.tab[data-view=campaign]').click();
+  await page.waitForTimeout(150);
+  ok(/\+\$159 planned today/.test(await page.locator('#camp-hero').innerText()), 'hero: +$159 planned today');
+  ok(/📅/.test(await page.locator('#week-goal').innerText()) && (await page.locator('#week-goal .plan-seg').count()) === 1, 'weekly card: plan note + planned bar segment');
+  ok((await page.locator('#traj-chart svg .bar.planned').count()) >= 1 && (await page.locator('#traj-chart svg .refline').count()) === 1, 'trajectory chart: dashed planned bars + $350 line');
+  ok(/\$159/.test(await page.locator('#traj-sum').innerText()) && /2 blocks/.test(await page.locator('#traj-sum').innerText()), 'trajectory summary: $159 across 2 blocks');
+
+  // Log it → real shift prefilled from the plan, linked on save.
+  await page.locator('.tab[data-view=log]').click();
+  await page.locator('#log-segmented .seg[data-log=plan]').click();
+  const flexRow = page.locator('#log-list .plan-row', { hasText: '09:00–12:30' });
+  await flexRow.locator('.plan-log').click();
+  await page.waitForTimeout(150);
+  ok(await page.locator('#shift-form').isVisible() && /Log planned block/.test(await page.locator('#shift-form-title').innerText()), 'Log it opens the shift form ("Log planned block")');
+  ok(await page.locator('#shift-platform .chip.active').getAttribute('data-val') === 'flex'
+    && await page.inputValue('#shift-form [name=gross]') === '84'
+    && await page.inputValue('#shift-form [name=startTime]') === '09:00'
+    && await page.locator('#shift-tag .chip.active').getAttribute('data-val') === 'Express'
+    && await page.locator('#shift-blockpreset .chip.active').getAttribute('data-val') === '3.5', 'prefilled: Flex, $84, 09:00–12:30, Express, 3:30 block');
+  await page.fill('#shift-form [name=gross]', '92');
+  await page.locator('#shift-submit').click();
+  await page.waitForTimeout(150);
+  const lg = await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    const p = s.getPlans().find((x) => x.startTime === '09:00');
+    return { status: s.planStatus(p), shifts: s.getShifts().length, todayPlanned: s.trajectory(s.todayISO(), s.todayISO())[0].planned };
+  });
+  ok(lg.status === 'logged' && lg.shifts === 2, 'saving links the plan (logged) and adds the real shift');
+  ok(lg.todayPlanned === 75, 'logged plan leaves the trajectory (only the $75 Dasher plan remains)');
+  await page.locator('#log-segmented .seg[data-log=plan]').click();
+  const loggedRow = page.locator('#log-list .plan-row', { hasText: '09:00–12:30' });
+  ok(/Logged ✓/.test(await loggedRow.innerText()) && /\$92/.test(await loggedRow.innerText()) && /vs \$84 est/.test(await loggedRow.innerText()), 'agenda shows Logged ✓ — $92 actual vs $84 est');
+
+  // Edit + delete.
+  await page.locator('#log-list .plan-row', { hasText: '18:00–21:00' }).click();
+  await page.waitForTimeout(100);
+  ok(/Edit plan/.test(await page.locator('#plan-form-title').innerText()) && await page.inputValue('#plan-form [name=estimate]') === '75', 'tapping a plan opens it for editing');
+  await page.evaluate(() => { window.confirm = () => true; });
+  await page.locator('#log-list .plan-row', { hasText: '18:00–21:00' }).locator('.rec-del').click();
+  await page.waitForTimeout(120);
+  ok(await page.evaluate(async () => (await import('./js/store.js')).getPlans().length) === 1, 'deleting a plan removes it');
+
   ok(errors.length === 0, 'no console/page errors' + (errors.length ? ': ' + errors.slice(0, 3).join(' | ') : ''));
 } catch (e) {
   console.error('TEST CRASH:', e);

@@ -113,6 +113,15 @@
       <div class="card camp-hero" id="camp-hero"></div>
       <div class="card week-goal" id="week-goal"></div>
       <div class="card week-goal" id="month-goal"></div>
+      <div class="card" id="traj-card">
+        <div class="card-head">
+          <h2>Income trajectory<span class="jp">収入見通し</span></h2>
+          <button type="button" class="btn ghost camp-add" id="camp-add-plan">+ Plan</button>
+        </div>
+        <div class="chart-wrap" id="traj-chart"></div>
+        <div class="legend" id="traj-legend"></div>
+        <div class="traj-sum" id="traj-sum"></div>
+      </div>
       <div class="kpi-grid camp-kpis" id="camp-kpis"></div>
       <div class="card">
         <div class="card-head"><h2>Last 14 days<span class="jp">直近14日</span></h2></div>
@@ -131,6 +140,7 @@
     <section id="view-log" class="view" aria-label="Log">
       <div class="segmented" id="log-segmented">
         <button class="seg active" data-log="shift">Shifts</button>
+        <button class="seg" data-log="plan">Plan</button>
         <button class="seg" data-log="expense">Expenses</button>
         <button class="seg" data-log="trip">Trips</button>
       </div>
@@ -221,6 +231,66 @@
         <div class="form-actions">
           <button type="button" class="btn ghost" id="shift-reset">Clear</button>
           <button type="submit" class="btn primary" id="shift-submit">Save shift</button>
+        </div>
+      </form>
+
+      <!-- Plan form (planner: pre-plan blocks/shifts with estimated earnings) -->
+      <form id="plan-form" class="card form hidden">
+        <div class="card-head"><h2 id="plan-form-title">Plan a block<span class="jp">予定</span></h2></div>
+        <div class="field">
+          <label>Platform</label>
+          <div class="choice" id="plan-platform">
+            <button type="button" class="chip active" data-val="flex">Amazon Flex</button>
+            <button type="button" class="chip" data-val="doordash">DoorDash</button>
+            <button type="button" class="chip" data-val="other">Other</button>
+            <button type="button" class="chip" data-val="income">Income</button>
+          </div>
+        </div>
+        <div class="field plan-flex">
+          <label>Block length <span class="hint">sets the finish from the start</span></label>
+          <div class="choice compact" id="plan-blockpreset">
+            <button type="button" class="chip" data-val="1">1:00</button>
+            <button type="button" class="chip" data-val="1.5">1:30</button>
+            <button type="button" class="chip" data-val="2">2:00</button>
+            <button type="button" class="chip" data-val="2.5">2:30</button>
+            <button type="button" class="chip" data-val="3">3:00</button>
+            <button type="button" class="chip" data-val="3.5">3:30</button>
+            <button type="button" class="chip" data-val="4">4:00</button>
+            <button type="button" class="chip" data-val="4.5">4:30</button>
+          </div>
+        </div>
+        <div class="field plan-flex">
+          <label>Block type <span class="hint">種別</span></label>
+          <div class="choice type-choice" id="plan-tag">
+            <button type="button" class="chip type-chip" data-val="Local" style="--tc:#c9ced8;--ink:#14130f"><b>普通</b><em>LOCAL</em><i>Local</i></button>
+            <button type="button" class="chip type-chip" data-val="Rapid" style="--tc:var(--jr-blue);--ink:#fff"><b>快速</b><em>RAPID</em><i>Rapid</i></button>
+            <button type="button" class="chip type-chip" data-val="Express" style="--tc:var(--jr-orange);--ink:#fff"><b>急行</b><em>EXP</em><i>Express</i></button>
+            <button type="button" class="chip type-chip" data-val="Rapid Express" style="--tc:var(--jr-red);--ink:#fff"><b>特急</b><em>LTD.EXP</em><i>Rapid Exp</i></button>
+          </div>
+        </div>
+        <div class="field plan-income hidden">
+          <label>Source</label>
+          <input type="text" name="source" list="income-sources" placeholder="TraceHaus" autocomplete="off" />
+        </div>
+        <div class="field"><label>Date</label><input type="date" name="date" required /></div>
+        <div class="field">
+          <label>Start → Finish <span class="hint" id="plan-time-hint"></span></label>
+          <div class="time-range">
+            <input type="time" name="startTime" aria-label="planned start" />
+            <span class="tr-arrow">→</span>
+            <input type="time" name="endTime" aria-label="planned finish" />
+          </div>
+          <div class="tr-dur hidden" id="plan-dur"></div>
+        </div>
+        <div class="field">
+          <label>Estimated earnings ($) <span class="hint" id="plan-est-hint"></span></label>
+          <input type="number" name="estimate" step="0.01" min="0" inputmode="decimal" placeholder="84.00" />
+        </div>
+        <div class="field"><label>Note <span class="hint">optional</span></label><input type="text" name="note" placeholder="Surge zone, pick up at 9" /></div>
+        <div class="plan-check" id="plan-check"></div>
+        <div class="form-actions">
+          <button type="button" class="btn ghost" id="plan-reset">Clear</button>
+          <button type="submit" class="btn primary" id="plan-submit">Save plan</button>
         </div>
       </form>
 

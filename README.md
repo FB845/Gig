@@ -55,6 +55,19 @@ mileage tracking** — without asking for a cent.
   manual income, standard-mileage vs actual-expense deduction, expenses by
   category, taxable profit, estimated tax and quarterly set-aside — with CSV
   export and Print / Save-PDF. (Estimate, not tax advice.)
+- **📅 Planner + income trajectory** — in **Log → Plan**, pre-plan Flex blocks,
+  Dashes and income with start–finish times and an **estimated** payout (leave
+  it blank to use your recent $/hr on that platform × the planned hours). It
+  warns when plans overlap and shows what each one does to this week's goal.
+  The agenda groups plans by day; tap **Log it** on the day to open the real
+  shift/income form prefilled (enter what you actually made), and the plan is
+  marked *Logged ✓ — $92 vs $84 est*. Unlogged past plans show as *Missed*.
+  On **Campaign 350**, plans become the **income trajectory**: a this-week +
+  next-week chart (earned = solid, planned = dashed), striped "planned" segments
+  on the today/weekly/monthly bars, "your plan reaches the goal on Fri → 2 days
+  off" or "plan $881 more by Sun", and the days still under $350 even with the
+  plan — where to stack more. Plans are forecasts only: they never count as
+  income, so earnings, goals, rates and tax stay real.
 - **One form for shifts + income** — pick **Income** under Platform (next to
   Amazon Flex / DoorDash / Other) to log non-gig money, with a **Flat rate |
   Paid by hour** toggle: flat takes an amount; hourly takes a rate plus time

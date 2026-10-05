@@ -54,9 +54,14 @@ export function barChart(container, data, series, opts = {}) {
       if (v <= 0) return;
       const h = (v / niceMax) * plotH;
       yCursor -= h;
+      // Color: per-point+series override, per-point override, then series.
+      const fill = (d.colors && d.colors[s.key]) || d.color || s.color;
+      // `planned` series draw as a translucent bar with a dashed outline so a
+      // forecast never reads as money already earned.
       const rect = el('rect', {
-        x: cx - barW / 2, y: yCursor, width: barW, height: Math.max(0, h),
-        rx: 3, fill: d.color || s.color, class: 'bar', // per-point color override
+        x: cx - barW / 2, y: yCursor, width: barW, height: Math.max(0, h), rx: 3, fill,
+        class: s.planned ? 'bar planned' : 'bar',
+        ...(s.planned ? { 'fill-opacity': 0.28, stroke: fill, 'stroke-dasharray': '3 2', 'stroke-width': 1.2 } : {}),
       });
       rect.appendChild(el('title', {}, [document.createTextNode(`${d.label} · ${s.label}: ${money(v)}`)]));
       svg.appendChild(rect);
@@ -191,6 +196,6 @@ function niceCeil(n) {
 
 export function legend(container, series) {
   container.innerHTML = series.map((s) =>
-    `<span class="legend-item"><span class="legend-dot" style="background:${s.color}"></span>${s.label}</span>`
+    `<span class="legend-item"><span class="legend-dot${s.planned ? ' planned' : ''}" style="background:${s.color};--c:${s.color}"></span>${s.label}</span>`
   ).join('');
 }

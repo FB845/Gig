@@ -141,6 +141,34 @@ textarea { font-family: var(--font-led); font-size: 13px; line-height: 1.5; resi
 .tr-dur { margin-top: 6px; font-size: 13px; color: var(--muted); }
 .tr-dur b { color: var(--text); font-family: var(--font-led); }
 .tr-night { color: var(--jr-teal); font-weight: 700; }
+/* ---------- Planner + income trajectory ---------- */
+/* Planned money is always teal + translucent/dashed so it never reads as earned. */
+.ch-bar { display: flex; }
+.ch-bar > .plan-seg { display: block; height: 100%; background: repeating-linear-gradient(135deg, color-mix(in srgb, #2dd4bf 55%, transparent) 0 4px, color-mix(in srgb, #2dd4bf 22%, transparent) 4px 8px); }
+.ch-plan, .wg-plan { margin-top: 10px; font-size: 13px; color: #2dd4bf; }
+.wg-plan b { color: var(--text); }
+.wg-plan.ok b { color: var(--accent); }
+.legend-dot.planned { background: color-mix(in srgb, var(--c) 28%, transparent) !important; border: 1.5px dashed var(--c); box-sizing: border-box; }
+.traj-sum { margin-top: 10px; font-size: 13px; color: var(--muted); display: grid; gap: 4px; }
+.traj-sum b { color: #2dd4bf; }
+.plan-check { display: grid; gap: 6px; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+.plan-check:empty { display: none; }
+.plan-check b { color: var(--text); }
+.pc-warn { color: #f5a524; }
+.pc-ok { color: var(--accent); }
+.plan-day { display: flex; justify-content: space-between; align-items: baseline; padding: 12px 0 4px; font-size: 12px; font-weight: 800; letter-spacing: .04em; color: var(--muted); text-transform: uppercase; border-bottom: 1px solid var(--border); }
+.plan-day.is-today { color: #2dd4bf; }
+.plan-day b { color: #2dd4bf; text-transform: none; letter-spacing: 0; }
+.plan-badge { background: color-mix(in srgb, var(--c) 25%, transparent); border: 1.5px dashed var(--c); box-sizing: border-box; }
+.plan-row.st-logged .plan-badge { background: var(--c); border-style: solid; }
+.plan-row.st-missed { opacity: .55; }
+.plan-amt small { display: block; font-size: 10px; font-weight: 600; color: var(--muted); }
+.plan-pill { display: inline-block; vertical-align: middle; font-size: 10px; font-weight: 800; letter-spacing: .04em; padding: 1px 6px; border-radius: 5px; border: 1px solid var(--border); color: var(--muted); }
+.st-today .plan-pill { color: #2dd4bf; border-color: color-mix(in srgb, #2dd4bf 55%, var(--border)); }
+.st-logged .plan-pill { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); }
+.st-missed .plan-pill { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, var(--border)); }
+.btn.plan-log { padding: 6px 10px; font-size: 12px; flex-shrink: 0; color: #2dd4bf; border-color: color-mix(in srgb, #2dd4bf 55%, var(--border)); background: transparent; }
+
 /* "Income" label on manual-income rows in the combined Log list */
 .inc-tag { display: inline-block; vertical-align: middle; font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 1px 6px; border-radius: 5px; color: #f5a524; border: 1px solid color-mix(in srgb, #f5a524 55%, var(--border)); }
 input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent-2); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 25%, transparent); }

@@ -16,6 +16,8 @@ const state = {
   editShiftId: null,
   editExpenseId: null,
   editIncomeId: null,
+  editPlanId: null,
+  fromPlanId: null, // the plan a shift/income is being logged from ("Log it")
 };
 
 // ---------- money / format helpers ----------
@@ -468,9 +470,7 @@ function initForms() {
   $$('#log-segmented .seg').forEach((b) => b.addEventListener('click', () => {
     state.logMode = b.dataset.log;
     $$('#log-segmented .seg').forEach((x) => x.classList.toggle('active', x === b));
-    $('#shift-form').classList.toggle('hidden', state.logMode !== 'shift');
-    $('#expense-form').classList.toggle('hidden', state.logMode !== 'expense');
-    renderLogList();
+    showLogForm(state.logMode);
   }));
 
   // platform chip groups (generic)
@@ -508,6 +508,17 @@ function initForms() {
   $('#shift-reset').addEventListener('click', () => resetShiftForm());
   $('#expense-reset').addEventListener('click', () => resetExpenseForm());
   $('#camp-add-income').addEventListener('click', () => { openIncomeForm(); });
+  initPlanner();
+}
+
+// Switch the Log view to a segment: show its form (trips have none) + list.
+function showLogForm(mode) {
+  state.logMode = mode;
+  $$('#log-segmented .seg').forEach((x) => x.classList.toggle('active', x.dataset.log === mode));
+  $('#shift-form').classList.toggle('hidden', mode !== 'shift');
+  $('#plan-form').classList.toggle('hidden', mode !== 'plan');
+  $('#expense-form').classList.toggle('hidden', mode !== 'expense');
+  renderLogList();
 }
 
 function bindChips(sel) {
@@ -588,7 +599,9 @@ function updateFlexUI() {
   $('#hours-label').textContent = isFlex ? 'Actual time worked' : 'Hours worked';
   $('#shift-form [name=notes]').placeholder = isIncome ? 'Invoice #123' : 'Morning block, downtown';
   const editing = state.editShiftId || state.editIncomeId;
-  $('#shift-form-title').textContent = `${editing ? 'Edit' : 'Log'} ${isIncome ? 'income' : editing ? 'shift' : 'a shift'}`;
+  $('#shift-form-title').textContent = state.fromPlanId
+    ? `Log planned ${isIncome ? 'income' : 'block'}`
+    : `${editing ? 'Edit' : 'Log'} ${isIncome ? 'income' : editing ? 'shift' : 'a shift'}`;
   $('#shift-submit').textContent = `${editing ? 'Update' : 'Save'} ${isIncome ? 'income' : 'shift'}`;
   updateShiftLive();
 }
@@ -722,8 +735,9 @@ function onSaveShift(e) {
   } else {
     // Editing an income entry but switched the platform to a gig → convert it.
     if (state.editIncomeId) store.deleteIncome(state.editIncomeId);
-    store.addShift(data);
-    toast(state.editIncomeId ? 'Converted to a shift ✓' : 'Shift saved ✓');
+    const shift = store.addShift(data);
+    if (state.fromPlanId) store.markPlanLogged(state.fromPlanId, 'shift', shift.id);
+    toast(state.editIncomeId ? 'Converted to a shift ✓' : state.fromPlanId ? 'Planned block logged ✓' : 'Shift saved ✓');
   }
   resetShiftForm();
   renderLogList();
@@ -758,8 +772,9 @@ function saveIncomeFromForm(f, range) {
   } else {
     // Editing a gig shift but switched the platform to Income → convert it.
     if (state.editShiftId) store.deleteShift(state.editShiftId);
-    store.addIncome(data);
-    toast(state.editShiftId ? 'Converted to income ✓' : 'Income saved ✓');
+    const inc = store.addIncome(data);
+    if (state.fromPlanId) store.markPlanLogged(state.fromPlanId, 'income', inc.id);
+    toast(state.editShiftId ? 'Converted to income ✓' : state.fromPlanId ? 'Planned income logged ✓' : 'Income saved ✓');
   }
   resetShiftForm();
   renderLogList();
@@ -789,6 +804,7 @@ function resetShiftForm() {
   setBlockPreset(0);
   state.editShiftId = null;
   state.editIncomeId = null;
+  state.fromPlanId = null;
   setPayType(loadPayType()); // also refreshes the platform UI + title
 }
 function resetExpenseForm() {
@@ -803,11 +819,7 @@ function resetExpenseForm() {
 
 // Show the Log view's shared shift/income form (Shifts segment).
 function showShiftForm() {
-  state.logMode = 'shift';
-  $$('#log-segmented .seg').forEach((x) => x.classList.toggle('active', x.dataset.log === 'shift'));
-  $('#shift-form').classList.remove('hidden');
-  $('#expense-form').classList.add('hidden');
-  renderLogList();
+  showLogForm('shift');
   showView('log');
 }
 
@@ -871,10 +883,7 @@ function editIncome(id) {
 function editExpense(id) {
   const ex = store.getExpenses().find((x) => x.id === id);
   if (!ex) return;
-  state.logMode = 'expense';
-  $$('#log-segmented .seg').forEach((x) => x.classList.toggle('active', x.dataset.log === 'expense'));
-  $('#expense-form').classList.remove('hidden');
-  $('#shift-form').classList.add('hidden');
+  showLogForm('expense');
   const f = $('#expense-form');
   f.date.value = ex.date; f.amount.value = ex.amount; f.category.value = ex.category;
   f.note.value = ex.note || ''; setChip('#expense-platform', ex.platform || '');
@@ -957,6 +966,8 @@ function renderLogList() {
       : (b.item.createdAt || '').localeCompare(a.item.createdAt || '')));
     list.innerHTML = rows.length ? rows.map((r) => recordRow(r.item, r.type)).join('')
       : '<li class="empty-list">Nothing logged yet — pick a platform above (or Income).</li>';
+  } else if (state.logMode === 'plan') {
+    renderPlanList(list);
   } else if (state.logMode === 'expense') {
     $('#log-list-title').textContent = 'All expenses';
     const exp = store.getExpenses();
@@ -970,8 +981,243 @@ function renderLogList() {
   }
 }
 
+// =====================================================================
+// Planner (Log → Plan): pre-plan blocks/shifts with estimated earnings.
+// Plans never count as income; they feed the Campaign "income trajectory"
+// until you tap "Log it", which opens the real form prefilled and links them.
+// =====================================================================
+const dowShort = (iso) => new Date(iso + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short' });
+
+function initPlanner() {
+  const f = $('#plan-form');
+  bindChips('#plan-platform');
+  bindChips('#plan-tag');
+  $('#plan-platform').addEventListener('click', (e) => { if (e.target.closest('.chip')) updatePlanUI(); });
+  // Block length: pick a length and the finish follows the start.
+  $$('#plan-blockpreset .chip').forEach((c) => c.addEventListener('click', () => {
+    const on = !c.classList.contains('active');
+    $$('#plan-blockpreset .chip').forEach((x) => x.classList.toggle('active', on && x === c));
+    applyPlanPreset();
+  }));
+  f.startTime.addEventListener('input', () => { applyPlanPreset(); updatePlanLive(); });
+  f.endTime.addEventListener('input', () => {
+    // A hand-typed finish that no longer matches the chosen length clears it.
+    const len = planPresetHours();
+    if (len && f.startTime.value && store.hoursBetween(f.startTime.value, f.endTime.value) !== len) {
+      $$('#plan-blockpreset .chip').forEach((x) => x.classList.remove('active'));
+    }
+    updatePlanLive();
+  });
+  ['date', 'estimate'].forEach((n) => f[n].addEventListener('input', updatePlanLive));
+  f.addEventListener('submit', onSavePlan);
+  $('#plan-reset').addEventListener('click', () => resetPlanForm());
+  $('#camp-add-plan').addEventListener('click', () => { resetPlanForm(); showLogForm('plan'); showView('log'); });
+  f.date.value = store.todayISO();
+  updatePlanUI();
+}
+
+function planPresetHours() {
+  const c = $('#plan-blockpreset .chip.active');
+  return c && chipValue('#plan-platform') === 'flex' ? parseFloat(c.dataset.val) : 0;
+}
+function applyPlanPreset() {
+  const f = $('#plan-form');
+  const len = planPresetHours();
+  if (len && f.startTime.value) f.endTime.value = addHoursToTime(f.startTime.value, len);
+  updatePlanLive();
+}
+
+function updatePlanUI() {
+  const plat = chipValue('#plan-platform');
+  $$('#plan-form .plan-flex').forEach((el) => el.classList.toggle('hidden', plat !== 'flex'));
+  $$('#plan-form .plan-income').forEach((el) => el.classList.toggle('hidden', plat !== 'income'));
+  $('#plan-time-hint').textContent = plat === 'income' ? 'optional' : '';
+  updatePlanLive();
+}
+
+// Suggested estimate for the plan on screen: your recent $/hr × planned hours.
+function planSuggestion(f) {
+  const plat = chipValue('#plan-platform');
+  const hours = store.hoursBetween(f.startTime.value, f.endTime.value);
+  if (plat === 'income' || !hours) return { value: 0, rate: 0 };
+  const rate = store.suggestedRate(plat);
+  return { value: Math.round(rate * hours), rate };
+}
+
+function updatePlanLive() {
+  const f = $('#plan-form');
+  const hours = store.hoursBetween(f.startTime.value, f.endTime.value);
+  const dur = $('#plan-dur');
+  dur.classList.toggle('hidden', !hours);
+  if (hours) dur.innerHTML = `= <b>${fmtHM(hours)}</b> planned${f.endTime.value < f.startTime.value ? ' · <span class="tr-night">overnight</span>' : ''}`;
+
+  // Estimate: blank uses your average $/hr on this platform.
+  const sug = planSuggestion(f);
+  f.estimate.placeholder = sug.value ? String(sug.value) : '84.00';
+  $('#plan-est-hint').textContent = sug.value ? `blank = ${fmtMoney0(sug.value)} at your ${fmtMoney(sug.rate)}/hr avg` : '';
+
+  // Checks: clashes with other plans + what this does to the week's goal.
+  const est = parseFloat(f.estimate.value) || sug.value;
+  const draft = { id: state.editPlanId, date: f.date.value, startTime: f.startTime.value, endTime: f.endTime.value };
+  const notes = [];
+  const clash = f.date.value ? store.planOverlaps(draft) : [];
+  if (clash.length) {
+    notes.push(`<div class="pc-warn">⚠ Overlaps ${clash.map((p) => `${p.startTime}–${p.endTime} ${planName(p)}`).join(', ')}</div>`);
+  }
+  const today = store.todayISO();
+  const w = store.weeklyGoalStats();
+  if (est > 0 && f.date.value >= today && f.date.value >= w.start && f.date.value <= w.end) {
+    let proj = w.projected + est;
+    const old = state.editPlanId && store.getPlans().find((p) => p.id === state.editPlanId);
+    if (old && old.date >= today && old.date <= w.end && !store.planLogged(old)) proj -= old.estimate;
+    notes.push(proj >= w.goal
+      ? `<div class="pc-ok">✓ With this, this week's plan reaches the ${fmtMoney0(w.goal)} goal (${fmtMoney0(proj)})</div>`
+      : `<div>This week with this plan: <b>${fmtMoney0(proj)}</b> / ${fmtMoney0(w.goal)} — ${fmtMoney0(w.goal - proj)} short</div>`);
+  }
+  $('#plan-check').innerHTML = notes.join('');
+}
+
+const planName = (p) => (p.platform === 'income' ? (p.source || 'Income') : (PLATFORMS[p.platform] || PLATFORMS.other).short);
+
+function onSavePlan(e) {
+  e.preventDefault();
+  const f = e.target;
+  const platform = chipValue('#plan-platform') || 'flex';
+  const hasStart = !!f.startTime.value, hasEnd = !!f.endTime.value;
+  if (!f.date.value) { toast('Pick a date'); return; }
+  if (hasStart !== hasEnd) { toast('Enter both start and finish times'); return; }
+  if (platform !== 'income' && !hasStart) { toast('Enter the start and finish times'); return; }
+  if (hasStart && f.startTime.value === f.endTime.value) { toast('Finish time must differ from start'); return; }
+  const estimate = parseFloat(f.estimate.value) || planSuggestion(f).value;
+  if (!(estimate > 0)) { toast('Enter estimated earnings'); return; }
+  const data = {
+    date: f.date.value, platform,
+    startTime: f.startTime.value, endTime: f.endTime.value,
+    tag: platform === 'flex' ? chipValue('#plan-tag') : '',
+    estimate, source: platform === 'income' ? f.source.value : '', note: f.note.value,
+  };
+  const clash = store.planOverlaps({ ...data, id: state.editPlanId });
+  if (state.editPlanId) store.updatePlan(state.editPlanId, data);
+  else store.addPlan(data);
+  toast(clash.length ? `Plan saved — overlaps ${clash[0].startTime}–${clash[0].endTime} ${planName(clash[0])}` : (state.editPlanId ? 'Plan updated' : 'Plan saved ✓'));
+  const keepDate = data.date; // planning a run of blocks on one day is common
+  resetPlanForm();
+  f.date.value = keepDate;
+  updatePlanLive();
+  renderLogList();
+}
+
+function resetPlanForm() {
+  const f = $('#plan-form');
+  f.reset();
+  f.date.value = store.todayISO();
+  setChip('#plan-platform', 'flex');
+  setChip('#plan-tag', '');
+  $$('#plan-blockpreset .chip').forEach((x) => x.classList.remove('active'));
+  state.editPlanId = null;
+  $('#plan-form-title').innerHTML = 'Plan a block<span class="jp">予定</span>';
+  $('#plan-submit').textContent = 'Save plan';
+  updatePlanUI();
+}
+
+function editPlan(id) {
+  const p = store.getPlans().find((x) => x.id === id);
+  if (!p) return;
+  resetPlanForm();
+  showLogForm('plan');
+  const f = $('#plan-form');
+  state.editPlanId = id;
+  setChip('#plan-platform', p.platform);
+  setChip('#plan-tag', p.tag || '');
+  const preset = $$('#plan-blockpreset .chip').find((c) => parseFloat(c.dataset.val) === p.hours);
+  if (p.platform === 'flex' && preset) preset.classList.add('active');
+  f.date.value = p.date; f.startTime.value = p.startTime; f.endTime.value = p.endTime;
+  f.estimate.value = p.estimate || ''; f.source.value = p.source || ''; f.note.value = p.note || '';
+  $('#plan-form-title').innerHTML = 'Edit plan<span class="jp">予定</span>';
+  $('#plan-submit').textContent = 'Update plan';
+  updatePlanUI();
+  f.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// "Log it": open the real shift/income form prefilled from the plan. The
+// estimate goes in as the pay — adjust it to what you actually made.
+function logPlan(id) {
+  const p = store.getPlans().find((x) => x.id === id);
+  if (!p) return;
+  resetShiftForm();
+  showLogForm('shift');
+  showView('log');
+  state.fromPlanId = id;
+  const f = $('#shift-form');
+  setChip('#shift-platform', p.platform);
+  if (p.platform === 'income') {
+    f.source.value = p.source || '';
+    setPayType('flat');
+    f.amount.value = p.estimate || '';
+  } else {
+    f.gross.value = p.estimate || '';
+    if (p.platform === 'flex') { setChip('#shift-tag', p.tag || ''); setBlockPreset(p.hours || 0); }
+    if (p.startTime && p.endTime) fillFormTime(f, p);
+  }
+  f.date.value = p.date;
+  f.notes.value = p.note || '';
+  updateFlexUI();
+  toast('Plan loaded — set your actual pay & times, then save');
+  f.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function planRow(p, today) {
+  const st = store.planStatus(p, today);
+  const plat = PLATFORMS[p.platform];
+  const color = p.platform === 'income' ? '#f5a524' : (plat ? plat.color : PLATFORMS.other.color);
+  const when = p.startTime ? `${p.startTime}–${p.endTime}` : 'Anytime';
+  const pill = { logged: 'Logged ✓', missed: 'Missed', today: 'Today', upcoming: '' }[st];
+  let amount = `${fmtMoney0(p.estimate)}<small>est</small>`;
+  if (st === 'logged') {
+    const rec = p.loggedType === 'income' ? store.getIncomes().find((x) => x.id === p.loggedId) : store.getShifts().find((x) => x.id === p.loggedId);
+    const actual = rec ? (p.loggedType === 'income' ? rec.amount : store.shiftIncome(rec)) : 0;
+    amount = `${fmtMoney0(actual)}<small>vs ${fmtMoney0(p.estimate)} est</small>`;
+  }
+  const sub = [planName(p), p.hours ? fmtHM(p.hours) : '', p.note ? escapeHtml(p.note) : ''].filter(Boolean).join(' · ');
+  const canLog = st === 'today' || st === 'missed';
+  return `<li class="record plan-row st-${st}" data-id="${p.id}" data-type="plan">
+    <span class="rec-badge plan-badge" style="--c:${color}"></span>
+    <div class="rec-main">
+      <div class="rec-title">${when}${p.tag ? ' ' + typeBadge(p.tag) : ''}${pill ? ` <span class="plan-pill">${pill}</span>` : ''}</div>
+      <div class="rec-sub">${sub}</div>
+    </div>
+    <div class="rec-amount plan-amt">${amount}</div>
+    ${canLog ? `<button type="button" class="btn plan-log" data-log-plan="${p.id}">Log it</button>` : ''}
+    <button class="rec-del" data-del="plan" data-id="${p.id}" aria-label="Delete">✕</button>
+  </li>`;
+}
+
+// Agenda: last 7 days (to catch missed/logged) through everything ahead,
+// grouped by day with each day's planned total.
+function renderPlanList(list) {
+  const today = store.todayISO();
+  const from = store.isoDate(new Date(Date.now() - 7 * 86400000));
+  const plans = store.getPlans().filter((p) => p.date >= from);
+  $('#log-list-title').textContent = 'Planner';
+  if (!plans.length) {
+    list.innerHTML = '<li class="empty-list">No plans yet — plan your next blocks above to see your income trajectory.</li>';
+    return;
+  }
+  const byDay = new Map();
+  plans.forEach((p) => { if (!byDay.has(p.date)) byDay.set(p.date, []); byDay.get(p.date).push(p); });
+  let html = '';
+  for (const [date, ps] of byDay) {
+    const open = ps.filter((p) => !store.planLogged(p) && p.date >= today).reduce((a, p) => a + p.estimate, 0);
+    html += `<li class="plan-day${date === today ? ' is-today' : ''}"><span>${friendlyDate(date)}${date === today ? ' · Today' : ''}</span>${open ? `<b>${fmtMoney0(open)} planned</b>` : ''}</li>`;
+    html += ps.map((p) => planRow(p, today)).join('');
+  }
+  list.innerHTML = html;
+}
+
 // event delegation for lists (edit on row, delete on ✕)
 document.addEventListener('click', (e) => {
+  const logBtn = e.target.closest('[data-log-plan]');
+  if (logBtn) { e.stopPropagation(); logPlan(logBtn.dataset.logPlan); return; }
   const del = e.target.closest('[data-del]');
   if (del) {
     e.stopPropagation();
@@ -980,6 +1226,7 @@ document.addEventListener('click', (e) => {
     if (type === 'shift') store.deleteShift(id);
     else if (type === 'expense') store.deleteExpense(id);
     else if (type === 'income') store.deleteIncome(id);
+    else if (type === 'plan') store.deletePlan(id);
     else store.deleteTrip(id);
     toast('Deleted');
     renderLogList(); renderDashboard(); renderCampaign();
@@ -990,6 +1237,7 @@ document.addEventListener('click', (e) => {
     if (row.dataset.type === 'shift') editShift(row.dataset.id);
     else if (row.dataset.type === 'expense') editExpense(row.dataset.id);
     else if (row.dataset.type === 'income') editIncome(row.dataset.id);
+    else if (row.dataset.type === 'plan') editPlan(row.dataset.id);
     // trips are read-only records; no edit
   }
 });
@@ -1015,12 +1263,14 @@ function renderCampaign() {
     </div>
     <div class="ch-status">${label}<span class="ch-status-jp">${jp}</span></div>
     <div class="ch-amount">${fmtMoney0(c.todayTotal)} <span class="ch-goal">/ ${fmtMoney0(c.daily)} today</span></div>
-    <div class="ch-bar"><span style="width:${pct}%"></span></div>`;
+    <div class="ch-bar"><span style="width:${pct}%"></span>${todayPlanSeg(c)}</div>
+    ${todayPlanLine(c)}`;
 
   // Weekly + monthly goals — hit early and the rest of the period is days off;
   // income logged on a day off rolls over and lowers the next period's goal.
   renderGoalCard($('#week-goal'), store.weeklyGoalStats(), { unit: 'week', title: 'WEEKLY GOAL', jp: '週間目標' });
   renderGoalCard($('#month-goal'), store.monthlyGoalStats(), { unit: 'month', title: 'MONTHLY GOAL', jp: '月間目標' });
+  renderTrajectory(c);
 
   // Stat tiles
   const aheadPos = c.ahead >= 0;
@@ -1064,6 +1314,67 @@ function renderCampaign() {
     : '<li class="empty-list">No income logged in the last 60 days.</li>';
 }
 
+// Today's still-to-come plans, shown on the Campaign hero.
+function todayPlanned() {
+  const t = store.todayISO();
+  return store.trajectory(t, t)[0].planned;
+}
+function todayPlanSeg(c) {
+  const planned = todayPlanned();
+  if (!planned || c.todayHit) return '';
+  const pct = Math.min(100, (c.todayTotal / c.daily) * 100);
+  return `<i class="plan-seg" style="width:${Math.min(100 - pct, (planned / c.daily) * 100)}%"></i>`;
+}
+function todayPlanLine(c) {
+  const planned = todayPlanned();
+  if (!planned) return '';
+  const proj = c.todayTotal + planned;
+  return `<div class="ch-plan">📅 +${fmtMoney0(planned)} planned today → ${fmtMoney0(proj)}${proj >= c.daily ? ' · on track for $350 ✓' : ` · ${fmtMoney0(c.daily - proj)} short of $350`}</div>`;
+}
+
+// Income trajectory: this week + next week (Mon–Sun ×2), real income as solid
+// bars and planned (not yet logged) income as dashed bars, vs the $350 line.
+function renderTrajectory(c) {
+  const host = $('#traj-chart');
+  if (!host) return;
+  const today = store.todayISO();
+  const start = store.isoDate(store.startOfWeek(new Date()));
+  const endD = new Date(start + 'T00:00:00'); endD.setDate(endD.getDate() + 13);
+  const days = store.trajectory(start, store.isoDate(endD), today);
+  const data = days.map((d) => {
+    const dd = new Date(d.date + 'T00:00:00');
+    const total = d.actual + d.planned;
+    const actualColor = d.actual >= c.daily ? '#34d399' : '#f5a524';
+    return {
+      // Day numbers keep 14 labels legible on a phone; today reads 今日.
+      label: d.date === today ? '今日' : String(dd.getDate()),
+      values: { actual: d.actual, planned: d.planned },
+      colors: { actual: actualColor, planned: total >= c.daily ? '#34d399' : '#2dd4bf' },
+    };
+  });
+  const series = [
+    { key: 'actual', label: 'Earned', color: '#34d399' },
+    { key: 'planned', label: 'Planned', color: '#2dd4bf', planned: true },
+  ];
+  charts.barChart(host, data, series, {
+    refLine: { value: c.daily, label: `$${c.daily}`, color: '#f5a524' }, empty: 'No data yet',
+  });
+  charts.legend($('#traj-legend'), series);
+
+  // Summary: what's planned ahead, and the days (today onward) that are still
+  // under $350 even with the plan — where to stack more.
+  const ahead = days.filter((d) => d.date >= today);
+  const plannedAhead = ahead.reduce((a, d) => a + d.planned, 0);
+  const blocks = store.getPlans().filter((p) => p.date >= today && p.date <= store.isoDate(endD) && !store.planLogged(p)).length;
+  const gaps = ahead.filter((d) => d.actual + d.planned < c.daily);
+  const gapTxt = gaps.length
+    ? `Under $${c.daily} even with the plan: ${gaps.slice(0, 5).map((d) => `${dowShort(d.date)} ${d.date.slice(5).replace('-', '/')}`).join(', ')}${gaps.length > 5 ? ` +${gaps.length - 5} more` : ''} — fine if they're days off, otherwise stack more there.`
+    : `Every day through ${dowShort(store.isoDate(endD))} reaches $${c.daily} with your plan ✓`;
+  $('#traj-sum').innerHTML = `
+    <div><b>${fmtMoney0(plannedAhead)}</b> planned across ${blocks} block${blocks === 1 ? '' : 's'} (next two weeks)</div>
+    <div class="traj-gaps">${gapTxt}</div>`;
+}
+
 // One goal card (weekly or monthly) from store.periodGoalStats-shaped data.
 function renderGoalCard(el, g, { unit, title, jp }) {
   if (!el) return;
@@ -1085,14 +1396,30 @@ function renderGoalCard(el, g, { unit, title, jp }) {
   }
   if (g.todayOff) notes.push(`Today is an earned day off — anything you log rolls into next ${unit}`);
   if (g.banked > 0) notes.push(`+${fmtMoney0(g.banked)} logged on days off → next ${unit}'s goal drops by that much`);
+
+  // Income trajectory: what the planner says the rest of the period brings.
+  let planNote = '';
+  if (g.met) {
+    if (g.planned > 0) planNote = `📅 ${fmtMoney0(g.planned)} planned on days off → rolls into next ${unit}`;
+  } else if (g.planned > 0 && g.projMet) {
+    planNote = `📅 Your plan reaches the goal ${g.projMetOn === store.todayISO() ? 'today' : `on ${dowShort(g.projMetOn)}`}`
+      + (g.projDaysOff > 0 ? ` → <b>${dayN(g.projDaysOff)} off</b>` : '');
+  } else if (g.planned > 0) {
+    planNote = `📅 ${fmtMoney0(g.planned)} planned → ${fmtMoney0(g.projected)} · <b>plan ${fmtMoney0(g.shortfall)} more</b> by ${dowShort(g.end)}`;
+  } else {
+    planNote = `📅 Nothing planned yet — plan ${fmtMoney0(g.remaining)} by ${dowShort(g.end)}`;
+  }
+  // Planned share of the bar, after what's already earned.
+  const planPct = g.goal > 0 && !g.met ? Math.min(100 - g.pct, (g.planned / g.goal) * 100) : 0;
   el.innerHTML = `
     <div class="wg-top">
       <span class="wg-title">${title}<span class="jp">${jp}</span></span>
       <span class="wg-days">${g.met ? dayN(g.daysOff) : dayN(g.daysLeft)}<em>${g.met ? 'off · 休み' : 'left · 残り'}</em></span>
     </div>
     <div class="wg-amount">${fmtMoney0(g.earned)} <span class="wg-goal">/ ${fmtMoney0(g.goal)} this ${unit}</span></div>
-    <div class="ch-bar"><span style="width:${g.pct}%"></span></div>
+    <div class="ch-bar"><span style="width:${g.pct}%"></span>${planPct > 0 ? `<i class="plan-seg" style="width:${planPct}%"></i>` : ''}</div>
     <div class="wg-msg">${msg}</div>
+    ${planNote ? `<div class="wg-plan${g.projMet && !g.met ? ' ok' : ''}">${planNote}</div>` : ''}
     ${notes.map((n) => `<div class="wg-note">${n}</div>`).join('')}`;
 }
 
@@ -1393,10 +1720,7 @@ function endDrive(save) {
 
   const trip = store.addTrip(result);
   // pre-fill the shift form so the tracked miles roll into a shift record
-  state.logMode = 'shift';
-  $$('#log-segmented .seg').forEach((x) => x.classList.toggle('active', x.dataset.log === 'shift'));
-  $('#shift-form').classList.remove('hidden');
-  $('#expense-form').classList.add('hidden');
+  showLogForm('shift');
   const f = $('#shift-form');
   // Miles belong to a gig shift — if the form is on Income (miles hidden, maybe
   // mid-edit of an income entry), start a fresh shift instead.
