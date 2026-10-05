@@ -4,7 +4,7 @@
 // single reload always gets the latest version when you're online, falling back
 // to cache when offline. CACHE-FIRST for static images/icons (they rarely change
 // and this keeps things fast). Bump CACHE on every release to purge old files.
-const CACHE = 'gig-tracker-v22';
+const CACHE = 'gig-tracker-v23';
 const ASSETS = [
   './',
   './index.html',
@@ -15,7 +15,7 @@ const ASSETS = [
   './js/parse.js',
   './js/ocr.js',
   './js/geo.js',
-  './js/sync.js',
+  './js/sync.js', './js/firebase-config.js',
   './js/calendar.js',
   './fonts/DotGothic16-subset.woff2',
   './fonts/Silkscreen-Regular.woff2',
@@ -54,6 +54,15 @@ self.addEventListener('fetch', (e) => {
 
   // Never intercept the OCR engine (large, cross-origin) — go straight to network.
   if (url.hostname.includes('jsdelivr') || url.hostname.includes('tesseract')) return;
+  // Firebase SDK (versioned, immutable URLs): cache-first, so cloud sync can
+  // start — and flush edits made offline — even when the app opens offline.
+  if (url.hostname === 'www.gstatic.com' && url.pathname.startsWith('/firebasejs/')) {
+    e.respondWith(caches.match(req).then((hit) => hit || fetch(req).then((res) => {
+      if (res && res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); }
+      return res;
+    })));
+    return;
+  }
   if (url.origin !== self.location.origin) return;
 
   const isAppCode = req.mode === 'navigate'

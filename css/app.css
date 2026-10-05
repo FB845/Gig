@@ -1239,3 +1239,12 @@ input[type=date]::-webkit-date-and-time-value, input[type=time]::-webkit-date-an
    (clip, unlike hidden, keeps the sticky header working). */
 html, body { overflow-x: clip; }
 #shift-platform .chip, #plan-platform .chip { font-size: 13px; padding: 0 1px; }
+
+/* ---- Cloud sync card ---- */
+.sync-google { width: 100%; height: 48px; justify-content: center; margin-top: 4px; }
+.sync-tip { font-size: 12px; margin: 8px 0 0; }
+#sync-email-box { margin-top: 10px; display: grid; gap: 10px; }
+#sync-account .btn-grid2 { margin-top: 10px; }
+.sync-pill.ok { background: #11a85a; color: #fff; border-color: #11a85a; }
+.sync-pill.busy { color: var(--gold); border-color: #5a4a1a; }
+.sync-pill.err { color: var(--danger); border-color: #5a2420; }

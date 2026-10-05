@@ -2083,7 +2083,8 @@ function initSettings() {
   $('#export-csv').addEventListener('click', exportShiftsCSV);
   $('#import-json-file').addEventListener('change', onImportJSON);
   $('#clear-all').addEventListener('click', () => {
-    if (!confirm('Erase ALL shifts and expenses? Export a backup first if unsure. This cannot be undone.')) return;
+    const synced = sync.getSyncState().signedIn;
+    if (!confirm(`Erase ALL shifts, plans and expenses${synced ? ' — on every synced device too' : ''}? Export a backup first if unsure. This cannot be undone.`)) return;
     store.clearAll(); toast('All data erased'); renderDashboard(); renderLogList();
   });
 }
@@ -2103,7 +2104,8 @@ function initSyncUI() {
   const showErr = (msg) => { err.textContent = msg || ''; err.classList.toggle('hidden', !msg); };
 
   $('#sync-guide-toggle').addEventListener('click', (e) => { e.preventDefault(); $('#sync-guide').classList.toggle('hidden'); });
-  $('#sync-change-config').addEventListener('click', () => $('#sync-config-field').classList.remove('hidden'));
+  $('#sync-change-config').addEventListener('click', (e) => { e.preventDefault(); $('#sync-config-field').classList.remove('hidden'); });
+  $('#sync-email-toggle').addEventListener('click', (e) => { e.preventDefault(); $('#sync-email-box').classList.toggle('hidden'); });
 
   $('#sync-save-config').addEventListener('click', async () => {
     const txt = $('#sync-config').value.trim();
@@ -2116,6 +2118,11 @@ function initSyncUI() {
     toast('Config saved — now sign in');
   });
 
+  $('#sync-google').addEventListener('click', async () => {
+    showErr('');
+    try { await sync.signInGoogle(); toast('Signed in ✓'); }
+    catch (e) { showErr(sync.getSyncState().error || e.message || 'Sign-in failed'); }
+  });
   const doAuth = async (which) => {
     const email = $('#sync-email').value.trim();
     const pass = $('#sync-pass').value;
@@ -2126,30 +2133,27 @@ function initSyncUI() {
   };
   $('#sync-signin').addEventListener('click', () => doAuth('signIn'));
   $('#sync-signup').addEventListener('click', () => doAuth('signUp'));
+  $('#sync-now').addEventListener('click', async () => { await sync.syncNow(); });
   $('#sync-signout').addEventListener('click', async () => { try { await sync.signOutSync(); toast('Signed out of sync'); } catch { /* ignore */ } });
 
-  const STATUS = { idle: 'Signed out', loading: 'Connecting…', syncing: 'Syncing…', synced: 'Synced ✓', error: 'Error' };
-  const PILL = { idle: '', loading: 'busy', syncing: 'busy', synced: 'ok', error: 'err' };
+  const STATUS = { idle: 'Signed out', loading: 'Connecting…', syncing: 'Syncing…', synced: 'Synced ✓', offline: 'Offline — will sync when back online', error: 'Error' };
+  const PILL_TXT = { idle: '', loading: '接続中 …', syncing: '同期中 …', synced: '同期中 ON', offline: 'オフライン', error: 'Error' };
+  const PILL = { idle: '', loading: 'busy', syncing: 'busy', synced: 'ok', offline: 'busy', error: 'err' };
+  const hhmm = (ms) => { const d = new Date(ms); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
 
   sync.onSyncState((st) => {
     let pillText = 'Off', pillCls = '';
-    if (st.signedIn) { pillText = STATUS[st.status] || 'On'; pillCls = PILL[st.status] || 'ok'; }
+    if (st.signedIn) { pillText = PILL_TXT[st.status] || 'On'; pillCls = PILL[st.status] || 'ok'; }
     else if (st.configured) { pillText = st.status === 'error' ? 'Error' : 'Sign in'; pillCls = st.status === 'error' ? 'err' : ''; }
     $('#sync-pill').textContent = pillText;
     $('#sync-pill').className = 'sync-pill ' + pillCls;
 
-    if (!st.configured) {
-      $('#sync-config-field').classList.remove('hidden');
-      $('#sync-auth').classList.add('hidden'); $('#sync-account').classList.add('hidden');
-    } else if (!st.signedIn) {
-      $('#sync-config-field').classList.add('hidden');
-      $('#sync-auth').classList.remove('hidden'); $('#sync-account').classList.add('hidden');
-    } else {
-      $('#sync-config-field').classList.add('hidden');
-      $('#sync-auth').classList.add('hidden'); $('#sync-account').classList.remove('hidden');
-    }
+    $('#sync-config-field').classList.toggle('hidden', st.configured);
+    $('#sync-auth').classList.toggle('hidden', !st.configured || st.signedIn);
+    $('#sync-account').classList.toggle('hidden', !st.signedIn);
+    $('#sync-change-wrap').classList.toggle('hidden', st.builtIn);
     $('#sync-account-email').textContent = st.email || '';
-    $('#sync-status-text').textContent = STATUS[st.status] || '';
+    $('#sync-status-text').textContent = (STATUS[st.status] || '') + (st.lastSync && st.status === 'synced' ? ` · last synced ${hhmm(st.lastSync)}` : '');
     showErr(st.error || '');
   });
 }

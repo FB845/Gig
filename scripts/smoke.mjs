@@ -397,16 +397,28 @@ try {
     const s = await import('./js/store.js');
     s.clearAll();
     s.addShift({ platform: 'flex', date: '2026-09-14', gross: 100, tips: 20, hours: 3 });
+    const local = s.getShifts()[0];
     const rev1 = s.getRev();
-    s.applyRemote({ rev: 999, shifts: [{ id: 'r1', platform: 'doordash', date: '2026-09-13', gross: 50, tips: 10, hours: 2 }], expenses: [], trips: [], incomes: [], settings: {} });
-    const afterApply = { rev: s.getRev(), ids: s.getShifts().map((x) => x.id) };
-    s.mergeRemote({ shifts: [{ id: 'r2', platform: 'flex', date: '2026-09-12', gross: 80, tips: 0, hours: 2 }], expenses: [], trips: [], incomes: [], settings: {} });
-    return { rev1, afterApply, afterMerge: s.getShifts().map((x) => x.id).sort() };
+    const origins = [];
+    const off = s.onChange((_db, o) => origins.push(o));
+    s.applyRecords([
+      { col: 'shifts', id: 'r1', data: { platform: 'doordash', date: '2026-09-13', gross: 50, tips: 10, hours: 2 } },
+      { col: 'shifts', id: local.id, data: { ...local, gross: 120 } },
+      { col: 'plans', id: 'p1', data: { date: '2026-09-15', platform: 'flex', estimate: 80 } },
+      { col: 'settings', id: 'main', data: { fuelPrice: 3.99 } },
+    ]);
+    const mid = { ids: s.getShifts().map((x) => x.id).sort(), gross: s.getShifts().find((x) => x.id === local.id).gross, plans: s.getPlans().length, fuel: s.getSettings().fuelPrice, mpg: s.getSettings().mpg, rev: s.getRev() };
+    s.applyRecords([{ col: 'plans', id: 'p1', data: null }, { col: 'bogus', id: 'x', data: { a: 1 } }]);
+    off();
+    return { rev1, mid, uuid: /^[0-9a-f-]{36}$/.test(local.id), plansAfterDelete: s.getPlans().length, origins };
   });
   ok(syncStore.rev1 > 0, 'getRev bumps on a local change');
-  ok(syncStore.afterApply.rev === 999, 'applyRemote keeps the remote rev (last-write-wins)');
-  ok(syncStore.afterApply.ids.length === 1 && syncStore.afterApply.ids[0] === 'r1', 'applyRemote replaced local data');
-  ok(syncStore.afterMerge.length === 2 && syncStore.afterMerge.includes('r1') && syncStore.afterMerge.includes('r2'), 'mergeRemote unions both sides by id');
+  ok(syncStore.uuid, 'record ids are UUIDs (unique across devices)');
+  ok(syncStore.mid.ids.length === 2 && syncStore.mid.gross === 120 && syncStore.mid.plans === 1, 'applyRecords upserts per record (new shift + edited shift + plan)');
+  ok(syncStore.mid.fuel === 3.99 && syncStore.mid.mpg === 25, 'applyRecords settings: synced value applied, missing ones defaulted');
+  ok(syncStore.mid.rev === syncStore.rev1, 'remote records don\'t bump the local rev');
+  ok(syncStore.plansAfterDelete === 0, 'applyRecords null data = deleted elsewhere; unknown collections ignored');
+  ok(syncStore.origins.every((o) => o === 'remote'), 'remote applies notify with origin "remote" (never re-pushed)');
 
   await page.reload({ waitUntil: 'networkidle' });
   await page.locator('.tab[data-view=settings]').click();
@@ -696,7 +708,7 @@ try {
     const s = await import('./js/store.js');
     s.clearAll();
     s.addPlan({ date: '2026-10-10', platform: 'flex', startTime: '09:00', endTime: '11:00', estimate: 50 });
-    s.mergeRemote({ rev: 1, shifts: [], expenses: [], trips: [], incomes: [], settings: {}, plans: [{ id: 'remote-plan', date: '2026-10-11', platform: 'doordash', startTime: '17:00', endTime: '20:00', estimate: 70 }] });
+    s.applyRecords([{ col: 'plans', id: 'remote-plan', data: { date: '2026-10-11', platform: 'doordash', startTime: '17:00', endTime: '20:00', estimate: 70 } }]);
     const merged = s.getPlans().length;
     const backup = s.exportJSON();
     s.clearAll();
@@ -705,7 +717,7 @@ try {
     s.clearAll();
     return { merged, restored };
   });
-  ok(plSync.merged === 2, 'cloud sync first-link merge unions plans from both devices');
+  ok(plSync.merged === 2, 'plans synced from another device sit alongside local ones');
   ok(plSync.restored === '50,70', 'plans survive backup export → restore');
 
   console.log('\n22) Planner (UI): plan, suggest, overlap, trajectory, Log it');

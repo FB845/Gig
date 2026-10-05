@@ -21,7 +21,7 @@ export const EXPENSE_CATEGORIES = [
 
 const DEFAULT_DB = {
   version: 1,
-  rev: 0, // last-write timestamp (ms) — used for cloud-sync conflict resolution
+  rev: 0, // last local-write timestamp (ms)
   settings: {
     // IRS standard mileage rate (business). 2025 = $0.70/mi. Editable.
     mileageRate: 0.70,
@@ -81,47 +81,34 @@ function load() {
 function save() { localStorage.setItem(KEY, JSON.stringify(db)); }
 function notify(origin) { listeners.forEach((fn) => fn(db, origin)); }
 
-// Local user change: bump the revision so cloud sync knows this device is newest.
+// Local user change: bump the revision and tell listeners (cloud sync pushes it).
 function persist() {
   db.rev = Date.now();
   save();
   notify('local');
 }
 
-// ---- cloud-sync hooks (no-ops unless js/sync.js is active) ----
+// ---- cloud-sync hooks (used by js/sync.js when signed in) ----
 export function getDB() { return structuredClone(db); }
 export function getRev() { return db.rev || 0; }
 
-// Replace the whole DB with a remote copy (last-write-wins). Keeps the remote's
-// rev so we don't re-push it back.
-export function applyRemote(remote) {
-  db = coerce(remote);
+// Per-record cloud sync: apply individual records from another device.
+// changes: [{ col: 'shifts'|'expenses'|'trips'|'incomes'|'plans'|'settings', id, data|null }]
+// data null = deleted there. Doesn't bump rev (it isn't a local edit).
+export const SYNC_COLS = ['shifts', 'expenses', 'trips', 'incomes', 'plans'];
+export function applyRecords(changes) {
+  if (!changes.length) return;
+  for (const { col, id, data } of changes) {
+    if (col === 'settings') { if (data) db.settings = { ...DEFAULT_DB.settings, ...data }; continue; }
+    if (!SYNC_COLS.includes(col)) continue;
+    const list = db[col];
+    const i = list.findIndex((x) => x.id === id);
+    if (!data) { if (i >= 0) list.splice(i, 1); continue; }
+    const rec = { ...data, id };
+    if (i >= 0) list[i] = rec; else list.push(rec);
+  }
   save();
   notify('remote');
-}
-
-// Union local + remote by record id (used once when first linking an account so
-// neither side's existing entries are lost). Bumps rev and returns the merged db.
-export function mergeRemote(remote) {
-  const r = coerce(remote);
-  const union = (a, b) => {
-    const m = new Map(a.map((x) => [x.id, x]));
-    for (const x of b) if (!m.has(x.id)) m.set(x.id, x);
-    return [...m.values()];
-  };
-  db = {
-    ...db,
-    shifts: union(db.shifts, r.shifts),
-    expenses: union(db.expenses, r.expenses),
-    trips: union(db.trips, r.trips),
-    incomes: union(db.incomes, r.incomes),
-    plans: union(db.plans, r.plans),
-    settings: { ...r.settings, ...db.settings },
-    rev: Date.now(),
-  };
-  save();
-  notify('merge');
-  return structuredClone(db);
 }
 
 export function onChange(fn) {
@@ -141,7 +128,8 @@ export function updateSettings(patch) {
 // ---- ids ----
 let counter = 0;
 function uid() {
-  // time-based-ish without Date.now dependency issues in normal browser runtime
+  // Records sync between devices, so ids must be globally unique.
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
   counter += 1;
   const t = typeof performance !== 'undefined' ? Math.floor(performance.now() * 1000) : counter;
   return `${t.toString(36)}-${counter.toString(36)}-${Math.floor(Math.random() * 1e6).toString(36)}`;

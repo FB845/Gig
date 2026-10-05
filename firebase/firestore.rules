@@ -1,0 +1,11 @@
+rules_version = '2';
+// Gig Tracker cloud sync: each signed-in user can only read/write their own
+// records under users/{uid}/records/{col}~{id}.
+service cloud.firestore {
+  match /databases/{db}/documents {
+    match /users/{uid}/{doc=**} {
+      allow read, write: if request.auth != null
+                         && request.auth.uid == uid;
+    }
+  }
+}

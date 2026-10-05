@@ -214,38 +214,57 @@ private, no account, no server. That also means:
   browser data (or deleting the installed app) erases the local copy.
 - Restore anytime with Settings → **Restore from backup** (merge or replace).
 
-## Cloud sync (optional) — access your data on phone + desktop
+## Cloud sync (optional) — plan on desktop, log on your phone
 
-Cloud sync is **opt-in**; the app works fully on-device without it. When enabled,
-it uses **your own free Firebase (Firestore) project** so your data stays in an
-account you control. Sign in with the same email on each device and they stay in
-sync live. Set it up once per device in **Settings → Cloud sync**:
+Cloud sync is **opt-in**; the app works fully on-device without it. It uses
+**your own free Firebase project** (the free Spark plan is plenty), so your data
+stays in an account you control.
 
-1. At **console.firebase.google.com**, create a free project, add a **Web app**,
-   and copy its `firebaseConfig` object.
-2. **Build → Authentication →** enable the **Email/Password** provider.
-3. **Build → Firestore Database →** create a database, then set **Rules** to:
-   ```
-   rules_version = '2';
-   service cloud.firestore {
-     match /databases/{db}/documents {
-       match /gigtracker/{uid} {
-         allow read, write: if request.auth != null && request.auth.uid == uid;
-       }
-     }
-   }
-   ```
-4. Paste the config into **Settings → Cloud sync** and sign in (create the
-   account on the first device, sign in with the same email/password on the
-   others).
+### One-time setup (~10 minutes)
 
-How it works: the whole DB is stored as one document at `gigtracker/{uid}`.
-Conflicts resolve **last-write-wins by revision**, except the first time a device
-links an account, when local + cloud data are **union-merged by record id** so
-neither side's existing entries are lost. It works offline (Firestore caches
-locally) and pushes when you reconnect. Your Firebase config lives only on each
-device (not in the synced data), and the security rules above ensure only you
-can read/write your document.
+1. At **console.firebase.google.com**, create a project (Analytics not needed),
+   then **Add app → Web** and copy the `firebaseConfig` object.
+2. **Build → Authentication → Sign-in method**: enable **Google** (and
+   **Email/Password** too if you'd like a fallback). Under **Settings →
+   Authorized domains**, add the site's domain (e.g. `fb845.github.io`).
+3. **Build → Firestore Database**: create a database (production mode), then
+   paste the rules from [`firebase/firestore.rules`](firebase/firestore.rules)
+   into the **Rules** tab and **Publish**. They let each signed-in user read and
+   write only their own records.
+4. Put the config in the app — either:
+   - **Built in (recommended):** paste it into `js/firebase-config.js`
+     (`export const FIREBASE_CONFIG = { … }`) and deploy. These values are
+     public identifiers, not secrets; the rules and authorized domains protect
+     your data. Every device then just shows **Sign in with Google**.
+   - **Per device:** leave that file as is and paste the config into
+     **Settings → Cloud sync** on each device.
+5. **Settings → Cloud sync → Sign in with Google** on each device. Use the same
+   sign-in method everywhere (if Google's popup can't open in the iPhone
+   home-screen app, use **Use email instead** on *every* device).
+
+### How it works
+
+- **One document per record** at `users/{uid}/records/{type}~{id}` — each shift,
+  plan, expense, trip, income entry and the settings sync on their own, so
+  planning on desktop while logging on your phone merges cleanly. Only changed
+  records are uploaded.
+- **Deletes sync too** (a small "deleted" marker stays in the cloud so the record
+  doesn't come back from another device).
+- **Conflicts:** if both devices edit the *same* record before syncing, the last
+  one to sync wins. Different records never conflict.
+- **First sign-in on a device** merges what's on it with what's in the cloud:
+  nothing is lost, and the cloud's settings are kept (a new phone won't reset
+  your desktop's fuel price or MPG).
+- **Offline:** changes queue on the device and upload when you're back online;
+  live updates arrive from your other devices within a second or two.
+- **Cheap:** each device only downloads records changed since it last synced.
+- Erase all data / restore from a backup while signed in applies to every
+  synced device.
+
+The two-device behaviour (live updates, simultaneous edits, deletes, offline
+merge, settings, the security rules, Google sign-in) is tested against the
+Firebase emulators: `node scripts/sync-test.mjs` (needs `firebase-tools` and
+Java; see the script header).
 
 ## Project layout
 
@@ -257,7 +276,9 @@ js/charts.js            dependency-free SVG bar / line / donut charts
 js/parse.js             CSV parsing + OCR/free-text field extraction
 js/ocr.js               lazy Tesseract.js loader for screenshot OCR
 js/geo.js               GPS auto-mileage tracker (Haversine + jitter filtering)
-js/sync.js              optional Firebase (Firestore) cloud sync
+js/sync.js              optional Firebase cloud sync (one Firestore doc per record)
+js/firebase-config.js   your Firebase web config (null = paste it in Settings)
+firebase/               Firestore security rules + emulator config
 js/calendar.js          .ics + schedule-screenshot parsing for the planner
 fonts/                  bundled pixel fonts (DotGothic16 subset, Silkscreen) + their OFL licences
 js/app.js               UI wiring
