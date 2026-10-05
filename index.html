@@ -43,42 +43,40 @@
 
   <header class="app-header">
     <div class="brand">
-      <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="22" height="22"><rect x="3" y="13" width="3.5" height="8" rx="1" fill="#60a5fa"/><rect x="8.5" y="9" width="3.5" height="12" rx="1" fill="#34d399"/><rect x="14" y="6" width="3.5" height="15" rx="1" fill="#60a5fa"/><rect x="19" y="3" width="2" height="18" rx="1" fill="#34d399"/></svg>
-      </span>
-      <h1>Gig Tracker</h1>
+      <h1 id="screen-title" class="screen-title" aria-label="GIG LINE · HOME"><span class="swap"><span>ギグ線 · ホーム</span><span>GIG LINE · HOME</span></span></h1>
       <span class="hdr-clock" id="hdr-clock" aria-hidden="true">--:--</span>
     </div>
-    <div id="period-pills" class="pills" role="tablist" aria-label="Date range">
-      <button class="pill" data-period="week">Week</button>
-      <button class="pill" data-period="month">Month</button>
-      <button class="pill" data-period="year">Year</button>
-      <button class="pill" data-period="all">All</button>
-    </div>
-    <div class="ticker" id="ticker" aria-hidden="true"><div class="ticker-track" id="ticker-track"></div></div>
   </header>
 
   <main id="app">
     <!-- ================= DASHBOARD ================= -->
     <section id="view-dashboard" class="view active" aria-label="Dashboard">
+      <div id="period-pills" class="pills" role="tablist" aria-label="Date range">
+        <button class="pill" data-period="week">週間</button>
+        <button class="pill" data-period="month">月間</button>
+        <button class="pill" data-period="year">年間</button>
+        <button class="pill" data-period="all">全期間</button>
+      </div>
+      <div class="ticker" id="ticker" aria-hidden="true"><div class="ticker-track" id="ticker-track"></div></div>
+
+      <div class="kpi-grid" id="kpi-grid"></div>
+
       <button id="drive-cta" class="drive-cta">
-        <span class="dc-left"><span class="dc-dot"></span><span class="dc-text"><b class="led"><span class="swap"><span>運転開始</span><span>START DRIVE</span></span></b><small>Auto-track your miles with GPS</small></span></span>
-        <span class="dc-go">▶</span>
+        <svg viewBox="0 0 12 12" width="16" height="16" aria-hidden="true"><path d="M2 1l9 5-9 5z" fill="currentColor"/></svg>
+        <span class="led"><span class="swap"><span>運転開始 · GPS 走行記録</span><span>START DRIVE · AUTO MILES</span></span></span>
       </button>
 
       <div class="card offer-card" id="offer-card">
-        <div class="card-head"><h2>Worth it?<span class="jp">受注判定</span></h2><span class="muted offer-avg" id="offer-avg"></span></div>
+        <div class="card-head"><h2 aria-label="Worth it?"><span class="swap"><span>受注判定</span><span>WORTH IT?</span></span></h2><span class="muted offer-avg" id="offer-avg"></span></div>
         <div class="offer-inputs">
           <div class="field"><label>Pay $</label><input type="number" id="offer-pay" inputmode="decimal" step="0.01" min="0" placeholder="7.50" /></div>
           <div class="field"><label>Miles</label><input type="number" id="offer-miles" inputmode="decimal" step="0.1" min="0" placeholder="8" /></div>
-          <div class="field"><label>Est. min <span class="hint">opt.</span></label><input type="number" id="offer-min" inputmode="numeric" step="1" min="0" placeholder="25" /></div>
+          <div class="field"><label>Est. min</label><input type="number" id="offer-min" inputmode="numeric" step="1" min="0" placeholder="25" /></div>
         </div>
         <div class="offer-verdict" id="offer-verdict"><div class="ov-hint muted">Enter an offer's pay and miles for an instant take / skip.</div></div>
       </div>
 
       <div class="card route-strip" id="route-strip"></div>
-
-      <div class="kpi-grid" id="kpi-grid"></div>
 
       <div class="card tax-card" id="tax-card"></div>
 
@@ -86,27 +84,25 @@
 
       <div class="card">
         <div class="card-head">
-          <h2>Earnings over time<span class="jp">収入推移</span></h2>
+          <h2 aria-label="Earnings"><span class="swap"><span>収入推移</span><span>EARNINGS</span></span></h2>
           <div class="legend" id="earn-legend"></div>
         </div>
         <div class="chart-wrap" id="chart-earnings"></div>
       </div>
 
-      <div class="two-col">
-        <div class="card">
-          <div class="card-head"><h2>By platform<span class="jp">事業者別</span></h2></div>
-          <div class="chart-wrap donut-wrap" id="chart-platform"></div>
-          <div class="legend" id="platform-legend"></div>
-        </div>
-        <div class="card">
-          <div class="card-head"><h2>Expenses<span class="jp">経費</span></h2></div>
-          <div class="chart-wrap donut-wrap" id="chart-expenses"></div>
-          <div class="legend" id="expenses-legend"></div>
-        </div>
+      <div class="card">
+        <div class="card-head"><h2 aria-label="By platform"><span class="swap"><span>事業者別</span><span>BY PLATFORM</span></span></h2></div>
+        <div class="split-bar" id="chart-platform"></div>
+        <div class="split-legend" id="platform-legend"></div>
       </div>
 
       <div class="card">
-        <div class="card-head"><h2>Recent shifts<span class="jp">発車標</span></h2></div>
+        <div class="card-head"><h2 aria-label="Expenses"><span class="swap"><span>経費</span><span>EXPENSES</span></span></h2><span class="led exp-total" id="expenses-total"></span></div>
+        <div class="exp-bars" id="chart-expenses"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2 aria-label="Recent shifts"><span class="swap"><span>発車標 · 直近</span><span>RECENT SHIFTS</span></span></h2></div>
         <ul class="record-list" id="recent-shifts"></ul>
         <div class="depboard" id="departure-board"></div>
       </div>
@@ -120,7 +116,7 @@
       <div class="card week-goal" id="month-goal"></div>
       <div class="card" id="traj-card">
         <div class="card-head">
-          <h2>Income trajectory<span class="jp">収入見通し</span></h2>
+          <h2 aria-label="Income trajectory"><span class="swap"><span>収入見通し</span><span>TRAJECTORY</span></span></h2>
           <button type="button" class="btn ghost camp-add" id="camp-add-plan">+ Plan</button>
         </div>
         <div class="chart-wrap" id="traj-chart"></div>
@@ -129,12 +125,12 @@
       </div>
       <div class="kpi-grid camp-kpis" id="camp-kpis"></div>
       <div class="card">
-        <div class="card-head"><h2>Last 14 days<span class="jp">直近14日</span></h2></div>
+        <div class="card-head"><h2 aria-label="Last 14 days"><span class="swap"><span>直近14日</span><span>LAST 14 DAYS</span></span></h2></div>
         <div class="chart-wrap" id="camp-chart"></div>
       </div>
       <div class="card">
         <div class="card-head">
-          <h2>Income ledger<span class="jp">入金台帳</span></h2>
+          <h2 aria-label="Income ledger"><span class="swap"><span>入金台帳</span><span>INCOME LEDGER</span></span></h2>
           <button type="button" class="btn ghost camp-add" id="camp-add-income">+ Income</button>
         </div>
         <ul class="record-list" id="camp-ledger"></ul>
@@ -152,18 +148,18 @@
 
       <!-- Shift form -->
       <form id="shift-form" class="card form">
-        <div class="card-head"><h2 id="shift-form-title">Log a shift</h2></div>
+        <div class="card-head"><h2 id="shift-form-title" aria-label="Log a shift"><span class="swap"><span>シフト記録</span><span>LOG A SHIFT</span></span></h2></div>
         <div class="field">
-          <label>Platform</label>
+          <label>Platform 事業者</label>
           <div class="choice" id="shift-platform">
-            <button type="button" class="chip active" data-val="flex">Amazon Flex</button>
+            <button type="button" class="chip active" data-val="flex">Flex</button>
             <button type="button" class="chip" data-val="doordash">DoorDash</button>
             <button type="button" class="chip" data-val="other">Other</button>
-            <button type="button" class="chip" data-val="income">Income</button>
+            <button type="button" class="chip" data-val="income">収入 Income</button>
           </div>
         </div>
         <div class="field income-only hidden">
-          <label>Source</label>
+          <label>Source 取引先</label>
           <input type="text" name="source" list="income-sources" placeholder="TraceHaus" autocomplete="off" />
           <datalist id="income-sources"><option value="TraceHaus"></option><option value="Invoice"></option><option value="Consulting"></option><option value="Retainer"></option></datalist>
         </div>
@@ -179,7 +175,7 @@
           <input type="number" name="rate" class="hidden" step="0.01" min="0" inputmode="decimal" placeholder="45.00" aria-label="hourly rate" />
         </div>
         <div class="field flex-only" id="flex-block-field">
-          <label>Block length <span class="hint">scheduled</span></label>
+          <label>Block length ブロック <span class="hint">scheduled</span></label>
           <div class="choice compact" id="shift-blockpreset">
             <button type="button" class="chip" data-val="1">1:00</button>
             <button type="button" class="chip" data-val="1.5">1:30</button>
@@ -194,7 +190,7 @@
           <input type="number" id="shift-scheduled-custom" class="hidden" step="0.25" min="0" inputmode="decimal" placeholder="Custom block hours, e.g. 5" style="margin-top:8px" />
         </div>
         <div class="field flex-only" id="flex-tag-field">
-          <label>Block type <span class="hint">種別</span></label>
+          <label>Block type 種別</label>
           <div class="choice type-choice" id="shift-tag">
             <button type="button" class="chip type-chip" data-val="Local" style="--tc:#11a85a;--ink:#fff"><b>普通</b><em>LOCAL</em><i>Local</i></button>
             <button type="button" class="chip type-chip" data-val="Rapid" style="--tc:#2a6fd6;--ink:#fff"><b>快速</b><em>RAPID</em><i>Rapid</i></button>
@@ -202,10 +198,10 @@
             <button type="button" class="chip type-chip" data-val="Rapid Express" style="--tc:#e0211b;--ink:#fff"><b>特急</b><em>LTD.EXP</em><i>Rapid Exp</i></button>
           </div>
         </div>
-        <div class="field"><label>Date</label><input type="date" name="date" required /></div>
+        <div class="field"><label>Date 日付</label><input type="date" name="date" required /></div>
         <div class="field" id="time-field">
           <div class="time-head">
-            <label id="hours-label">Actual time worked</label>
+            <label id="hours-label">Actual time worked 実働</label>
             <div class="mini-seg" id="time-mode" role="tablist" aria-label="Time input mode">
               <button type="button" class="active" data-mode="duration">Duration</button>
               <button type="button" data-mode="range">Start – Finish</button>
@@ -223,32 +219,32 @@
           <div class="tr-dur hidden" id="time-range-dur"></div>
         </div>
         <div class="row gig-only">
-          <div class="field"><label>Base pay ($)</label><input type="number" name="gross" step="0.01" min="0" inputmode="decimal" placeholder="42.00" /></div>
-          <div class="field"><label>Tips ($)</label><input type="number" name="tips" step="0.01" min="0" inputmode="decimal" placeholder="18.00" /></div>
+          <div class="field"><label>Base pay 基本給 $</label><input type="number" name="gross" step="0.01" min="0" inputmode="decimal" placeholder="42.00" /></div>
+          <div class="field"><label>Tips チップ $</label><input type="number" name="tips" step="0.01" min="0" inputmode="decimal" placeholder="18.00" /></div>
         </div>
         <div class="row gig-only">
-          <div class="field"><label>Deliveries / packages</label><input type="number" name="jobs" step="1" min="0" inputmode="numeric" placeholder="12" /></div>
-          <div class="field"><label>Miles driven</label><input type="number" name="miles" step="0.1" min="0" inputmode="decimal" placeholder="34.5" /></div>
+          <div class="field"><label>Deliveries 配達数</label><input type="number" name="jobs" step="1" min="0" inputmode="numeric" placeholder="12" /></div>
+          <div class="field"><label>Miles 走行距離</label><input type="number" name="miles" step="0.1" min="0" inputmode="decimal" placeholder="34.5" /></div>
         </div>
-        <div class="field gig-only"><label>MPG this shift <span class="hint">optional — fuel cost auto-calculated (blank = default from Settings)</span></label><input type="number" name="mpg" step="0.1" min="0" inputmode="decimal" placeholder="25" /></div>
-        <div class="field"><label>Notes</label><input type="text" name="notes" placeholder="Morning block, downtown" /></div>
+        <div class="field gig-only"><label>MPG this shift 燃費 <span class="hint" id="mpg-hint">blank = Settings default · fuel auto</span></label><input type="number" name="mpg" step="0.1" min="0" inputmode="decimal" placeholder="25" /></div>
+        <div class="field"><label>Notes メモ</label><input type="text" name="notes" placeholder="Morning block, downtown" /></div>
         <div class="live-metrics" id="shift-live"></div>
         <div class="form-actions">
           <button type="button" class="btn ghost" id="shift-reset">Clear</button>
-          <button type="submit" class="btn primary" id="shift-submit">Save shift</button>
+          <button type="submit" class="btn primary" id="shift-submit">Save shift 保存</button>
         </div>
       </form>
 
       <!-- Plan form (planner: pre-plan blocks/shifts with estimated earnings) -->
       <form id="plan-form" class="card form hidden">
-        <div class="card-head"><h2 id="plan-form-title">Plan a block<span class="jp">予定</span></h2><button type="button" class="btn ghost camp-add" id="plan-import">予定取込 Import</button></div>
+        <div class="card-head"><h2 id="plan-form-title" aria-label="Plan a block"><span class="swap"><span>予定を立てる</span><span>PLAN A BLOCK</span></span></h2><button type="button" class="btn ghost camp-add" id="plan-import">カレンダー取込 Import</button></div>
         <div class="field">
-          <label>Platform</label>
+          <label>Platform 事業者</label>
           <div class="choice" id="plan-platform">
-            <button type="button" class="chip active" data-val="flex">Amazon Flex</button>
+            <button type="button" class="chip active" data-val="flex">Flex</button>
             <button type="button" class="chip" data-val="doordash">DoorDash</button>
             <button type="button" class="chip" data-val="other">Other</button>
-            <button type="button" class="chip" data-val="income">Income</button>
+            <button type="button" class="chip" data-val="income">収入 Income</button>
           </div>
         </div>
         <div class="field plan-flex">
@@ -265,7 +261,7 @@
           </div>
         </div>
         <div class="field plan-flex">
-          <label>Block type <span class="hint">種別</span></label>
+          <label>Block type 種別</label>
           <div class="choice type-choice" id="plan-tag">
             <button type="button" class="chip type-chip" data-val="Local" style="--tc:#11a85a;--ink:#fff"><b>普通</b><em>LOCAL</em><i>Local</i></button>
             <button type="button" class="chip type-chip" data-val="Rapid" style="--tc:#2a6fd6;--ink:#fff"><b>快速</b><em>RAPID</em><i>Rapid</i></button>
@@ -274,12 +270,12 @@
           </div>
         </div>
         <div class="field plan-income hidden">
-          <label>Source</label>
+          <label>Source 取引先</label>
           <input type="text" name="source" list="income-sources" placeholder="TraceHaus" autocomplete="off" />
         </div>
-        <div class="field"><label>Date</label><input type="date" name="date" required /></div>
+        <div class="field"><label>Date 日付</label><input type="date" name="date" required /></div>
         <div class="field">
-          <label>Start → Finish <span class="hint" id="plan-time-hint"></span></label>
+          <label>Start → Finish 発 → 着 <span class="hint" id="plan-time-hint"></span></label>
           <div class="time-range">
             <input type="time" name="startTime" aria-label="planned start" />
             <span class="tr-arrow">→</span>
@@ -288,41 +284,41 @@
           <div class="tr-dur hidden" id="plan-dur"></div>
         </div>
         <div class="field">
-          <label>Estimated earnings ($) <span class="hint" id="plan-est-hint"></span></label>
+          <label>Estimated earnings 見込 $ <span class="hint" id="plan-est-hint"></span></label>
           <input type="number" name="estimate" step="0.01" min="0" inputmode="decimal" placeholder="84.00" />
         </div>
-        <div class="field"><label>Note <span class="hint">optional</span></label><input type="text" name="note" placeholder="Surge zone, pick up at 9" /></div>
+        <div class="field"><label>Note メモ <span class="hint">optional</span></label><input type="text" name="note" placeholder="Surge zone, pick up at 9" /></div>
         <div class="plan-check" id="plan-check"></div>
         <div class="form-actions">
           <button type="button" class="btn ghost" id="plan-reset">Clear</button>
-          <button type="submit" class="btn primary" id="plan-submit">Save plan</button>
+          <button type="submit" class="btn primary" id="plan-submit">Save plan 保存</button>
         </div>
       </form>
 
       <!-- Expense form -->
       <form id="expense-form" class="card form hidden">
-        <div class="card-head"><h2 id="expense-form-title">Log an expense</h2></div>
+        <div class="card-head"><h2 id="expense-form-title" aria-label="Log an expense"><span class="swap"><span>経費を記録</span><span>LOG AN EXPENSE</span></span></h2></div>
         <div class="row">
-          <div class="field"><label>Date</label><input type="date" name="date" required /></div>
-          <div class="field"><label>Amount ($)</label><input type="number" name="amount" step="0.01" min="0" inputmode="decimal" placeholder="45.00" required /></div>
+          <div class="field"><label>Date 日付</label><input type="date" name="date" required /></div>
+          <div class="field"><label>Amount 金額 $</label><input type="number" name="amount" step="0.01" min="0" inputmode="decimal" placeholder="45.00" required /></div>
         </div>
-        <div class="field"><label>Category</label><select name="category" id="expense-category"></select></div>
-        <div class="field"><label>Platform <span class="hint">optional</span></label>
+        <div class="field"><label>Category 区分</label><select name="category" id="expense-category"></select></div>
+        <div class="field"><label>Platform 事業者 <span class="hint">optional</span></label>
           <div class="choice" id="expense-platform">
             <button type="button" class="chip active" data-val="">Any</button>
             <button type="button" class="chip" data-val="flex">Flex</button>
-            <button type="button" class="chip" data-val="doordash">Dasher</button>
+            <button type="button" class="chip" data-val="doordash">DoorDash</button>
           </div>
         </div>
-        <div class="field"><label>Note</label><input type="text" name="note" placeholder="Costco gas" /></div>
+        <div class="field"><label>Note メモ</label><input type="text" name="note" placeholder="Costco gas" /></div>
         <div class="form-actions">
           <button type="button" class="btn ghost" id="expense-reset">Clear</button>
-          <button type="submit" class="btn primary" id="expense-submit">Save expense</button>
+          <button type="submit" class="btn primary" id="expense-submit">Save expense 保存</button>
         </div>
       </form>
 
       <div class="card">
-        <div class="card-head"><h2 id="log-list-title">All shifts</h2></div>
+        <div class="card-head"><h2 id="log-list-title">Shifts &amp; income</h2></div>
         <ul class="record-list" id="log-list"></ul>
       </div>
     </section>
@@ -330,43 +326,39 @@
     <!-- ================= TRENDS ================= -->
     <section id="view-trends" class="view" aria-label="Trends">
       <div class="card hidden" id="flex-tag-card">
-        <div class="card-head"><h2>Flex $/hour by block type<span class="jp">種別別 時給</span></h2></div>
-        <div class="chart-wrap" id="chart-flex-tag"></div>
-        <ul class="tag-stats" id="flex-tag-list"></ul>
+        <div class="card-head"><h2 aria-label="Flex $/hour by block type"><span class="swap"><span>種別別 時給</span><span>FLEX $/HR BY TYPE</span></span></h2><span class="muted head-note" id="flex-tag-best"></span></div>
+        <ul class="tag-bars" id="flex-tag-list"></ul>
       </div>
 
       <div class="card">
-        <div class="card-head">
-          <h2>Weekly net income<span class="jp">週別 純利益</span></h2>
-          <div class="legend" id="trend-net-legend"></div>
-        </div>
+        <div class="card-head"><h2 aria-label="Weekly net income"><span class="swap"><span>週間純利益</span><span>WEEKLY NET</span></span></h2><span class="muted head-note" id="trend-net-note"></span></div>
         <div class="chart-wrap" id="chart-weekly-net"></div>
       </div>
       <div class="card">
-        <div class="card-head"><h2>Effective $/hour trend<span class="jp">時給 推移</span></h2></div>
+        <div class="card-head"><h2 aria-label="Effective $/hour trend"><span class="swap"><span>時給推移</span><span>$/HR TREND</span></span></h2><span class="led head-val" id="hourly-latest"></span></div>
         <div class="chart-wrap" id="chart-hourly"></div>
       </div>
       <div class="card">
         <div class="card-head">
-          <h2>Income vs expenses (monthly)<span class="jp">月別 収支</span></h2>
-          <div class="legend" id="ie-legend"></div>
+          <h2 aria-label="Income vs expenses (monthly)"><span class="swap"><span>収入と経費</span><span>INCOME VS EXPENSES</span></span></h2>
+          <span class="muted head-note"><i class="sq" style="background:#e8f1ff"></i>in <i class="sq" style="background:#ff6b5f"></i>out</span>
         </div>
         <div class="chart-wrap" id="chart-income-expense"></div>
       </div>
       <div class="card">
-        <div class="card-head"><h2>Best day of week<span class="jp">曜日別</span></h2></div>
+        <div class="card-head"><h2 aria-label="Best day of week"><span class="swap"><span>曜日別</span><span>BEST DAY</span></span></h2><span class="muted head-note" id="dow-best"></span></div>
         <div class="chart-wrap" id="chart-dow"></div>
       </div>
 
       <div class="card" id="tax-summary-card">
         <div class="card-head">
-          <h2>Tax summary<span class="jp">確定申告</span></h2>
+          <h2 aria-label="Tax summary"><span class="swap"><span>年間 税金まとめ</span><span>YEAR-END TAX</span></span></h2>
           <select id="tax-year" aria-label="Tax year"></select>
         </div>
         <div id="tax-summary-body"></div>
-        <div class="btn-col" style="margin-top: 12px">
-          <button type="button" class="btn" id="tax-export-csv">CSV出力 Export CSV</button>
-          <button type="button" class="btn" id="tax-print">印刷 Print / Save PDF</button>
+        <div class="btn-grid2">
+          <button type="button" class="btn" id="tax-export-csv">Export CSV</button>
+          <button type="button" class="btn" id="tax-print">Print / PDF</button>
         </div>
         <p class="muted tax-disclaimer">Estimate only — not tax advice. You generally deduct the <b>larger</b> of the standard mileage rate <b>or</b> actual vehicle expenses (not both); other business expenses are separate. Confirm with a tax professional.</p>
       </div>
@@ -375,14 +367,14 @@
     <!-- ================= IMPORT ================= -->
     <section id="view-import" class="view" aria-label="Import">
       <div class="card" id="cal-card">
-        <div class="card-head"><h2>Calendar → planner<span class="jp">カレンダー取込</span></h2></div>
+        <div class="card-head"><h2 aria-label="Calendar → planner"><span class="swap"><span>カレンダー → 予定</span><span>CALENDAR → PLANNER</span></span></h2></div>
         <p class="muted">Bring blocks and shifts you've already scheduled into <b>Log → Plan</b>: an <b>.ics</b> calendar file (Google / Apple / Outlook export) or a <b>screenshot</b> of your schedule (e.g. the Flex calendar). You review everything before it's added; past events are skipped.</p>
         <div class="field"><label>Unrecognized entries default to</label>
           <div class="choice" id="cal-platform">
             <button type="button" class="chip active" data-val="flex">Flex</button>
-            <button type="button" class="chip" data-val="doordash">Dasher</button>
+            <button type="button" class="chip" data-val="doordash">DoorDash</button>
             <button type="button" class="chip" data-val="other">Other</button>
-            <button type="button" class="chip" data-val="income">Income</button>
+            <button type="button" class="chip" data-val="income">収入 Income</button>
           </div>
         </div>
         <div class="row">
@@ -402,12 +394,12 @@
       </div>
 
       <div class="card">
-        <div class="card-head"><h2>Screenshot import (OCR)<span class="jp">スクショ取込</span></h2></div>
+        <div class="card-head"><h2 aria-label="Screenshot import (OCR)"><span class="swap"><span>スクショ取込 · 収入</span><span>SCREENSHOT (OCR)</span></span></h2></div>
         <p class="muted">Snap or upload a screenshot of your Flex or Dasher earnings screen. The app reads the amounts, miles and counts for you to review before saving.</p>
         <div class="choice" id="ocr-platform">
           <button type="button" class="chip active" data-val="">Auto-detect</button>
           <button type="button" class="chip" data-val="flex">Flex</button>
-          <button type="button" class="chip" data-val="doordash">Dasher</button>
+          <button type="button" class="chip" data-val="doordash">DoorDash</button>
         </div>
         <label class="dropzone" id="ocr-drop">
           <input type="file" id="ocr-file" accept="image/*" capture="environment" hidden />
@@ -419,7 +411,7 @@
       </div>
 
       <div class="card">
-        <div class="card-head"><h2>CSV import<span class="jp">CSV取込</span></h2></div>
+        <div class="card-head"><h2 aria-label="CSV import"><span class="swap"><span>CSV 取込</span><span>CSV IMPORT</span></span></h2></div>
         <p class="muted">Import an earnings CSV (e.g. DoorDash weekly earnings export, or any spreadsheet with date/earnings/miles columns).</p>
         <div class="choice" id="csv-platform">
           <button type="button" class="chip active" data-val="">Auto / mixed</button>
@@ -435,7 +427,7 @@
       </div>
 
       <div class="card">
-        <div class="card-head"><h2>Email-assisted import<span class="jp">メール取込</span></h2></div>
+        <div class="card-head"><h2 aria-label="Email-assisted import"><span class="swap"><span>メール取込</span><span>EMAIL-ASSISTED</span></span></h2></div>
         <p class="muted">Amazon Flex and DoorDash email you every payout. Ask Claude (with your Gmail connected) to pull those deposit emails and generate a CSV, then import it above. Amazon Flex and DoorDash don't offer a public driver API, so this is the closest thing to automatic.</p>
       </div>
     </section>
@@ -443,31 +435,31 @@
     <!-- ================= SETTINGS ================= -->
     <section id="view-settings" class="view" aria-label="Settings">
       <div class="card form">
-        <div class="card-head"><h2>Settings<span class="jp">設定</span></h2></div>
+        <div class="card-head"><h2 aria-label="Settings"><span class="swap"><span>料率</span><span>RATES</span></span></h2></div>
         <div class="field">
-          <label>IRS standard mileage rate ($/mi) <span class="hint">for tax deduction estimate</span></label>
+          <label>IRS mileage rate 走行控除 $/mi</label>
           <input type="number" id="set-mileage" step="0.01" min="0" inputmode="decimal" />
         </div>
         <div class="field">
-          <label>Tax set-aside (% of profit) <span class="hint">SE + income tax rule-of-thumb</span></label>
+          <label>Tax set-aside 税金積立 % of profit</label>
           <input type="number" id="set-taxrate" step="1" min="0" max="60" inputmode="numeric" />
         </div>
         <div class="row">
-          <div class="field"><label>Min $/mile <span class="hint">Worth it?</span></label><input type="number" id="set-minmile" step="0.05" min="0" inputmode="decimal" /></div>
-          <div class="field"><label>Min $/hour <span class="hint">Worth it?</span></label><input type="number" id="set-minhour" step="1" min="0" inputmode="numeric" /></div>
+          <div class="field"><label>Min $/mile 受注判定</label><input type="number" id="set-minmile" step="0.05" min="0" inputmode="decimal" /></div>
+          <div class="field"><label>Min $/hour 受注判定</label><input type="number" id="set-minhour" step="1" min="0" inputmode="numeric" /></div>
         </div>
         <div class="row">
-          <div class="field"><label>Fuel price ($/gal) <span class="hint">for auto fuel cost</span></label><input type="number" id="set-fuelprice" step="0.01" min="0" inputmode="decimal" /></div>
-          <div class="field"><label>Vehicle MPG <span class="hint">default miles/gallon</span></label><input type="number" id="set-mpg" step="0.1" min="0" inputmode="decimal" /></div>
+          <div class="field"><label>Fuel price 燃料 $/gal</label><input type="number" id="set-fuelprice" step="0.01" min="0" inputmode="decimal" /></div>
+          <div class="field"><label>Vehicle MPG 燃費</label><input type="number" id="set-mpg" step="0.1" min="0" inputmode="decimal" /></div>
         </div>
         <div class="field">
-          <label>Week starts on</label>
-          <select id="set-weekstart"><option value="1">Monday</option><option value="0">Sunday</option></select>
+          <label>Week starts on 週の始まり</label>
+          <select id="set-weekstart"><option value="1">Monday 月曜</option><option value="0">Sunday 日曜</option></select>
         </div>
       </div>
 
       <div class="card" id="sync-card">
-        <div class="card-head"><h2>Cloud sync<span class="jp">同期</span></h2><span class="sync-pill" id="sync-pill">Off</span></div>
+        <div class="card-head"><h2 aria-label="Cloud sync"><span class="swap"><span>同期</span><span>CLOUD SYNC</span></span></h2><span class="sync-pill" id="sync-pill">Off</span></div>
         <p class="muted">Sync your data across phone &amp; desktop with your own free Firebase project — sign in with the same email on both devices. Optional; the app works fully on-device without it. <a href="#" id="sync-guide-toggle">Setup guide</a></p>
 
         <div class="sync-guide hidden" id="sync-guide">
@@ -517,24 +509,24 @@ service cloud.firestore {
       </div>
 
       <div class="card">
-        <div class="card-head"><h2>Backup &amp; data<span class="jp">バックアップ</span></h2></div>
+        <div class="card-head"><h2 aria-label="Backup &amp; data"><span class="swap"><span>バックアップ</span><span>BACKUP &amp; DATA</span></span></h2></div>
         <p class="muted">Your data lives in this browser (and in your Firebase project if cloud sync is on). Back it up regularly — clearing browser data will erase the local copy.</p>
-        <div class="btn-col">
-          <button class="btn" id="export-json">バックアップ Export backup (JSON)</button>
-          <button class="btn" id="export-csv">CSV出力 Export shifts (CSV)</button>
-          <label class="btn" for="import-json-file">⬆️ Restore from backup</label>
+        <div class="btn-grid2">
+          <button class="btn" id="export-json">Export JSON</button>
+          <button class="btn" id="export-csv">Export CSV</button>
+          <label class="btn span2" for="import-json-file">Restore from backup 復元</label>
           <input type="file" id="import-json-file" accept=".json,application/json" hidden />
-          <button class="btn danger" id="clear-all">全削除 Erase all data</button>
+          <button class="btn danger span2" id="clear-all">Erase all data 全削除</button>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-head"><h2>Install<span class="jp">インストール</span></h2></div>
-        <p class="muted" id="install-hint">On iPhone: tap the Share button in Safari, then <strong>Add to Home Screen</strong> to use it like an app (offline too). On Android/desktop Chrome, use the install button below or the browser's install prompt.</p>
+        <div class="card-head"><h2 aria-label="Install"><span class="swap"><span>インストール</span><span>INSTALL</span></span></h2></div>
+        <p class="muted" id="install-hint">iPhone: Share → <strong>Add to Home Screen</strong>. Android / desktop: menu → Install app. Works offline once installed.</p>
         <button class="btn primary hidden" id="install-btn">インストール Install app</button>
       </div>
 
-      <p class="version muted">Gig Tracker · on-device · v1</p>
+      <p class="version muted">Gig Tracker · 白色LED · v21</p>
     </section>
   </main>
 
@@ -550,15 +542,22 @@ service cloud.firestore {
   <!-- ================= DRIVE OVERLAY ================= -->
   <div id="drive-overlay" class="drive-overlay hidden" role="dialog" aria-label="Drive tracker">
     <div class="drive-inner">
-      <div class="drive-status" id="drive-state">Getting GPS…</div>
-      <div class="drive-odometer"><span id="drive-miles">0.00</span><small>mi</small></div>
-      <div class="drive-time" id="drive-time">00:00</div>
-      <div class="drive-accuracy" id="drive-accuracy"></div>
-      <div class="drive-actions">
-        <button class="btn big danger" id="drive-stop">■ Stop &amp; save</button>
-        <button class="btn big ghost" id="drive-cancel">Cancel</button>
+      <div class="drive-top">
+        <div class="drive-status" id="drive-state">GPS 取得中 · GETTING GPS…</div>
+        <span class="muted"><span class="swap"><span>運転モード</span><span>DRIVE MODE</span></span></span>
       </div>
-      <p class="drive-note">Keep this screen open while you drive — phone GPS only tracks in the foreground. Miles are logged with a timestamp for your tax records.</p>
+      <div class="drive-centre">
+        <span class="muted drive-lbl"><span class="swap"><span>走行距離</span><span>DISTANCE</span></span></span>
+        <div class="drive-odometer"><span id="drive-miles">0.00</span></div>
+        <div class="led drive-unit">mi · マイル</div>
+        <div class="drive-meta"><span id="drive-time">00:00</span> elapsed 経過<span id="drive-accuracy"></span></div>
+        <div class="drive-meta" id="drive-deduction">$0.00 mileage deduction so far</div>
+      </div>
+      <div class="marquee drive-marq" aria-hidden="true"><div class="marq-track"><span>画面をつけたままにしてください</span><span>◆</span><span>KEEP THE SCREEN ON WHILE DRIVING</span><span>◆</span><span>黒い画面は省電力</span><span>◆</span><span>画面をつけたままにしてください</span><span>◆</span><span>KEEP THE SCREEN ON WHILE DRIVING</span><span>◆</span><span>黒い画面は省電力</span><span>◆</span></div></div>
+      <div class="drive-actions">
+        <button class="btn big primary" id="drive-stop">停止して保存 · STOP &amp; SAVE</button>
+        <button class="btn big ghost" id="drive-cancel">破棄 · DISCARD</button>
+      </div>
     </div>
   </div>
 

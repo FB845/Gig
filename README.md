@@ -115,7 +115,10 @@ mileage tracking** — without asking for a cent.
   an LED segment bar for today's $350, a blinking station clock, and
   **station-number badges** (GT01 · 350 · GT03…) as the menu. Charts get an LED
   dot lattice; planned money is always teal stripes. Motion switches off under
-  the phone's reduce-motion setting.
+  the phone's reduce-motion setting. Each screen is laid out like a station
+  board: an LED screen name in the header (ギグ線 · ホーム ⇄ GIG LINE · HOME), every
+  list as 発車標 rows (種別 flap · date · 行先 + details · pay), Trends as LED bar
+  rows, and a full-screen odometer in drive mode.
 - **Desktop dashboard** — on wide screens the same board becomes an analytics
   dashboard: a sidebar of station badges with a live clock, a stat ticker, the
   **"Gig Line" route map** (earnings as numbered stations with a pulsing "you

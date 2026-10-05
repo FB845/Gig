@@ -37,7 +37,7 @@ try {
   console.log('\n1) Load app');
   await page.goto(base, { waitUntil: 'networkidle' });
   await page.waitForTimeout(300);
-  ok(await page.locator('h1').innerText() === 'Gig Tracker', 'app title renders');
+  ok(await page.title() === 'Gig Tracker' && await page.locator('#screen-title').getAttribute('aria-label') === 'GIG LINE · HOME', 'app title + per-screen LED header render');
   ok(await page.locator('#view-dashboard.active').count() === 1, 'dashboard is default view');
   ok(await page.locator('#update-banner.hidden').count() === 1, 'update banner present and hidden by default');
 
@@ -63,7 +63,7 @@ try {
   await page.locator('#log-segmented .seg[data-log=expense]').click();
   await page.waitForTimeout(100);
   const expText = await page.locator('#log-list').innerText();
-  ok(/Fuel/.test(expText) && /\$4\.20/.test(expText), 'auto Fuel expense of $4.20 exists');
+  ok(/fuel/i.test(expText) && /\$4\.20/.test(expText), 'auto Fuel expense of $4.20 exists');
 
   console.log('\n4) Dashboard KPIs reflect the data');
   await page.locator('.tab[data-view=dashboard]').click();
@@ -74,7 +74,7 @@ try {
   ok(/\$4\b/.test(kpi), 'expenses out = $4 ($4.20 auto fuel, rounded)');
   ok(/\$15\.00/.test(kpi), '$/hour = $15.00');
   ok((await page.locator('#chart-earnings svg .bar').count()) >= 1, 'earnings chart drew bars');
-  ok((await page.locator('#chart-platform svg .slice').count()) >= 1, 'platform donut drew slices');
+  ok((await page.locator('#chart-platform > span').count()) >= 1, 'platform split bar drew segments');
 
   console.log('\n5) OCR text extraction (unit, in page)');
   const ocr = await page.evaluate(async () => {
@@ -182,7 +182,7 @@ try {
 
   await page.locator('#shift-platform .chip[data-val="doordash"]').click();
   ok((await page.locator('#flex-block-field.hidden').count()) === 1, 'Flex fields hidden for DoorDash');
-  ok((await page.locator('#hours-label').innerText()) === 'Hours worked', 'hours label reverts to "Hours worked" for DoorDash');
+  ok((await page.locator('#hours-label').innerText()) .startsWith('Hours worked'), 'hours label reverts to "Hours worked" for DoorDash');
 
   await page.locator('.tab[data-view=dashboard]').click();
   await page.locator('#period-pills .pill[data-period=all]').click();
@@ -216,7 +216,7 @@ try {
   await page.locator('.tab[data-view=trends]').click();
   await page.waitForTimeout(150);
   ok((await page.locator('#flex-tag-card:not(.hidden)').count()) === 1, 'Flex-by-block-type card visible in Trends');
-  ok((await page.locator('#chart-flex-tag svg .bar').count()) >= 1, 'block-type $/hr bar chart drew bars');
+  ok((await page.locator('#flex-tag-list .tag-row .exp-track .led').count()) >= 1, 'block-type $/hr LED bars drawn');
   ok(/Rapid Express/.test(await page.locator('#flex-tag-list').innerText()), 'block-type list shows Rapid Express');
 
   console.log('\n14) Route-strip total matches KPI income for every range');
@@ -363,7 +363,7 @@ try {
   await page.waitForTimeout(100);
   ok(await page.locator('#shift-form [name=source]').isVisible() && !(await page.locator('#shift-form [name=gross]').isVisible()), 'Income platform swaps in source/amount, hides gig fields');
   ok(!(await page.locator('#time-field').isVisible()), 'flat-rate income hides the time input');
-  ok(/Log income/.test(await page.locator('#shift-form-title').innerText()), 'form title becomes "Log income"');
+  ok(/Log income/i.test(await page.locator('#shift-form-title').innerText()), 'form title becomes "Log income"');
   const today = await page.evaluate(async () => (await import('./js/store.js')).todayISO());
   await page.fill('#shift-form [name=date]', today);
   await page.fill('#shift-form [name=amount]', '500');
@@ -492,7 +492,7 @@ try {
   ok(/\$350\b/.test(dash), 'net income shows $350 (100 gig + 250 manual)');
   ok(/250 other/.test(dash) || /\$250/.test(dash), 'net sub shows the manual-income split');
   ok(/\$20\.00/.test(dash), '$/hour = $20.00 (100/5, gig-only — manual not folded in)');
-  ok((await page.locator('#earn-legend').innerText()).includes('Other income'), 'earnings chart legend gains an "Other income" segment');
+  ok((await page.locator('#earn-legend').innerText()).includes('Income'), 'earnings chart legend gains an "Income" segment');
 
   await page.reload({ waitUntil: 'networkidle' });
   await page.evaluate(async () => { const s = await import('./js/store.js'); s.clearAll(); s.addShift({ platform: 'flex', date: '2026-06-01', gross: 400, tips: 50, hours: 20, miles: 200, jobs: 40 }); s.addIncome({ date: '2026-06-02', source: 'TraceHaus', amount: 1000 }); });
@@ -621,7 +621,7 @@ try {
     && await page.locator('#pay-type button.active').getAttribute('data-pay') === 'hourly'
     && await page.inputValue('#shift-form [name=rate]') === '45'
     && await page.inputValue('#shift-form [name=startTime]') === '13:00', 'editing income restores platform, pay type, rate and times');
-  ok(/Edit income/.test(await page.locator('#shift-form-title').innerText()), 'title reads "Edit income"');
+  ok(/Edit income/i.test(await page.locator('#shift-form-title').innerText()), 'title reads "Edit income"');
   await page.locator('#shift-platform .chip[data-val=doordash]').click();
   await page.fill('#shift-form [name=gross]', '80');
   await page.locator('#shift-submit').click();
@@ -719,7 +719,7 @@ try {
   await page.locator('.tab[data-view=log]').click();
   await page.locator('#log-segmented .seg[data-log=plan]').click();
   ok(await page.locator('#plan-form').isVisible() && !(await page.locator('#shift-form').isVisible()), 'Plan segment shows the plan form');
-  ok(/Planner/.test(await page.locator('#log-list-title').innerText()), 'list titled "Planner"');
+  ok(/Planner/i.test(await page.locator('#log-list-title').innerText()), 'list titled "Planner"');
   await page.locator('#plan-platform .chip[data-val=doordash]').click();
   ok(!(await page.locator('#plan-blockpreset').isVisible()), 'block length/type only for Flex');
   await page.fill('#plan-form [name=startTime]', '18:00');
@@ -759,7 +759,7 @@ try {
   const flexRow = page.locator('#log-list .plan-row', { hasText: '09:00–12:30' });
   await flexRow.locator('.plan-log').click();
   await page.waitForTimeout(150);
-  ok(await page.locator('#shift-form').isVisible() && /Log planned block/.test(await page.locator('#shift-form-title').innerText()), 'Log it opens the shift form ("Log planned block")');
+  ok(await page.locator('#shift-form').isVisible() && /Log planned block/i.test(await page.locator('#shift-form-title').innerText()), 'Log it opens the shift form ("Log planned block")');
   ok(await page.locator('#shift-platform .chip.active').getAttribute('data-val') === 'flex'
     && await page.inputValue('#shift-form [name=gross]') === '84'
     && await page.inputValue('#shift-form [name=startTime]') === '09:00'
@@ -782,7 +782,7 @@ try {
   // Edit + delete.
   await page.locator('#log-list .plan-row', { hasText: '18:00–21:00' }).click();
   await page.waitForTimeout(100);
-  ok(/Edit plan/.test(await page.locator('#plan-form-title').innerText()) && await page.inputValue('#plan-form [name=estimate]') === '75', 'tapping a plan opens it for editing');
+  ok(/Edit plan/i.test(await page.locator('#plan-form-title').innerText()) && await page.inputValue('#plan-form [name=estimate]') === '75', 'tapping a plan opens it for editing');
   await page.evaluate(() => { window.confirm = () => true; });
   await page.locator('#log-list .plan-row', { hasText: '18:00–21:00' }).locator('.rec-del').click();
   await page.waitForTimeout(120);

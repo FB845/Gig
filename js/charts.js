@@ -27,7 +27,10 @@ export function barChart(container, data, series, opts = {}) {
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
 
-  const totals = data.map((d) => series.reduce((a, s) => a + (d.values[s.key] || 0), 0));
+  // `grouped`: series sit side by side in each slot instead of stacking.
+  const totals = data.map((d) => (opts.grouped
+    ? Math.max(0, ...series.map((s) => d.values[s.key] || 0))
+    : series.reduce((a, s) => a + (d.values[s.key] || 0), 0)));
   const refV = opts.refLine ? opts.refLine.value : 0;
   const max = Math.max(1, refV, ...totals);
   const niceMax = niceCeil(max);
@@ -49,17 +52,20 @@ export function barChart(container, data, series, opts = {}) {
   data.forEach((d, i) => {
     const cx = padL + groupW * i + groupW / 2;
     let yCursor = padT + plotH;
-    series.forEach((s) => {
+    const subW = opts.grouped ? (barW - 3 * (series.length - 1)) / series.length : barW;
+    series.forEach((s, si) => {
       const v = d.values[s.key] || 0;
       if (v <= 0) return;
       const h = (v / niceMax) * plotH;
+      if (opts.grouped) yCursor = padT + plotH;
       yCursor -= h;
+      const bx = opts.grouped ? cx - barW / 2 + si * (subW + 3) : cx - barW / 2;
       // Color: per-point+series override, per-point override, then series.
       const fill = (d.colors && d.colors[s.key]) || d.color || s.color;
       // `planned` series draw as a translucent bar with a dashed outline so a
       // forecast never reads as money already earned.
       const rect = el('rect', {
-        x: cx - barW / 2, y: yCursor, width: barW, height: Math.max(0, h), rx: 3, fill,
+        x: bx, y: yCursor, width: subW, height: Math.max(0, h), rx: 0, fill,
         class: s.planned ? 'bar planned' : 'bar',
         ...(s.planned ? { 'fill-opacity': 0.28, stroke: fill, 'stroke-dasharray': '3 2', 'stroke-width': 1.2 } : {}),
       });
