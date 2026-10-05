@@ -106,22 +106,24 @@ mileage tracking** — without asking for a cent.
   import, and ✉️ email-assisted import.
 - **Backup & restore** — export/import a JSON backup, export shifts to CSV.
 - **Offline + installable** — full PWA with a service worker.
-- **Desktop dashboard** — on wide screens the app becomes an analytics
-  dashboard styled after Japanese-rail (JR-East-inspired) infotainment: a
-  sidebar with outlined **line-symbol** navigation and a live station clock; a
-  scrolling **ticker board** with kanji stat labels (純利益・時給・走行距離…); a
-  **方向幕 rollsign** header (date-range panel — 週間/月間/年間/全期間 — + line name + romaji); a **"Gig
-  Line" route map** rendering earnings as numbered stations with a pulsing "you
-  are here" marker; a **発車標 departure board** of recent shifts with train-type
-  badges (特急/急行/快速/普通); and **LED count-up** KPI numbers with sparklines.
-  All original artwork/CSS with system fonts. The **same JR design now applies
-  on mobile** (rollsign, line map, departure board, kanji labels, LED numbers,
-  line-symbol tab bar), while keeping the pure-black background with no animated
-  glow — so the OLED battery win is preserved.
+- **白色LED design** — the whole app is a white-LED Japanese station board on a
+  pure-black screen: white dot-matrix numbers (pixel font **DotGothic16**) on
+  panels with an unlit-dot grid, **split-flap 種別 tiles** (特急 red · 急行 orange
+  · 快速 blue · 普通 green · 収入 white), a **発車標 departure board** whose 行先
+  column — like every heading — **flips Japanese ⇄ English every 3 s**, all in
+  sync (フレックス ⇄ AMAZON FLEX), a scrolling **まもなく marquee** on Campaign 350,
+  an LED segment bar for today's $350, a blinking station clock, and
+  **station-number badges** (GT01 · 350 · GT03…) as the menu. Charts get an LED
+  dot lattice; planned money is always teal stripes. Motion switches off under
+  the phone's reduce-motion setting.
+- **Desktop dashboard** — on wide screens the same board becomes an analytics
+  dashboard: a sidebar of station badges with a live clock, a stat ticker, the
+  **"Gig Line" route map** (earnings as numbered stations with a pulsing "you
+  are here"), multi-column KPIs with sparklines and LED count-up numbers.
 
 Amazon Flex block tags map to JR train types (種別): **Local (普通)**, **Rapid
-(快速)**, **Express (急行)**, **Rapid Express (特急)** — colour-coded on the
-departure board and the pay-by-block-type breakdown.
+(快速)**, **Express (急行)**, **Rapid Express (特急)** — shown as colour-coded
+flaps on the departure board, in the form picker and the pay-by-block-type breakdown.
 
 > **On GPS tracking:** phones only allow a web app to read location while it's in
 > the **foreground**, so this is a "drive mode" you start when you head out and
@@ -254,6 +256,7 @@ js/ocr.js               lazy Tesseract.js loader for screenshot OCR
 js/geo.js               GPS auto-mileage tracker (Haversine + jitter filtering)
 js/sync.js              optional Firebase (Firestore) cloud sync
 js/calendar.js          .ics + schedule-screenshot parsing for the planner
+fonts/                  bundled pixel fonts (DotGothic16 subset, Silkscreen) + their OFL licences
 js/app.js               UI wiring
 manifest.webmanifest    PWA manifest
 sw.js                   offline service worker
@@ -275,3 +278,9 @@ it with `npm install --no-save playwright-core` if needed.
 ---
 
 Built as a personal tool. Not affiliated with Amazon or DoorDash.
+
+**Fonts:** DotGothic16 (© 2020 The DotGothic16 Project Authors) and Silkscreen
+(© 2001 The Silkscreen Project Authors) are
+used under the SIL Open Font License 1.1 (see `fonts/`). DotGothic16 is bundled
+as a subset — Latin, all kana and the kanji the app uses — so it works offline
+at ~50 KB; other characters fall back to the system font.

@@ -749,7 +749,7 @@ try {
   await page.locator('.tab[data-view=campaign]').click();
   await page.waitForTimeout(150);
   ok(/\+\$159 planned today/.test(await page.locator('#camp-hero').innerText()), 'hero: +$159 planned today');
-  ok(/📅/.test(await page.locator('#week-goal').innerText()) && (await page.locator('#week-goal .plan-seg').count()) === 1, 'weekly card: plan note + planned bar segment');
+  ok(/予定/.test(await page.locator('#week-goal').innerText()) && (await page.locator('#week-goal .plan-seg').count()) === 1, 'weekly card: 予定 plan note + planned bar segment');
   ok((await page.locator('#traj-chart svg .bar.planned').count()) >= 1 && (await page.locator('#traj-chart svg .refline').count()) === 1, 'trajectory chart: dashed planned bars + $350 line');
   ok(/\$159/.test(await page.locator('#traj-sum').innerText()) && /2 blocks/.test(await page.locator('#traj-sum').innerText()), 'trajectory summary: $159 across 2 blocks');
 
@@ -834,7 +834,7 @@ try {
   ok(cal.shot[2].platform === 'doordash', 'screenshot: "DoorDash" near a block sets its platform');
 
   console.log('\n24) Calendar import (UI): .ics + screenshot → review → planner');
-  ok((await page.locator('.tab[data-view=campaign] .line-mark').innerText()) === '350', 'Campaign tab badge reads 350 (was cut to "35")');
+  ok((await page.locator('.tab[data-view=campaign] .line-mark b').innerText()) === '350', 'Campaign tab badge reads 350 (was cut to "35")');
   const dates = await page.evaluate(async () => {
     const s = await import('./js/store.js');
     s.clearAll();
@@ -889,6 +889,36 @@ try {
   await page.waitForTimeout(200);
   ok(await page.evaluate(async () => (await import('./js/store.js')).getPlans().length) === 4, 'screenshot block added to the planner');
   await page.evaluate(() => { delete window.Tesseract; });
+
+  console.log('\n25) 白色LED theme: fonts, JP ⇄ EN swap, flaps, marquee');
+  await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    s.clearAll();
+    s.addShift({ platform: 'flex', date: s.todayISO(), gross: 200, tips: 0, hours: 3.5, miles: 30, scheduledHours: 3.5, tag: 'Express' });
+    s.addPlan({ date: s.todayISO(), platform: 'doordash', startTime: '23:00', endTime: '23:30', estimate: 110 });
+  });
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForTimeout(300);
+  const fontsOk = await page.evaluate(async () => { await document.fonts.ready; return document.fonts.check('16px DotGothic16') && document.fonts.check('11px Silkscreen'); });
+  ok(fontsOk, 'pixel fonts load from the bundled /fonts (offline-safe)');
+  const fontReq = await page.evaluate(() => performance.getEntriesByType('resource').some((r) => /fonts\/DotGothic16-subset\.woff2$/.test(r.name)));
+  ok(fontReq, 'DotGothic16 subset is served locally (no Google Fonts request)');
+  ok((await page.locator('#departure-board .dep-row .dep-type').first().innerText()) === '急行', 'departure board: 種別 flap shows 急行');
+  const dest = await page.locator('#departure-board .dep-row .dep-dest').first().innerText();
+  ok(/フレックス/.test(dest) && /AMAZON FLEX/.test(dest), '行先 carries both フレックス and AMAZON FLEX');
+  const flips = await page.evaluate(() => new Promise((res) => { const a = document.documentElement.classList.contains('lang-en'); setTimeout(() => res(a !== document.documentElement.classList.contains('lang-en')), 3200); }));
+  ok(flips, 'JP ⇄ EN flips page-wide after 3 s (one class on <html>)');
+  ok((await page.locator('.card-head h2 .swap').count()) >= 5 && await page.locator('#view-dashboard .card-head h2[aria-label="Recent shifts"]').count() === 1, 'card headings decorated into JP ⇄ EN swaps (aria-label keeps English)');
+  await page.fill('#offer-pay', '20'); await page.fill('#offer-miles', '8');
+  ok((await page.locator('#offer-verdict .flap.grn').innerText()) === '乗車', 'Worth it? verdict shows a green 乗車 flap');
+  await page.locator('.tab[data-view=campaign]').click();
+  await page.waitForTimeout(200);
+  ok((await page.locator('#camp-hero .flap.org').innerText()) === '進行中', 'hero status is an orange 進行中 flap');
+  ok((await page.locator('#camp-hero .ch-cells .lit').count()) === 8 && (await page.locator('#camp-hero .ch-cells .plan').count()) === 4, 'hero LED bar: 8 lit ($200) + 4 planned ($110)');
+  const marq = await page.locator('#camp-marq-track').innerText();
+  ok(!(await page.locator('#camp-marquee.hidden').count()) && /あと \$150/.test(marq) && /次は/.test(marq) && /DOORDASH/.test(marq), 'まもなく marquee: あと $150 · 次は … ドアダッシュ / NEXT … DOORDASH');
+  ok(/WEEKLY GOAL/.test(await page.locator('#week-goal').innerText()) && /週間目標/.test(await page.locator('#week-goal').innerText()), 'goal card title flips 週間目標 ⇄ WEEKLY GOAL');
+  ok((await page.locator('#traj-chart svg .led-lattice').count()) === 1, 'charts carry the LED dot lattice');
 
   ok(errors.length === 0, 'no console/page errors' + (errors.length ? ': ' + errors.slice(0, 3).join(' | ') : ''));
 } catch (e) {

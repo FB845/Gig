@@ -1,6 +1,6 @@
-/* Gig Tracker — true-black OLED theme (dark only, to conserve battery). On OLED
-   screens a #000 pixel is physically off, so black backgrounds draw ~zero power.
-   This matters most on the always-on Drive screen. */
+/* Gig Tracker — 白色LED theme: a true-black OLED ground (black pixels are off,
+   ~zero power) with white dot-matrix "LED" text, split-flap 種別 tiles and
+   station-number badges. The theme layer at the end of this file sets the look. */
 :root {
   color-scheme: dark;
   --bg: #000000;         /* pure black = pixels off on OLED */
@@ -716,3 +716,298 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 }
+
+/* =====================================================================
+   白色LED — white-LED station-board theme.
+   Pure-black ground (OLED pixels off), white dot-matrix "LED" text on
+   unlit-dot panels, split-flap 種別 tiles, station-number badges for nav,
+   and JP ⇄ EN labels that flip together (driven by one class on <html>).
+   Everything below overrides the earlier rules by source order.
+   ===================================================================== */
+@font-face { font-family: 'DotGothic16'; src: url('../fonts/DotGothic16-subset.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'Silkscreen'; src: url('../fonts/Silkscreen-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Silkscreen'; src: url('../fonts/Silkscreen-Bold.woff2') format('woff2'); font-weight: 700; font-display: swap; }
+
+:root {
+  /* Kanji missing from the bundled subset fall back to the system gothic. */
+  --pixel: 'DotGothic16', "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "Meiryo", "Noto Sans JP", monospace;
+  --font-jp: var(--pixel); --font-board: var(--pixel); --font-led: var(--pixel);
+  --card: #040506; --card-2: #06080b; --border: #1f2633;
+  --text: #e8f1ff;      /* white LED */
+  --muted: #8a95a5;     /* secondary text */
+  --label: #9fb0c8;     /* labels */
+  --accent: #3dff7a;    /* hit / positive */
+  --accent-2: #e8f1ff;  /* selected = inverted white */
+  --danger: #ff6b5f;    /* expenses / behind */
+  --gold: #ffcf7a;      /* in progress */
+  --plan: #2dd4bf;      /* planned (forecast) */
+  --flex: #6aa8ff; --doordash: #ff6b5f;
+  --radius: 6px; --shadow: none;
+  --unlit: radial-gradient(circle, #141821 .7px, transparent .95px);
+  --led-mask: radial-gradient(circle, #000 .72px, transparent .95px);
+}
+html { font-synthesis: none; } /* one-weight pixel font: never fake-bold it */
+body, button, input, select, textarea { font-family: var(--pixel); }
+body { color: var(--text); line-height: 1.45; }
+b, strong { font-weight: 400; }
+
+/* ---- LED text: 2 px dot mask + bloom. Only on text ≥ 16 px (smaller
+   text stays plain pixel font so it's readable). ---- */
+.led, .kpi .k-value, .ch-amount, .wg-amount, .ch-days, .wg-days,
+.tax-card .tax-val, .tax-card .tax-take .tt-val, .flex-eff-card .fe-pct,
+.dep-date, .dep-dest, .dep-amt, .rec-amount, .rs-total, .ov-verdict-label, .ov-stat b,
+.tag-stat .ts-rate, .side-clock, .hdr-clock, .ticker-track, .marq-track,
+.drive-time, .tax-row.total .tr-val {
+  -webkit-mask-image: var(--led-mask); mask-image: var(--led-mask);
+  -webkit-mask-size: 2px 2px; mask-size: 2px 2px;
+  text-shadow: 0 0 3px currentColor;
+}
+
+/* ---- Panels: near-black with an unlit-dot grid ---- */
+.card, .kpi, .drive-cta, .depboard, .ticker, .marquee, .update-banner {
+  background-color: var(--card); background-image: var(--unlit); background-size: 2px 2px;
+  border: 1px solid var(--border); border-radius: var(--radius); box-shadow: none;
+}
+.card-head h2 { font-size: 17px; font-weight: 400; letter-spacing: .02em; }
+.jp { color: var(--label); font-weight: 400; }
+.muted, .hint, .k-sub, .rec-sub, .tax-sub, .fe-sub, .wg-msg, .wg-note, .traj-sum, .tr-dur { color: var(--muted); }
+label, .k-label, .tax-label, .tag-stat .ts-sub, .plan-day { color: var(--label); font-weight: 400; text-transform: none; }
+.kpi .k-label { font-size: 13px; letter-spacing: .02em; }
+.kpi .k-value { font-size: 30px; font-weight: 400; letter-spacing: 0; color: var(--text); }
+.kpi.accent .k-value { color: var(--accent); }
+.kpi.neg .k-value { color: var(--danger); }
+.kpi .k-sub { font-size: 12px; }
+
+/* ---- JP ⇄ EN swap. Both languages share one grid cell (stable width);
+   html.lang-en flips every swap on the page at the same moment. ---- */
+.swap { display: inline-grid; }
+.swap > * { grid-area: 1 / 1; transition: none; }
+.swap > :last-child { opacity: 0; }
+html.lang-en .swap > :first-child { opacity: 0; }
+html.lang-en .swap > :last-child { opacity: 1; }
+
+/* ---- Split-flap 種別 tiles (--tc = flap colour, --ink = text) ---- */
+.flap, .type-badge, .dep-type, .type-chip b, .rs-type {
+  position: relative; display: inline-grid; place-items: center; overflow: hidden;
+  min-height: 26px; padding: 0 7px; border-radius: 3px; box-shadow: 0 2px 0 #000;
+  background: linear-gradient(var(--tc, #3a4150) 0 50%, color-mix(in srgb, var(--tc, #3a4150), #000 12%) 50%);
+  color: var(--ink, #fff); font-family: var(--pixel); font-weight: 400; font-size: 15px; line-height: 1; letter-spacing: .04em;
+}
+.flap::after, .type-badge::after, .dep-type::after, .type-chip b::after, .rs-type::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2px; margin-top: -1px; background: rgba(0,0,0,.55);
+}
+.flap.grn { --tc: #11a85a; } .flap.org { --tc: #f39a12; --ink: #111; } .flap.red { --tc: #e0211b; }
+.flap.blu { --tc: #2a6fd6; } .flap.wht { --tc: #e9eef6; --ink: #111; } .flap.tea { --tc: #14b8a6; --ink: #04221f; }
+.flap.gry { --tc: #3a4150; } .flap.gold { --tc: #f5b40f; --ink: #111; }
+.flap.lg { min-height: 40px; padding: 0 14px; font-size: 22px; }
+.type-badge { min-height: 20px; font-size: 12px; padding: 0 6px; vertical-align: middle; }
+.type-badge em, .dep-type em, .rs-type em { display: none; }
+/* A flap that flips now and then (status tiles). */
+.flap.flip { perspective: 200px; }
+.flap.flip::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 50%; z-index: 1;
+  background: inherit; filter: brightness(1.15); transform-origin: 50% 100%; animation: flapflip 4s infinite;
+}
+@keyframes flapflip { 0%, 84% { transform: rotateX(0); opacity: 0; } 86% { opacity: 1; } 96% { transform: rotateX(-90deg); opacity: 1; } 97%, 100% { opacity: 0; } }
+
+/* ---- Controls: dark fields; selected chips/segments invert to white LED ---- */
+input, select, textarea { background-color: var(--card-2); border: 1px solid #273141; border-radius: 6px; color: var(--text); }
+input::placeholder, textarea::placeholder { color: #5c6880; }
+input:focus, select:focus, textarea:focus { border-color: var(--text); box-shadow: 0 0 0 2px rgba(232,241,255,.18); }
+.pill, .chip, .seg, .mini-seg button { font-weight: 400; border-radius: 5px; color: var(--label); }
+.pill { background: transparent; font-size: 14px; }
+.chip { background: transparent; }
+.pill.active, .chip.active, .seg.active, .mini-seg button.active { background: var(--text); border-color: var(--text); color: #05070a; }
+.segmented { background: transparent; border-radius: 7px; padding: 3px; gap: 4px; }
+.seg { font-size: 15px; }
+.mini-seg { background: transparent; border-radius: 6px; }
+.btn { border-radius: 6px; font-weight: 400; background: transparent; border-color: #2a3343; font-size: 15px; }
+.btn.primary { background: var(--text); color: #05070a; border-color: var(--text); }
+.btn.danger { color: var(--danger); border-color: #5a2420; }
+.live-metrics .lm { background: transparent; border-radius: 5px; }
+.live-metrics .lm b { font-weight: 400; font-size: 14px; }
+/* 種別 picker: each option is a flap; the selected one gets a white ring. */
+.type-chip { background: transparent; border: none; padding: 4px 4px 2px; border-radius: 7px; gap: 4px; min-width: 64px; }
+.type-chip b { min-width: 58px; min-height: 32px; font-size: 17px; }
+.type-chip i { color: var(--muted); font-size: 11px; }
+.type-chip.active { background: transparent; box-shadow: 0 0 0 2px var(--text); }
+.type-chip.active b { color: var(--ink); }
+.type-chip.active i { color: var(--text); opacity: 1; }
+.cal-pick input[type=checkbox]:checked { border-color: var(--text); background-color: var(--text); }
+
+/* ---- Records + planner ---- */
+.record { border-bottom-color: #12161e; }
+.rec-title { font-weight: 400; font-size: 15px; }
+.rec-amount { font-size: 17px; font-weight: 400; }
+.inc-tag { font-weight: 400; color: #111; background: #e9eef6; border: none; border-radius: 3px; }
+.plan-day { font-weight: 400; font-size: 13px; text-transform: none; }
+.plan-pill { font-weight: 400; }
+.dropzone { background: transparent; border-color: #2f3a4c; border-radius: 8px; color: var(--label); }
+
+/* ---- Station-number badges (nav): white plate, line-colour border ---- */
+.line-mark {
+  display: inline-grid; place-items: center; align-content: center; width: 36px; height: 36px; flex-shrink: 0;
+  border-radius: 8px; border: 3px solid var(--c); background: #fff; color: #111;
+  font-family: 'Silkscreen', monospace; font-weight: 400; line-height: 1; letter-spacing: 0;
+}
+.line-mark i { font-style: normal; font-size: 8px; }
+.line-mark b { font-size: 11px; font-weight: 700; }
+.line-mark.num3 b { font-size: 9px; letter-spacing: -.02em; }
+.tab .line-mark { width: 32px; height: 32px; border-width: 3px; border-radius: 7px; }
+.tab.active .line-mark, .snav.active .line-mark { box-shadow: 0 0 0 2px #000, 0 0 0 4px var(--c); }
+.tab { font-weight: 400; color: var(--muted); gap: 5px; padding: 9px 2px 8px; }
+.tab.active { color: #fff; }
+.tabbar { background: #000; }
+
+/* ---- Header: LED brand + clock + ticker ---- */
+.brand { justify-content: space-between; }
+.brand-mark { display: none; }
+.brand h1 { font-weight: 400; font-size: 20px; letter-spacing: .06em;
+  -webkit-mask-image: var(--led-mask); mask-image: var(--led-mask); -webkit-mask-size: 2px 2px; mask-size: 2px 2px; text-shadow: 0 0 3px currentColor; }
+.hdr-clock { font-size: 20px; color: var(--text); }
+.blink { animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.ticker { height: 38px; margin-top: 10px; }
+.ticker-track { height: 38px; font-size: 16px; color: var(--text); letter-spacing: .02em; }
+.ticker-track .tk b { color: var(--text); font-weight: 400; }
+.ticker-track .sep { color: var(--muted); }
+.ticker-track .live { background: var(--accent); color: #04140a; border-radius: 3px; font-weight: 400; }
+
+/* ---- Drive CTA ---- */
+.drive-cta { border-color: #1d5a32; }
+.dc-text b { font-weight: 400; font-size: 18px; color: var(--accent); }
+.dc-go { color: var(--accent); font-weight: 400; }
+
+/* ---- Gig Line route map: LED rollsign + white line ---- */
+.rollsign { background: transparent; color: var(--text); box-shadow: none; padding: 0; }
+.rs-type { --tc: #e9eef6; --ink: #111; min-width: 0; font-size: 15px; }
+.rs-dest b { font-weight: 400; font-size: 18px; }
+.rs-dest small { color: var(--muted); }
+.rs-total { color: var(--text); font-weight: 400; font-size: 22px; }
+.route-svg .amt { fill: var(--text); font-family: var(--pixel); font-weight: 400; }
+.route-svg .stn { fill: var(--label); font-family: 'Silkscreen', monospace; font-weight: 400; }
+.route-svg .day { fill: var(--muted); font-family: var(--pixel); }
+
+/* ---- 発車標 departure board: flap · date · 行先 (JP⇄EN) · pay ---- */
+.depboard { background-color: var(--card); }
+.depboard .dep-headrow, .depboard .dep-row { grid-template-columns: 64px 50px minmax(0, 1fr) 64px; gap: 8px; padding: 9px 12px; }
+.depboard .dep-headrow { background: transparent; color: var(--label); font-size: 13px; letter-spacing: .04em; border-bottom: 1px dashed #263040; }
+.depboard .dep-headrow span:nth-child(4), .depboard .dep-headrow span:last-child { display: block; justify-self: end; }
+.depboard .dep-row { border-bottom: 1px solid #12161e; }
+.dep-type { min-height: 28px; font-size: 15px; }
+.dep-date { color: var(--text); font-size: 16px; font-weight: 400; }
+.dep-dest { display: block; color: var(--text); font-size: 17px; white-space: nowrap; overflow: hidden; }
+.dep-amt { color: var(--text); font-size: 17px; font-weight: 400; }
+
+/* ---- Tax / block-time / flex-by-type cards ---- */
+.tax-card .tax-label { text-transform: none; font-weight: 400; font-size: 13px; letter-spacing: .02em; }
+.tax-card .tax-val { color: var(--gold); font-size: 30px; font-weight: 400; }
+.tax-card .tax-take .tt-val { color: var(--accent); font-size: 24px; font-weight: 400; }
+.flex-eff-card .fe-title { font-weight: 400; }
+.flex-eff-card .fe-pct { color: var(--text); font-weight: 400; font-size: 24px; }
+.fe-bar, .ch-bar { border-radius: 0; background: #12161e; }
+.fe-bar > span, .ch-bar > span { border-radius: 0; background: var(--text);
+  -webkit-mask-image: var(--led-mask); mask-image: var(--led-mask); -webkit-mask-size: 2px 2px; mask-size: 2px 2px; }
+.tag-stat { border-bottom-color: #12161e; }
+.tag-stat .ts-name { font-weight: 400; }
+.tag-stat .ts-rate { font-size: 17px; font-weight: 400; color: var(--text); }
+.tag-stat .ts-rate.best { color: var(--accent); }
+
+/* ---- Campaign 350 ---- */
+.camp-hero, .week-goal { border-color: var(--border); box-shadow: none; }
+.camp-hero.is-hit, .week-goal.is-met { border-color: #1d5a32; box-shadow: none; }
+.camp-hero.is-part, .week-goal.is-part { border-color: #3a3016; }
+.ch-top { align-items: center; margin-bottom: 8px; }
+.ch-title, .wg-title { font-family: var(--pixel); font-weight: 400; font-size: 15px; letter-spacing: .02em; color: var(--label); }
+.ch-amount { font-size: 64px; line-height: 1; font-weight: 400; margin-top: 4px; }
+.ch-amount .ch-goal { font-size: 22px; color: var(--text); }
+.ch-goal, .wg-goal { font-weight: 400; color: var(--label); -webkit-mask-image: none; mask-image: none; text-shadow: none; }
+.ch-cells { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 3px; margin-top: 12px; }
+.ch-cells span { height: 12px; background: #12161e; }
+.ch-cells .lit { background: var(--text); -webkit-mask-image: var(--led-mask); mask-image: var(--led-mask); -webkit-mask-size: 2px 2px; mask-size: 2px 2px; }
+.camp-hero.is-hit .ch-cells .lit { background: var(--accent); }
+.ch-cells .plan { background: repeating-linear-gradient(135deg, rgba(45,212,191,.55) 0 3px, rgba(45,212,191,.18) 3px 6px); }
+.ch-sub { margin-top: 10px; font-size: 13px; color: var(--muted); }
+.ch-days, .wg-days { font-size: 24px; font-weight: 400; }
+.ch-days em, .wg-days em { font-family: var(--pixel); color: var(--muted); }
+.wg-amount { font-size: 34px; font-weight: 400; margin-top: 6px; }
+.week-goal.is-met .wg-days, .week-goal.is-met .wg-msg, .week-goal.is-met .wg-msg b { color: var(--accent); }
+.week-goal .ch-bar > span { background: var(--text); }
+.week-goal.is-met .ch-bar > span { background: var(--accent); }
+.wg-note { border-left-color: #1f6f68; }
+.ch-plan, .wg-plan, .traj-sum b, .plan-day.is-today, .plan-day b { color: var(--plan); }
+.pc-warn { color: var(--gold); }
+.marquee { height: 40px; overflow: hidden; display: flex; align-items: center; margin-bottom: 14px; padding: 0; }
+.marquee.hidden { display: none; }
+.marq-track { display: inline-flex; gap: 28px; white-space: nowrap; font-size: 18px; color: var(--gold); padding-left: 12px; animation: marquee 18s linear infinite; }
+
+/* ---- "Worth it?" verdict: flap + LED label ---- */
+.ov-banner { border-radius: 6px; background: transparent; justify-content: flex-start; gap: 14px; }
+.ov-banner.take, .ov-banner.marginal, .ov-banner.skip { background: transparent; }
+.ov-verdict-label { font-family: var(--pixel); font-weight: 400; font-size: 20px; flex-direction: row; align-items: center; gap: 12px; }
+.ov-verdict-label small { display: none; }
+.ov-banner.take .ov-verdict-label { color: var(--accent); }
+.ov-banner.marginal .ov-verdict-label { color: var(--gold); }
+.ov-banner.skip .ov-verdict-label { color: var(--danger); }
+.ov-stats { margin-left: auto; }
+.ov-stat b { font-weight: 400; font-size: 17px; }
+.ov-stat.good b { color: var(--accent); } .ov-stat.bad b { color: var(--danger); }
+
+/* ---- Charts: pixel type; bars get an LED dot lattice (see charts.js) ---- */
+.chart text.axis { font-family: var(--pixel); fill: var(--muted); font-size: 10px; }
+.chart .grid { stroke: #161b24; }
+.chart .donut-center { font-family: var(--pixel); font-weight: 400; }
+
+/* ---- Tax summary + sync ---- */
+.tax-subhead { font-weight: 400; color: var(--label); letter-spacing: .04em; }
+.tax-row { border-bottom-color: #12161e; }
+.tax-row .tr-val { font-weight: 400; }
+.tax-row.total .tr-label { font-weight: 400; color: var(--text); }
+.tax-row.total .tr-val { font-size: 18px; font-weight: 400; }
+.sync-pill { font-weight: 400; border-radius: 3px; }
+
+/* ---- Drive mode: dimmer white, chunkier 4 px dots for the odometer ---- */
+.drive-status { font-weight: 400; letter-spacing: .06em; }
+.drive-status.tracking { color: var(--danger); }
+.drive-status.tracking::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; background: #ff3b2f; box-shadow: 0 0 6px #ff3b2f; animation: blink 1.2s steps(1) infinite; }
+.drive-odometer { font-weight: 400; font-size: 120px; color: #c9d4e3; letter-spacing: -.02em; }
+.drive-odometer span {
+  -webkit-mask-image: radial-gradient(circle, #000 1.6px, transparent 1.95px); mask-image: radial-gradient(circle, #000 1.6px, transparent 1.95px);
+  -webkit-mask-size: 4px 4px; mask-size: 4px 4px; text-shadow: 0 0 4px currentColor;
+}
+.drive-odometer small { font-weight: 400; }
+.drive-time { font-weight: 400; color: #9aa4b4; }
+
+/* ---- Toast / update banner ---- */
+.toast { border-radius: 6px; font-weight: 400; background: var(--text); color: #05070a; }
+.update-banner .ub-text { font-weight: 400; }
+.ub-btn { font-weight: 400; border-radius: 5px; }
+.ub-btn.primary { background: var(--text); color: #05070a; border-color: var(--text); }
+
+/* ---- Desktop: same board, sidebar of station badges; no ambient glow ---- */
+@media (min-width: 960px) {
+  .ambient { display: none; }
+  .sidebar { background: #000; }
+  .sb-title b { font-weight: 400; }
+  .snav { color: var(--muted); }
+  .snav:hover, .snav.active { background: transparent; color: var(--text); }
+  .snav.active::before { background: var(--text); }
+  .snav-t { font-weight: 400; }
+  .side-clock { font-family: var(--pixel); font-weight: 400; color: var(--text); text-shadow: 0 0 3px currentColor; }
+  .hdr-clock { display: none; }
+  .kpi:hover { border-color: #2f3a4c; box-shadow: none; transform: none; }
+  .kpi .k-value { font-family: var(--pixel); font-size: 32px; }
+  .depboard.desktop-only, .depboard { background-color: var(--card); }
+  .depboard .dep-headrow, .depboard .dep-row { grid-template-columns: 84px 64px minmax(0, 1fr) 96px; padding: 10px 16px; }
+  .ticker { height: 38px; }
+  .ticker-track { height: 38px; font-family: var(--pixel); font-size: 16px; }
+  .rs-type { font-size: 17px; min-height: 32px; }
+  .rs-dest b { font-size: 22px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blink, .flap.flip::before, .marq-track { animation: none !important; }
+}
+/* Earned part of goal bars is white LED (green once met); beats the older
+   .week-goal.is-part gold rule. */
+.week-goal.is-part .ch-bar > span, .week-goal.is-none .ch-bar > span { background: var(--text); }

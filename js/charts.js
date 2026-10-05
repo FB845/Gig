@@ -72,7 +72,10 @@ export function barChart(container, data, series, opts = {}) {
     }
   });
 
-  // optional dashed reference line (e.g. the $350 goal)
+  ledLattice(svg, padL, padT, plotW, plotH);
+
+  // optional dashed reference line (e.g. the $350 goal) — drawn over the
+  // lattice so it stays a crisp line
   if (opts.refLine) {
     const ry = padT + plotH - (Math.min(opts.refLine.value, niceMax) / niceMax) * plotH;
     svg.appendChild(el('line', {
@@ -125,13 +128,15 @@ export function lineChart(container, data, series, opts = {}) {
       const area = `${padL},${padT + plotH} ` + pts.join(' ') + ` ${xFor(data.length - 1)},${padT + plotH}`;
       svg.appendChild(el('polygon', { points: area, fill: s.color, 'fill-opacity': 0.12, stroke: 'none' }));
     }
-    svg.appendChild(el('polyline', { points: pts.join(' '), fill: 'none', stroke: s.color, 'stroke-width': 2.5, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+    svg.appendChild(el('polyline', { points: pts.join(' '), fill: 'none', stroke: s.color, 'stroke-width': 3, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
     data.forEach((d, i) => {
       const c = el('circle', { cx: xFor(i), cy: yFor(d.values[s.key] || 0), r: 3, fill: s.color, class: 'dot' });
       c.appendChild(el('title', {}, [document.createTextNode(`${d.label} · ${s.label}: ${opts.moneyAxis === false ? (d.values[s.key] || 0) : money(d.values[s.key] || 0)}`)]));
       svg.appendChild(c);
     });
   });
+
+  ledLattice(svg, padL, padT - 4, plotW, plotH + 8);
 
   data.forEach((d, i) => {
     if (data.length <= 14 || i % Math.ceil(data.length / 12) === 0) {
@@ -164,10 +169,13 @@ export function donutChart(container, slices, opts = {}) {
     const x2 = r + r * Math.cos(a2), y2 = r + r * Math.sin(a2);
     const xi2 = r + inner * Math.cos(a2), yi2 = r + inner * Math.sin(a2);
     const xi1 = r + inner * Math.cos(angle), yi1 = r + inner * Math.sin(angle);
-    const path = el('path', {
-      d: `M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} L ${xi2} ${yi2} A ${inner} ${inner} 0 ${large} 0 ${xi1} ${yi1} Z`,
-      fill: s.color, class: 'slice',
-    });
+    // A single 100% slice can't be one arc (start == end point draws nothing),
+    // so draw it as a full ring: outer + inner circle, each as two half-arcs.
+    const d = frac >= 0.9999
+      ? `M ${r} 0 A ${r} ${r} 0 1 1 ${r} ${2 * r} A ${r} ${r} 0 1 1 ${r} 0 Z `
+        + `M ${r} ${r - inner} A ${inner} ${inner} 0 1 0 ${r} ${r + inner} A ${inner} ${inner} 0 1 0 ${r} ${r - inner} Z`
+      : `M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} L ${xi2} ${yi2} A ${inner} ${inner} 0 ${large} 0 ${xi1} ${yi1} Z`;
+    const path = el('path', { d, fill: s.color, 'fill-rule': 'evenodd', class: 'slice' });
     path.appendChild(el('title', {}, [document.createTextNode(`${s.label}: ${money(s.value)} (${Math.round(frac * 100)}%)`)]));
     svg.appendChild(path);
     angle = a2;
@@ -183,6 +191,14 @@ function text(x, y, str, cls) {
   t.textContent = str;
   if (cls && cls.includes('mid')) t.setAttribute('text-anchor', 'middle');
   return t;
+}
+
+// 白色LED: lay the page's #led-dots pattern (a black lattice with round holes,
+// defined once in index.html) over a chart's plot area, so bars and lines read
+// as lit LED dots. Axis labels sit outside the area and stay crisp.
+function ledLattice(svg, x, y, w, h) {
+  if (!document.getElementById('led-dots')) return;
+  svg.appendChild(el('rect', { x, y, width: w, height: h, fill: 'url(#led-dots)', 'pointer-events': 'none', class: 'led-lattice' }));
 }
 
 function niceCeil(n) {

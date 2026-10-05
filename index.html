@@ -16,6 +16,9 @@
 </head>
 <body>
   <div class="ambient" aria-hidden="true"></div>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+    <pattern id="led-dots" width="2" height="2" patternUnits="userSpaceOnUse"><path d="M0 0h2v2H0z M1 .15a.85 .85 0 1 0 .001 0z" fill="#000" fill-rule="evenodd"/></pattern>
+  </defs></svg>
 
   <nav class="sidebar" aria-label="Primary navigation">
     <div class="side-brand">
@@ -25,12 +28,12 @@
       <div class="sb-title"><b>Gig Tracker</b><small>ギグ・トラッカー</small></div>
     </div>
     <div class="side-nav">
-      <button class="snav active" data-view="dashboard"><span class="line-mark" style="--c:var(--jr-green)">GL</span><span class="snav-t">Home<small>ホーム</small></span></button>
-      <button class="snav" data-view="campaign"><span class="line-mark num3" style="--c:#f5a524">350</span><span class="snav-t">Campaign 350<small>目標</small></span></button>
-      <button class="snav" data-view="log"><span class="line-mark" style="--c:var(--jr-blue)">LG</span><span class="snav-t">Log<small>記録</small></span></button>
-      <button class="snav" data-view="trends"><span class="line-mark" style="--c:var(--jr-orange)">TR</span><span class="snav-t">Trends<small>分析</small></span></button>
-      <button class="snav" data-view="import"><span class="line-mark" style="--c:var(--jr-teal)">IM</span><span class="snav-t">Import<small>取込</small></span></button>
-      <button class="snav" data-view="settings"><span class="line-mark" style="--c:var(--jr-navy)">ST</span><span class="snav-t">Settings<small>設定</small></span></button>
+      <button class="snav active" data-view="dashboard"><span class="line-mark" style="--c:#80c241"><i>GT</i><b>01</b></span><span class="snav-t">Home<small>ホーム</small></span></button>
+      <button class="snav" data-view="campaign"><span class="line-mark num3" style="--c:#f5a524"><i>GT</i><b>350</b></span><span class="snav-t">Campaign 350<small>目標</small></span></button>
+      <button class="snav" data-view="log"><span class="line-mark" style="--c:#00b2e5"><i>GT</i><b>03</b></span><span class="snav-t">Log<small>記録</small></span></button>
+      <button class="snav" data-view="trends"><span class="line-mark" style="--c:#f15a22"><i>GT</i><b>04</b></span><span class="snav-t">Trends<small>分析</small></span></button>
+      <button class="snav" data-view="import"><span class="line-mark" style="--c:#00ac9a"><i>GT</i><b>05</b></span><span class="snav-t">Import<small>取込</small></span></button>
+      <button class="snav" data-view="settings"><span class="line-mark" style="--c:#4a5fd0"><i>GT</i><b>06</b></span><span class="snav-t">Settings<small>設定</small></span></button>
     </div>
     <div class="side-foot">
       <div class="side-clock" id="side-clock">--:--:--</div>
@@ -44,6 +47,7 @@
         <svg viewBox="0 0 24 24" width="22" height="22"><rect x="3" y="13" width="3.5" height="8" rx="1" fill="#60a5fa"/><rect x="8.5" y="9" width="3.5" height="12" rx="1" fill="#34d399"/><rect x="14" y="6" width="3.5" height="15" rx="1" fill="#60a5fa"/><rect x="19" y="3" width="2" height="18" rx="1" fill="#34d399"/></svg>
       </span>
       <h1>Gig Tracker</h1>
+      <span class="hdr-clock" id="hdr-clock" aria-hidden="true">--:--</span>
     </div>
     <div id="period-pills" class="pills" role="tablist" aria-label="Date range">
       <button class="pill" data-period="week">Week</button>
@@ -58,7 +62,7 @@
     <!-- ================= DASHBOARD ================= -->
     <section id="view-dashboard" class="view active" aria-label="Dashboard">
       <button id="drive-cta" class="drive-cta">
-        <span class="dc-left"><span class="dc-dot"></span><span class="dc-text"><b>Start drive</b><small>Auto-track your miles with GPS</small></span></span>
+        <span class="dc-left"><span class="dc-dot"></span><span class="dc-text"><b class="led"><span class="swap"><span>運転開始</span><span>START DRIVE</span></span></b><small>Auto-track your miles with GPS</small></span></span>
         <span class="dc-go">▶</span>
       </button>
 
@@ -111,6 +115,7 @@
     <!-- ================= CAMPAIGN 350 ================= -->
     <section id="view-campaign" class="view" aria-label="Campaign 350">
       <div class="card camp-hero" id="camp-hero"></div>
+      <div class="marquee hidden" id="camp-marquee" aria-hidden="true"><div class="marq-track" id="camp-marq-track"></div></div>
       <div class="card week-goal" id="week-goal"></div>
       <div class="card week-goal" id="month-goal"></div>
       <div class="card" id="traj-card">
@@ -191,10 +196,10 @@
         <div class="field flex-only" id="flex-tag-field">
           <label>Block type <span class="hint">種別</span></label>
           <div class="choice type-choice" id="shift-tag">
-            <button type="button" class="chip type-chip" data-val="Local" style="--tc:#c9ced8;--ink:#14130f"><b>普通</b><em>LOCAL</em><i>Local</i></button>
-            <button type="button" class="chip type-chip" data-val="Rapid" style="--tc:var(--jr-blue);--ink:#fff"><b>快速</b><em>RAPID</em><i>Rapid</i></button>
-            <button type="button" class="chip type-chip" data-val="Express" style="--tc:var(--jr-orange);--ink:#fff"><b>急行</b><em>EXP</em><i>Express</i></button>
-            <button type="button" class="chip type-chip" data-val="Rapid Express" style="--tc:var(--jr-red);--ink:#fff"><b>特急</b><em>LTD.EXP</em><i>Rapid Exp</i></button>
+            <button type="button" class="chip type-chip" data-val="Local" style="--tc:#11a85a;--ink:#fff"><b>普通</b><em>LOCAL</em><i>Local</i></button>
+            <button type="button" class="chip type-chip" data-val="Rapid" style="--tc:#2a6fd6;--ink:#fff"><b>快速</b><em>RAPID</em><i>Rapid</i></button>
+            <button type="button" class="chip type-chip" data-val="Express" style="--tc:#f39a12;--ink:#111"><b>急行</b><em>EXP</em><i>Express</i></button>
+            <button type="button" class="chip type-chip" data-val="Rapid Express" style="--tc:#e0211b;--ink:#fff"><b>特急</b><em>LTD.EXP</em><i>Rapid Exp</i></button>
           </div>
         </div>
         <div class="field"><label>Date</label><input type="date" name="date" required /></div>
@@ -236,7 +241,7 @@
 
       <!-- Plan form (planner: pre-plan blocks/shifts with estimated earnings) -->
       <form id="plan-form" class="card form hidden">
-        <div class="card-head"><h2 id="plan-form-title">Plan a block<span class="jp">予定</span></h2><button type="button" class="btn ghost camp-add" id="plan-import">📅 Import calendar</button></div>
+        <div class="card-head"><h2 id="plan-form-title">Plan a block<span class="jp">予定</span></h2><button type="button" class="btn ghost camp-add" id="plan-import">予定取込 Import</button></div>
         <div class="field">
           <label>Platform</label>
           <div class="choice" id="plan-platform">
@@ -262,10 +267,10 @@
         <div class="field plan-flex">
           <label>Block type <span class="hint">種別</span></label>
           <div class="choice type-choice" id="plan-tag">
-            <button type="button" class="chip type-chip" data-val="Local" style="--tc:#c9ced8;--ink:#14130f"><b>普通</b><em>LOCAL</em><i>Local</i></button>
-            <button type="button" class="chip type-chip" data-val="Rapid" style="--tc:var(--jr-blue);--ink:#fff"><b>快速</b><em>RAPID</em><i>Rapid</i></button>
-            <button type="button" class="chip type-chip" data-val="Express" style="--tc:var(--jr-orange);--ink:#fff"><b>急行</b><em>EXP</em><i>Express</i></button>
-            <button type="button" class="chip type-chip" data-val="Rapid Express" style="--tc:var(--jr-red);--ink:#fff"><b>特急</b><em>LTD.EXP</em><i>Rapid Exp</i></button>
+            <button type="button" class="chip type-chip" data-val="Local" style="--tc:#11a85a;--ink:#fff"><b>普通</b><em>LOCAL</em><i>Local</i></button>
+            <button type="button" class="chip type-chip" data-val="Rapid" style="--tc:#2a6fd6;--ink:#fff"><b>快速</b><em>RAPID</em><i>Rapid</i></button>
+            <button type="button" class="chip type-chip" data-val="Express" style="--tc:#f39a12;--ink:#111"><b>急行</b><em>EXP</em><i>Express</i></button>
+            <button type="button" class="chip type-chip" data-val="Rapid Express" style="--tc:#e0211b;--ink:#fff"><b>特急</b><em>LTD.EXP</em><i>Rapid Exp</i></button>
           </div>
         </div>
         <div class="field plan-income hidden">
@@ -360,8 +365,8 @@
         </div>
         <div id="tax-summary-body"></div>
         <div class="btn-col" style="margin-top: 12px">
-          <button type="button" class="btn" id="tax-export-csv">⬇️ Export CSV</button>
-          <button type="button" class="btn" id="tax-print">🖨️ Print / Save PDF</button>
+          <button type="button" class="btn" id="tax-export-csv">CSV出力 Export CSV</button>
+          <button type="button" class="btn" id="tax-print">印刷 Print / Save PDF</button>
         </div>
         <p class="muted tax-disclaimer">Estimate only — not tax advice. You generally deduct the <b>larger</b> of the standard mileage rate <b>or</b> actual vehicle expenses (not both); other business expenses are separate. Confirm with a tax professional.</p>
       </div>
@@ -370,7 +375,7 @@
     <!-- ================= IMPORT ================= -->
     <section id="view-import" class="view" aria-label="Import">
       <div class="card" id="cal-card">
-        <div class="card-head"><h2>📅 Calendar → planner<span class="jp">予定取込</span></h2></div>
+        <div class="card-head"><h2>Calendar → planner<span class="jp">カレンダー取込</span></h2></div>
         <p class="muted">Bring blocks and shifts you've already scheduled into <b>Log → Plan</b>: an <b>.ics</b> calendar file (Google / Apple / Outlook export) or a <b>screenshot</b> of your schedule (e.g. the Flex calendar). You review everything before it's added; past events are skipped.</p>
         <div class="field"><label>Unrecognized entries default to</label>
           <div class="choice" id="cal-platform">
@@ -383,12 +388,12 @@
         <div class="row">
           <label class="dropzone" id="cal-ics-drop">
             <input type="file" id="cal-ics-file" accept=".ics,.ical,.ifb,.icalendar,text/calendar" hidden />
-            <span class="dz-icon">🗓️</span>
+            <span class="dz-icon led">.ICS</span>
             <span>Calendar file (.ics)</span>
           </label>
           <label class="dropzone" id="cal-img-drop">
             <input type="file" id="cal-img-file" accept="image/*" hidden />
-            <span class="dz-icon">🖼️</span>
+            <span class="dz-icon led">IMG</span>
             <span>Schedule screenshot</span>
           </label>
         </div>
@@ -397,7 +402,7 @@
       </div>
 
       <div class="card">
-        <div class="card-head"><h2>📸 Screenshot import (OCR)</h2></div>
+        <div class="card-head"><h2>Screenshot import (OCR)<span class="jp">スクショ取込</span></h2></div>
         <p class="muted">Snap or upload a screenshot of your Flex or Dasher earnings screen. The app reads the amounts, miles and counts for you to review before saving.</p>
         <div class="choice" id="ocr-platform">
           <button type="button" class="chip active" data-val="">Auto-detect</button>
@@ -406,7 +411,7 @@
         </div>
         <label class="dropzone" id="ocr-drop">
           <input type="file" id="ocr-file" accept="image/*" capture="environment" hidden />
-          <span class="dz-icon">🖼️</span>
+          <span class="dz-icon led">IMG</span>
           <span>Tap to take a photo or choose a screenshot</span>
         </label>
         <div id="ocr-status" class="ocr-status hidden"></div>
@@ -414,7 +419,7 @@
       </div>
 
       <div class="card">
-        <div class="card-head"><h2>📄 CSV import</h2></div>
+        <div class="card-head"><h2>CSV import<span class="jp">CSV取込</span></h2></div>
         <p class="muted">Import an earnings CSV (e.g. DoorDash weekly earnings export, or any spreadsheet with date/earnings/miles columns).</p>
         <div class="choice" id="csv-platform">
           <button type="button" class="chip active" data-val="">Auto / mixed</button>
@@ -423,14 +428,14 @@
         </div>
         <label class="dropzone" id="csv-drop">
           <input type="file" id="csv-file" accept=".csv,text/csv" hidden />
-          <span class="dz-icon">📄</span>
+          <span class="dz-icon led">.CSV</span>
           <span>Tap to choose a CSV file</span>
         </label>
         <div id="csv-preview" class="hidden"></div>
       </div>
 
       <div class="card">
-        <div class="card-head"><h2>✉️ Email-assisted import</h2></div>
+        <div class="card-head"><h2>Email-assisted import<span class="jp">メール取込</span></h2></div>
         <p class="muted">Amazon Flex and DoorDash email you every payout. Ask Claude (with your Gmail connected) to pull those deposit emails and generate a CSV, then import it above. Amazon Flex and DoorDash don't offer a public driver API, so this is the closest thing to automatic.</p>
       </div>
     </section>
@@ -438,7 +443,7 @@
     <!-- ================= SETTINGS ================= -->
     <section id="view-settings" class="view" aria-label="Settings">
       <div class="card form">
-        <div class="card-head"><h2>Settings</h2></div>
+        <div class="card-head"><h2>Settings<span class="jp">設定</span></h2></div>
         <div class="field">
           <label>IRS standard mileage rate ($/mi) <span class="hint">for tax deduction estimate</span></label>
           <input type="number" id="set-mileage" step="0.01" min="0" inputmode="decimal" />
@@ -512,21 +517,21 @@ service cloud.firestore {
       </div>
 
       <div class="card">
-        <div class="card-head"><h2>Backup &amp; data</h2></div>
+        <div class="card-head"><h2>Backup &amp; data<span class="jp">バックアップ</span></h2></div>
         <p class="muted">Your data lives in this browser (and in your Firebase project if cloud sync is on). Back it up regularly — clearing browser data will erase the local copy.</p>
         <div class="btn-col">
-          <button class="btn" id="export-json">⬇️ Export backup (JSON)</button>
-          <button class="btn" id="export-csv">⬇️ Export shifts (CSV)</button>
+          <button class="btn" id="export-json">バックアップ Export backup (JSON)</button>
+          <button class="btn" id="export-csv">CSV出力 Export shifts (CSV)</button>
           <label class="btn" for="import-json-file">⬆️ Restore from backup</label>
           <input type="file" id="import-json-file" accept=".json,application/json" hidden />
-          <button class="btn danger" id="clear-all">🗑️ Erase all data</button>
+          <button class="btn danger" id="clear-all">全削除 Erase all data</button>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-head"><h2>Install</h2></div>
+        <div class="card-head"><h2>Install<span class="jp">インストール</span></h2></div>
         <p class="muted" id="install-hint">On iPhone: tap the Share button in Safari, then <strong>Add to Home Screen</strong> to use it like an app (offline too). On Android/desktop Chrome, use the install button below or the browser's install prompt.</p>
-        <button class="btn primary hidden" id="install-btn">📲 Install app</button>
+        <button class="btn primary hidden" id="install-btn">インストール Install app</button>
       </div>
 
       <p class="version muted">Gig Tracker · on-device · v1</p>
@@ -534,12 +539,12 @@ service cloud.firestore {
   </main>
 
   <nav class="tabbar" role="tablist" aria-label="Sections">
-    <button class="tab active" data-view="dashboard"><span class="line-mark" style="--c:var(--jr-green)">GL</span><span>Home</span></button>
-    <button class="tab" data-view="campaign"><span class="line-mark num3" style="--c:#f5a524">350</span><span>350</span></button>
-    <button class="tab" data-view="log"><span class="line-mark" style="--c:var(--jr-blue)">LG</span><span>Log</span></button>
-    <button class="tab" data-view="trends"><span class="line-mark" style="--c:var(--jr-orange)">TR</span><span>Trends</span></button>
-    <button class="tab" data-view="import"><span class="line-mark" style="--c:var(--jr-teal)">IM</span><span>Import</span></button>
-    <button class="tab" data-view="settings"><span class="line-mark" style="--c:var(--jr-navy)">ST</span><span>Settings</span></button>
+    <button class="tab active" data-view="dashboard"><span class="line-mark" style="--c:#80c241"><i>GT</i><b>01</b></span><span>ホーム</span></button>
+    <button class="tab" data-view="campaign"><span class="line-mark num3" style="--c:#f5a524"><i>GT</i><b>350</b></span><span>350</span></button>
+    <button class="tab" data-view="log"><span class="line-mark" style="--c:#00b2e5"><i>GT</i><b>03</b></span><span>記録</span></button>
+    <button class="tab" data-view="trends"><span class="line-mark" style="--c:#f15a22"><i>GT</i><b>04</b></span><span>分析</span></button>
+    <button class="tab" data-view="import"><span class="line-mark" style="--c:#00ac9a"><i>GT</i><b>05</b></span><span>取込</span></button>
+    <button class="tab" data-view="settings"><span class="line-mark" style="--c:#4a5fd0"><i>GT</i><b>06</b></span><span>設定</span></button>
   </nav>
 
   <!-- ================= DRIVE OVERLAY ================= -->
@@ -558,7 +563,7 @@ service cloud.firestore {
   </div>
 
   <div id="update-banner" class="update-banner hidden" role="status" aria-live="polite">
-    <span class="ub-text">✨ New version available</span>
+    <span class="ub-text">新版あり · New version available</span>
     <div class="ub-actions">
       <button id="update-dismiss" class="ub-btn">Later</button>
       <button id="update-apply" class="ub-btn primary">Refresh</button>

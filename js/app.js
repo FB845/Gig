@@ -88,10 +88,10 @@ function renderDashboard() {
   // KPIs (with LED count-up + sparklines on desktop)
   const spark = dailyMetricSeries(14);
   const kpis = [
-    { label: 'Net income', jp: '純利益', target: s.net, fmt: 'money0', sub: inSub, cls: s.net >= 0 ? 'accent' : 'neg', series: spark.net, color: '#34d399' },
-    { label: '$ / hour', jp: '時給', target: s.perHour, fmt: 'money2', empty: !s.hours, sub: `${fmt1(s.hours)} hrs worked · gig`, series: spark.perHour, color: '#60a5fa' },
-    { label: '$ / mile', jp: '距離単価', target: s.perMile, fmt: 'money2', empty: !s.miles, sub: `${fmt1(s.miles)} mi driven · gig`, series: spark.perMile, color: '#a78bfa' },
-    { label: 'Per delivery', jp: '配達単価', target: s.perJob, fmt: 'money2', empty: !s.jobs, sub: `${s.jobs} deliveries · gig`, series: spark.perJob, color: '#f5a524' },
+    { label: 'Net income', jp: '純利益', target: s.net, fmt: 'money0', sub: inSub, cls: s.net >= 0 ? 'accent' : 'neg', series: spark.net, color: '#3dff7a' },
+    { label: '$ / hour', jp: '時給', target: s.perHour, fmt: 'money2', empty: !s.hours, sub: `${fmt1(s.hours)} hrs worked · gig`, series: spark.perHour, color: '#e8f1ff' },
+    { label: '$ / mile', jp: '距離単価', target: s.perMile, fmt: 'money2', empty: !s.miles, sub: `${fmt1(s.miles)} mi driven · gig`, series: spark.perMile, color: '#6aa8ff' },
+    { label: 'Per delivery', jp: '配達単価', target: s.perJob, fmt: 'money2', empty: !s.jobs, sub: `${s.jobs} deliveries · gig`, series: spark.perJob, color: '#ffcf7a' },
   ];
   $('#kpi-grid').innerHTML = kpis.map((k) => `
     <div class="kpi ${k.cls || ''}">
@@ -220,20 +220,24 @@ function renderTicker(s) {
     chip('手取り', fmtMoney0(s.takeHomeAfterTax)),
     chip('運行数', String(s.shiftCount)),
   ];
-  const line = `<span class="live">● 運行中</span>` + items.join('<span class="sep">・</span>') + '<span class="sep">・</span>';
+  const line = `<span class="live">運行中</span>` + items.join('<span class="sep">・</span>') + '<span class="sep">・</span>';
   track.innerHTML = line + line; // doubled for seamless marquee loop
 }
 
 // Flex block tags styled as JR train types (種別). `ink` is the text color used
 // when the type color fills a solid badge.
 const TRAIN_TYPES = {
-  'Local': { label: '普通', romaji: 'LOCAL', color: '#c9ced8', ink: '#14130f' },
-  'Rapid': { label: '快速', romaji: 'RAPID', color: 'var(--jr-blue)', ink: '#fff' },
-  'Express': { label: '急行', romaji: 'EXP', color: 'var(--jr-orange)', ink: '#fff' },
-  'Rapid Express': { label: '特急', romaji: 'LTD.EXP', color: 'var(--jr-red)', ink: '#fff' },
+  'Local': { label: '普通', romaji: 'LOCAL', color: '#11a85a', ink: '#fff' },
+  'Rapid': { label: '快速', romaji: 'RAPID', color: '#2a6fd6', ink: '#fff' },
+  'Express': { label: '急行', romaji: 'EXP', color: '#f39a12', ink: '#111' },
+  'Rapid Express': { label: '特急', romaji: 'LTD.EXP', color: '#e0211b', ink: '#fff' },
 };
 function trainType(shift) {
-  return (shift.tag && TRAIN_TYPES[shift.tag]) || { label: '普通', romaji: 'LOCAL', color: '#c9ced8', ink: '#14130f' };
+  return (shift.tag && TRAIN_TYPES[shift.tag]) || TRAIN_TYPES.Local;
+}
+// A JP ⇄ EN pair that flips with every other on the page (see startLangSwap).
+function swapHTML(jp, en) {
+  return `<span class="swap"><span>${jp}</span><span>${en}</span></span>`;
 }
 // A solid 種別-style badge for a Flex tag, reused wherever a tag is displayed.
 function typeBadge(tag) {
@@ -257,8 +261,8 @@ function renderRouteStrip() {
   const ty = PERIOD_TYPE[state.period] || PERIOD_TYPE.all;
   const rollsign = `
     <div class="rollsign">
-      <span class="rs-type" style="--tc:var(--accent)">${ty.label}<em>${ty.romaji}</em></span>
-      <span class="rs-dest"><b>ギグライン</b><small>GIG&nbsp;LINE</small></span>
+      <span class="rs-type">${ty.label}</span>
+      <span class="rs-dest"><b>${swapHTML('ギグライン', 'GIG LINE')}</b><small>${ty.romaji}</small></span>
       <span class="rs-total" id="rs-total"></span>
     </div>`;
 
@@ -281,7 +285,7 @@ function renderRouteStrip() {
   const cx = (i) => padX + i * step;
   const rFor = (v) => 6 + (v / max) * 12;
   const lastIdx = stops.length - 1;
-  const line = 'var(--jr-green)';
+  const line = '#e8f1ff'; // white LED line
 
   let svg = `<svg class="route-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">`;
   svg += `<line class="rline" x1="${cx(0)}" y1="${y}" x2="${cx(lastIdx)}" y2="${y}" style="stroke:${line}"/>`;
@@ -411,7 +415,7 @@ function renderEarningsChart(shifts, incomes = []) {
   // Only surface the manual-income segment when there is any (keeps the legend
   // clean for pure-gig users).
   if (incomes.some((i) => store.num(i.amount) > 0)) {
-    series.push({ key: 'manual', label: 'Other income', color: '#2dd4bf' });
+    series.push({ key: 'manual', label: 'Other income', color: '#e8f1ff' });
   }
   charts.barChart($('#chart-earnings'), data, series, { empty: 'Log a shift to see earnings here' });
   charts.legend($('#earn-legend'), series);
@@ -425,8 +429,8 @@ function renderPlatformDonut(shifts) {
   charts.legend($('#platform-legend'), slices.filter((s) => s.value > 0));
 }
 
-const EXP_COLORS = ['#ef4444', '#f59e0b', '#34d399', '#60a5fa', '#a78bfa', '#f472b6', '#22d3ee', '#facc15', '#fb923c', '#94a3b8'];
-const TAG_COLORS = { 'Local': '#9aa3b2', 'Rapid': '#009bbf', 'Express': '#f39800', 'Rapid Express': '#e60012' };
+const EXP_COLORS = ['#ff6b5f', '#ffcf7a', '#e8f1ff', '#6aa8ff', '#a78bfa', '#f472b6', '#2dd4bf', '#3dff7a', '#fb923c', '#8a95a5'];
+const TAG_COLORS = { 'Local': '#11a85a', 'Rapid': '#2a6fd6', 'Express': '#f39a12', 'Rapid Express': '#e0211b' };
 const TAG_SHORT = { 'Local': 'Local', 'Rapid': 'Rapid', 'Express': 'Express', 'Rapid Express': 'R.Exp' };
 function renderExpensesDonut(expenses) {
   const byCat = new Map();
@@ -453,14 +457,13 @@ function renderDepartureBoard(shifts) {
     const ty = trainType(s);
     const p = PLATFORMS[s.platform] || PLATFORMS.other;
     return `<div class="dep-row">
-      <span class="dep-type" style="--tc:${ty.color}">${ty.label}<em>${ty.romaji}</em></span>
+      <span class="dep-type" style="--tc:${ty.color};--ink:${ty.ink}">${ty.label}</span>
       <span class="dep-date">${depDate(s.date)}</span>
-      <span class="dep-dest"><b>${p.jp}</b><small>${p.label}</small></span>
-      <span class="dep-dist">${fmt1(s.miles)}<i>mi</i></span>
+      <span class="dep-dest">${swapHTML(p.jp, p.label.toUpperCase())}</span>
       <span class="dep-amt">${fmtMoney0(store.shiftIncome(s))}</span>
     </div>`;
   }).join('');
-  host.innerHTML = `<div class="dep-headrow"><span>種別</span><span>日付</span><span>行先</span><span>距離</span><span>収入</span></div>${rows}`;
+  host.innerHTML = `<div class="dep-headrow"><span>${swapHTML('種別', 'TYPE')}</span><span>${swapHTML('日付', 'DATE')}</span><span>${swapHTML('行先', 'DEST')}</span><span>${swapHTML('収入', 'PAY')}</span></div>${rows}`;
 }
 
 // =====================================================================
@@ -1170,7 +1173,7 @@ function logPlan(id) {
 function planRow(p, today) {
   const st = store.planStatus(p, today);
   const plat = PLATFORMS[p.platform];
-  const color = p.platform === 'income' ? '#f5a524' : (plat ? plat.color : PLATFORMS.other.color);
+  const color = p.platform === 'income' ? '#e9eef6' : (plat ? plat.color : PLATFORMS.other.color);
   const when = p.startTime ? `${p.startTime}–${p.endTime}` : 'Anytime';
   const pill = { logged: 'Logged ✓', missed: 'Missed', today: 'Today', upcoming: '' }[st];
   let amount = `${fmtMoney0(p.estimate)}<small>est</small>`;
@@ -1254,18 +1257,24 @@ function renderCampaign() {
   const st = c.todayHit ? 'is-hit' : (c.todayTotal > 0 ? 'is-part' : 'is-none');
   const label = c.todayHit ? 'HIT' : (c.todayTotal > 0 ? 'IN PROGRESS' : 'NO EARNINGS YET');
   const jp = c.todayHit ? '達成' : (c.todayTotal > 0 ? '進行中' : '未達');
-  const pct = Math.min(100, (c.todayTotal / c.daily) * 100);
+  const flapCls = c.todayHit ? 'grn' : (c.todayTotal > 0 ? 'org flip' : 'gry');
+  // 14 LED cells: earned = lit, still planned today = teal stripes, rest unlit.
+  const N = 14;
+  const lit = Math.min(N, Math.round((c.todayTotal / c.daily) * N));
+  const planCells = c.todayHit ? 0 : Math.min(N - lit, Math.round((todayPlanned() / c.daily) * N));
+  const cells = Array.from({ length: N }, (_, i) => `<span class="${i < lit ? 'lit' : i < lit + planCells ? 'plan' : ''}"></span>`).join('');
   const hero = $('#camp-hero');
   hero.className = `card camp-hero ${st}`;
   hero.innerHTML = `
     <div class="ch-top">
-      <span class="ch-title">CAMPAIGN 350<span class="jp">目標</span></span>
-      <span class="ch-days">${c.daysRemaining}<em>days left · 残り</em></span>
+      <span class="ch-title">CAMPAIGN 350<span class="jp">目標 · キャンペーン350</span></span>
+      <span class="flap ${flapCls}" title="${label}">${jp}</span>
     </div>
-    <div class="ch-status">${label}<span class="ch-status-jp">${jp}</span></div>
     <div class="ch-amount">${fmtMoney0(c.todayTotal)} <span class="ch-goal">/ ${fmtMoney0(c.daily)} today</span></div>
-    <div class="ch-bar"><span style="width:${pct}%"></span>${todayPlanSeg(c)}</div>
+    <div class="ch-cells" aria-hidden="true">${cells}</div>
+    <div class="ch-sub">${label} · 残り${c.daysRemaining}日 · ${c.daysRemaining} days left</div>
     ${todayPlanLine(c)}`;
+  renderCampaignMarquee(c);
 
   // Weekly + monthly goals — hit early and the rest of the period is days off;
   // income logged on a day off rolls over and lowers the next period's goal.
@@ -1296,11 +1305,11 @@ function renderCampaign() {
   const days = store.dailyTotals(store.isoDate(fromD), to);
   const data = days.map((d) => {
     const dd = new Date(d.date + 'T00:00:00');
-    const color = d.total >= c.daily ? '#34d399' : (d.total > 0 ? '#f5a524' : '#3a3f4b');
-    return { label: `${dd.getMonth() + 1}/${dd.getDate()}`, values: { t: d.total }, color };
+    const color = d.total >= c.daily ? '#3dff7a' : (d.total > 0 ? '#ffcf7a' : '#1a2030');
+    return { label: d.date === to ? '今日' : String(dd.getDate()), values: { t: d.total }, color };
   });
-  charts.barChart($('#camp-chart'), data, [{ key: 't', label: 'Total', color: '#34d399' }], {
-    refLine: { value: c.daily, label: `$${c.daily}`, color: '#f5a524' }, empty: 'No data yet',
+  charts.barChart($('#camp-chart'), data, [{ key: 't', label: 'Total', color: '#3dff7a' }], {
+    refLine: { value: c.daily, label: `$${c.daily}`, color: '#ffcf7a' }, empty: 'No data yet',
   });
 
   // Ledger — last ~60 days, gig shifts + manual income, newest first
@@ -1320,17 +1329,33 @@ function todayPlanned() {
   const t = store.todayISO();
   return store.trajectory(t, t)[0].planned;
 }
-function todayPlanSeg(c) {
-  const planned = todayPlanned();
-  if (!planned || c.todayHit) return '';
-  const pct = Math.min(100, (c.todayTotal / c.daily) * 100);
-  return `<i class="plan-seg" style="width:${Math.min(100 - pct, (planned / c.daily) * 100)}%"></i>`;
+// The まもなく board under the Campaign hero: $ to go today, the next planned
+// block, and the week — each line in Japanese then English.
+function renderCampaignMarquee(c) {
+  const host = $('#camp-marquee');
+  if (!host) return;
+  const today = store.todayISO();
+  const items = [];
+  if (c.todayHit) items.push('本日 350 達成', 'TODAY $350 HIT');
+  else if (c.todayTotal > 0) items.push('まもなく 350 達成', `あと ${fmtMoney0(c.daily - c.todayTotal)}`, `${fmtMoney0(c.daily - c.todayTotal)} TO GO`);
+  const next = store.getPlans().find((p) => p.date >= today && !store.planLogged(p));
+  if (next) {
+    const when = `${next.date === today ? '' : dowShort(next.date) + ' '}${next.startTime || ''}`.trim();
+    const jpName = next.platform === 'income' ? (next.source || '収入') : (PLATFORMS[next.platform] || PLATFORMS.other).jp;
+    const enName = next.platform === 'income' ? (next.source || 'INCOME').toUpperCase() : (PLATFORMS[next.platform] || PLATFORMS.other).label.toUpperCase();
+    items.push(`次は ${when} ${jpName} +${fmtMoney0(next.estimate)}`, `NEXT ${when} ${enName}`);
+  }
+  const w = store.weeklyGoalStats();
+  items.push(`今週 ${fmtMoney0(w.earned)} / ${fmtMoney0(w.goal)}`);
+  host.classList.toggle('hidden', !items.length);
+  const line = items.map((t) => `<span>${escapeHtml(t)}</span><span>◆</span>`).join('');
+  $('#camp-marq-track').innerHTML = line + line; // doubled for a seamless loop
 }
 function todayPlanLine(c) {
   const planned = todayPlanned();
   if (!planned) return '';
   const proj = c.todayTotal + planned;
-  return `<div class="ch-plan">📅 +${fmtMoney0(planned)} planned today → ${fmtMoney0(proj)}${proj >= c.daily ? ' · on track for $350 ✓' : ` · ${fmtMoney0(c.daily - proj)} short of $350`}</div>`;
+  return `<div class="ch-plan">予定 +${fmtMoney0(planned)} planned today → ${fmtMoney0(proj)}${proj >= c.daily ? ' · on track for $350 ✓' : ` · ${fmtMoney0(c.daily - proj)} short of $350`}</div>`;
 }
 
 // Income trajectory: this week + next week (Mon–Sun ×2), real income as solid
@@ -1345,20 +1370,20 @@ function renderTrajectory(c) {
   const data = days.map((d) => {
     const dd = new Date(d.date + 'T00:00:00');
     const total = d.actual + d.planned;
-    const actualColor = d.actual >= c.daily ? '#34d399' : '#f5a524';
+    const actualColor = d.actual >= c.daily ? '#3dff7a' : '#e8f1ff';
     return {
       // Day numbers keep 14 labels legible on a phone; today reads 今日.
       label: d.date === today ? '今日' : String(dd.getDate()),
       values: { actual: d.actual, planned: d.planned },
-      colors: { actual: actualColor, planned: total >= c.daily ? '#34d399' : '#2dd4bf' },
+      colors: { actual: actualColor, planned: total >= c.daily ? '#3dff7a' : '#2dd4bf' },
     };
   });
   const series = [
-    { key: 'actual', label: 'Earned', color: '#34d399' },
+    { key: 'actual', label: 'Earned', color: '#e8f1ff' },
     { key: 'planned', label: 'Planned', color: '#2dd4bf', planned: true },
   ];
   charts.barChart(host, data, series, {
-    refLine: { value: c.daily, label: `$${c.daily}`, color: '#f5a524' }, empty: 'No data yet',
+    refLine: { value: c.daily, label: `$${c.daily}`, color: '#ffcf7a' }, empty: 'No data yet',
   });
   charts.legend($('#traj-legend'), series);
 
@@ -1384,8 +1409,8 @@ function renderGoalCard(el, g, { unit, title, jp }) {
   let msg;
   if (g.met) {
     msg = g.daysOff > 0
-      ? `<b>${dayN(g.daysOff)} off earned</b> — ${unit}ly goal met with days to spare 🎉`
-      : `<b>${unit === 'week' ? 'Weekly' : 'Monthly'} goal met</b> — nice finish to the ${unit} 🎉`;
+      ? `<b>${dayN(g.daysOff)} off earned</b> — ${unit}ly goal met with days to spare`
+      : `<b>${unit === 'week' ? 'Weekly' : 'Monthly'} goal met</b> — nice finish to the ${unit}`;
   } else if (g.daysLeft === 0) {
     msg = `${fmtMoney0(g.remaining)} short — last day of the ${unit}`;
   } else {
@@ -1401,14 +1426,14 @@ function renderGoalCard(el, g, { unit, title, jp }) {
   // Income trajectory: what the planner says the rest of the period brings.
   let planNote = '';
   if (g.met) {
-    if (g.planned > 0) planNote = `📅 ${fmtMoney0(g.planned)} planned on days off → rolls into next ${unit}`;
+    if (g.planned > 0) planNote = `予定 ${fmtMoney0(g.planned)} planned on days off → rolls into next ${unit}`;
   } else if (g.planned > 0 && g.projMet) {
-    planNote = `📅 Your plan reaches the goal ${g.projMetOn === store.todayISO() ? 'today' : `on ${dowShort(g.projMetOn)}`}`
+    planNote = `予定 Your plan reaches the goal ${g.projMetOn === store.todayISO() ? 'today' : `on ${dowShort(g.projMetOn)}`}`
       + (g.projDaysOff > 0 ? ` → <b>${dayN(g.projDaysOff)} off</b>` : '');
   } else if (g.planned > 0) {
-    planNote = `📅 ${fmtMoney0(g.planned)} planned → ${fmtMoney0(g.projected)} · <b>plan ${fmtMoney0(g.shortfall)} more</b> by ${dowShort(g.end)}`;
+    planNote = `予定 ${fmtMoney0(g.planned)} planned → ${fmtMoney0(g.projected)} · <b>plan ${fmtMoney0(g.shortfall)} more</b> by ${dowShort(g.end)}`;
   } else {
-    planNote = `📅 Nothing planned yet — plan ${fmtMoney0(g.remaining)} by ${dowShort(g.end)}`;
+    planNote = `予定 Nothing planned yet — plan ${fmtMoney0(g.remaining)} by ${dowShort(g.end)}`;
   }
   // Planned share of the bar, after what's already earned.
   const planPct = g.goal > 0 && !g.met ? Math.min(100 - g.pct, (g.planned / g.goal) * 100) : 0;
@@ -1459,30 +1484,30 @@ function renderTrends() {
   const weeks = groupByWeek(shifts, expenses, 10);
   charts.barChart($('#chart-weekly-net'),
     weeks.map((w) => ({ label: w.label, values: { net: Math.max(0, w.net) } })),
-    [{ key: 'net', label: 'Net', color: PLATFORMS.flex.color }],
+    [{ key: 'net', label: 'Net', color: '#e8f1ff' }],
     { empty: 'Not enough data yet' });
-  charts.legend($('#trend-net-legend'), [{ label: 'Net income', color: PLATFORMS.flex.color }]);
+  charts.legend($('#trend-net-legend'), [{ label: 'Net income', color: '#e8f1ff' }]);
 
   // Hourly rate trend
   charts.lineChart($('#chart-hourly'),
     weeks.map((w) => ({ label: w.label, values: { rate: w.hours ? w.income / w.hours : 0 } })),
-    [{ key: 'rate', label: '$/hr', color: PLATFORMS.doordash.color }],
+    [{ key: 'rate', label: '$/hr', color: '#e8f1ff' }],
     { area: true, empty: 'Log hours to see this' });
 
   // Income vs expenses monthly (last 8 months)
   const months = groupByMonth(shifts, expenses, 8);
   charts.barChart($('#chart-income-expense'),
     months.map((m) => ({ label: m.label, values: { income: m.income, exp: m.expense } })),
-    [{ key: 'income', label: 'Income', color: PLATFORMS.flex.color }, { key: 'exp', label: 'Expenses', color: PLATFORMS.doordash.color }],
+    [{ key: 'income', label: 'Income', color: '#e8f1ff' }, { key: 'exp', label: 'Expenses', color: '#ff6b5f' }],
     { empty: 'Not enough data yet' });
-  charts.legend($('#ie-legend'), [{ label: 'Income', color: PLATFORMS.flex.color }, { label: 'Expenses', color: PLATFORMS.doordash.color }]);
+  charts.legend($('#ie-legend'), [{ label: 'Income', color: '#e8f1ff' }, { label: 'Expenses', color: '#ff6b5f' }]);
 
   // Best day of week (avg income per shift)
   const dow = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const sums = Array(7).fill(0), counts = Array(7).fill(0);
   shifts.forEach((s) => { const d = dayOfWeek(s.date); sums[d] += store.shiftIncome(s); counts[d]++; });
   const dowData = dow.map((label, i) => ({ label, values: { avg: counts[i] ? sums[i] / counts[i] : 0 } }));
-  charts.barChart($('#chart-dow'), dowData, [{ key: 'avg', label: 'Avg / shift', color: PLATFORMS.other.color }],
+  charts.barChart($('#chart-dow'), dowData, [{ key: 'avg', label: 'Avg / shift', color: '#e8f1ff' }],
     { empty: 'Log shifts across the week' });
 }
 
@@ -1897,15 +1922,50 @@ function endDrive(save) {
 
 // Live station-board clock in the sidebar (desktop).
 function startClock() {
-  const el = $('#side-clock');
-  if (!el) return;
+  const side = $('#side-clock');
+  const hdr = $('#hdr-clock');
   const pad = (n) => String(n).padStart(2, '0');
+  let lastMin = -1;
   const tick = () => {
     const d = new Date();
-    el.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    if (side) side.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    // Header clock only re-renders when the minute changes; the colon blinks in CSS.
+    if (hdr && d.getMinutes() !== lastMin) {
+      lastMin = d.getMinutes();
+      hdr.innerHTML = `${pad(d.getHours())}<span class="blink">:</span>${pad(d.getMinutes())}`;
+    }
   };
   tick();
   setInterval(tick, 1000);
+}
+
+// JP ⇄ EN: every .swap on the page flips at the same moment (one class on
+// <html> every 3 s), like a real station board. Off under reduce-motion and
+// while the page is hidden.
+function startLangSwap() {
+  decorateSwaps(document);
+  // Headings rendered later (goal cards, plan form title…) get decorated too.
+  let queued = false;
+  new MutationObserver(() => {
+    if (queued) return;
+    queued = true;
+    queueMicrotask(() => { queued = false; decorateSwaps(document); });
+  }).observe(document.body, { childList: true, subtree: true });
+  if (reducedMotion()) return;
+  setInterval(() => {
+    if (!document.hidden) document.documentElement.classList.toggle('lang-en');
+  }, 3000);
+}
+// "English<span class=jp>日本語</span>" headings → a JP ⇄ EN swap.
+function decorateSwaps(root) {
+  // Only headings that still hold a raw .jp child (re-rendered ones get redone).
+  root.querySelectorAll('.card-head h2, .wg-title, .ch-title').forEach((h) => {
+    const jp = h.querySelector(':scope > .jp');
+    if (!jp) return;
+    const en = [...h.childNodes].filter((n) => n !== jp).map((n) => n.textContent).join('').trim();
+    h.setAttribute('aria-label', en);
+    h.innerHTML = swapHTML(escapeHtml(jp.textContent.trim()), escapeHtml(en));
+  });
 }
 
 function fmtDuration(ms) {
@@ -2093,11 +2153,13 @@ function renderOfferVerdict() {
     return;
   }
   const label = v.verdict === 'take' ? 'TAKE IT' : v.verdict === 'skip' ? 'SKIP' : 'MARGINAL';
-  const jp = v.verdict === 'take' ? '受注' : v.verdict === 'skip' ? '見送り' : '要検討';
+  const jp = v.verdict === 'take' ? '乗車' : v.verdict === 'skip' ? '見送' : '検討';
+  const flapCls = v.verdict === 'take' ? 'grn' : v.verdict === 'skip' ? 'red' : 'gold';
   const hourStat = v.hourOK === null ? ''
     : `<div class="ov-stat ${v.hourOK ? 'good' : 'bad'}"><b>${fmtMoney(v.perHour)}</b><small>/hr · min ${fmtMoney0(v.minPerHour)}</small></div>`;
   host.innerHTML = `<div class="ov-banner ${v.verdict}">
-    <div class="ov-verdict-label">${label}<small>${jp}</small></div>
+    <span class="flap lg ${flapCls}">${jp}</span>
+    <div class="ov-verdict-label">${label}</div>
     <div class="ov-stats">
       <div class="ov-stat ${v.mileOK ? 'good' : 'bad'}"><b>${fmtMoney(v.perMile)}</b><small>/mi · min ${fmtMoney(v.minPerMile)}</small></div>
       ${hourStat}
@@ -2211,6 +2273,7 @@ function boot() {
   renderDashboard();
   renderLogList();
   startClock();
+  startLangSwap();
 
   // Re-render when crossing the desktop breakpoint so the route strip / ticker
   // and count-up numbers appear/disappear correctly.

@@ -4,8 +4,8 @@
 const KEY = 'gigtracker.v1';
 
 export const PLATFORMS = {
-  flex: { id: 'flex', label: 'Amazon Flex', color: '#60a5fa', short: 'Flex', jp: 'フレックス' },
-  doordash: { id: 'doordash', label: 'DoorDash', color: '#ef4444', short: 'Dasher', jp: 'ドアダッシュ' },
+  flex: { id: 'flex', label: 'Amazon Flex', color: '#6aa8ff', short: 'Flex', jp: 'フレックス' },
+  doordash: { id: 'doordash', label: 'DoorDash', color: '#ff6b5f', short: 'Dasher', jp: 'ドアダッシュ' },
   other: { id: 'other', label: 'Other', color: '#a78bfa', short: 'Other', jp: 'その他' },
 };
 
