@@ -28,12 +28,14 @@ const port = server.address().port;
 const base = `http://localhost:${port}`;
 
 const browser = await chromium.launch({ executablePath: EXE });
-const page = await browser.newContext({ viewport: { width: 390, height: 800 } }).then(async (c) => {
-  // Never touch the real Firebase project from tests: the SDK "fails to load"
-  // (as when offline), which the app handles. scripts/sync-test.mjs covers sync.
+// Never touch the real Firebase project from tests: the SDK "fails to load"
+// (as when offline), which the app handles. scripts/sync-test.mjs covers sync.
+const newCtx = async (viewport) => {
+  const c = await browser.newContext({ viewport });
   await c.route(/^https:\/\/www\.gstatic\.com\/firebasejs\//, (r) => r.fulfill({ status: 200, contentType: 'text/javascript', body: 'throw new Error("no Firebase in smoke test")' }));
-  return c.newPage();
-});
+  return c;
+};
+const page = await newCtx({ width: 390, height: 800 }).then((c) => c.newPage());
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
@@ -939,7 +941,7 @@ try {
 
   console.log('\n26) No sideways spill on small phones (incl. iOS-wide date/time inputs)');
   {
-    const narrow = await browser.newContext({ viewport: { width: 320, height: 700 } }).then((c) => c.newPage());
+    const narrow = await newCtx({ width: 320, height: 700 }).then((c) => c.newPage());
     await narrow.goto(base + '/index.html');
     // Clip guard off so real overflow shows; mimic iOS's wide intrinsic
     // date/time inputs at UA-level (zero) specificity.
@@ -954,6 +956,216 @@ try {
     }
     ok(spills.length === 0, 'every screen fits 320 px wide' + (spills.length ? ': ' + spills.join(', ') : ''));
     await narrow.close();
+  }
+
+  console.log('\n27) Planning desk analytics: heat map, slot estimates, suggestions, copy week');
+  const an = await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    s.clearAll();
+    // A fixed Monday so weekdays are known. Mon 2026-09-07 … Sun 2026-09-13.
+    const now = '2026-09-30';
+    s.addShift({ platform: 'doordash', date: '2026-09-21', startTime: '17:00', endTime: '19:00', hours: 2, gross: 60, miles: 20 });       // Mon: $30/hr
+    s.addShift({ platform: 'doordash', date: '2026-09-28', startTime: '17:00', endTime: '18:00', hours: 1, gross: 40, miles: 10 });       // Mon 17h: +$40/1h
+    s.addShift({ platform: 'flex', date: '2026-09-22', startTime: '23:00', endTime: '01:00', hours: 2, gross: 50, miles: 0 });            // Tue 23h → Wed 00h
+    s.addShift({ platform: 'flex', date: '2026-09-23', hours: 3, gross: 90 });                                                           // untimed
+    const heat = s.hourlyHeat({ platform: 'all', days: 90 }, now);
+    const net = s.hourlyHeat({ platform: 'doordash', days: 90, net: true }, now);
+    const flexOnly = s.hourlyHeat({ platform: 'flex', days: 90 }, now);
+    const scale = s.heatScale(heat);
+    const est = s.estimateFor({ date: '2026-10-05', startTime: '17:00', endTime: '19:00', platform: 'doordash' }, now);
+    const noHist = s.slotRate('2026-10-06', '09:00', '11:00', 'doordash', now);
+    return {
+      mon17: heat.cells[1][17], mon18: heat.cells[1][18], tue23: heat.cells[2][23], wed0: heat.cells[3][0],
+      timed: heat.timed, total: heat.total, netMon18: net.cells[1][18].rate, flexMon17: flexOnly.cells[1][17].rate,
+      lvlBest: scale.level(heat.cells[1][17].rate), lvlNone: scale.level(null), est, noHist,
+    };
+  });
+  ok(Math.abs(an.mon17.rate - 35) < 0.01 && an.mon17.shifts === 2, 'heat: Mon 17h = ($30 + $40) over 2 h = $35/hr from 2 shifts');
+  ok(Math.abs(an.mon18.rate - 30) < 0.01, 'heat: pay is spread evenly over the hours worked (Mon 18h = $30/hr)');
+  ok(Math.abs(an.tue23.rate - 25) < 0.01 && Math.abs(an.wed0.rate - 25) < 0.01, 'heat: an overnight shift spills into the next weekday');
+  ok(an.timed === 3 && an.total === 4, 'coverage: 3 of 4 shifts have clock times');
+  ok(Math.abs(an.netMon18 - (30 - 10 * 0.7)) < 0.01, 'net heat takes off miles × IRS rate (Mon 18h $30 − $7 = $23/hr)');
+  ok(an.flexMon17 === null, 'platform filter: no Flex history on Mon 17h');
+  ok(an.lvlBest === 4 && an.lvlNone === -1, 'heat scale: your top cell is "best", empty cells have no level');
+  ok(an.est.fromSlot && Math.abs(an.est.rate - 32.5) < 0.01 && an.est.estimate === 65, 'estimateFor Mon 17–19 DoorDash = avg($35, $30) × 2 h = $65');
+  ok(!an.noHist.fromSlot && an.noHist.rate > 0, 'slot without history falls back to your overall rate');
+
+  const sg = await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    s.clearAll();
+    // 6 weeks of Mon–Sun history: DoorDash dinners pay best, Flex mornings OK.
+    const day = (iso, n) => { const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + n); return s.isoDate(d); };
+    for (let n = 0; n < 45; n++) { // through Wed 9/30 ("today")
+      const date = day('2026-08-17', n);
+      s.addShift({ platform: 'doordash', date, startTime: '17:00', endTime: '21:00', hours: 4, gross: 140 });
+      s.addShift({ platform: 'flex', date, startTime: '06:00', endTime: '09:00', hours: 3, gross: 75 });
+    }
+    const now = '2026-09-30'; // Wed
+    const week = '2026-09-28';
+    s.addPlan({ date: '2026-10-01', platform: 'doordash', startTime: '17:00', endTime: '21:00', estimate: 140 }); // Thu dinner already planned
+    const sug = s.suggestSlots(week, { nowISO: now, nowMin: 12 * 60 });
+    const dw = s.deskWeek(week, now);
+    // Copy this week into next week, then again (second time everything overlaps).
+    const first = s.copyWeekPlans(week, '2026-10-05');
+    const again = s.copyWeekPlans(week, '2026-10-05');
+    const next = s.getPlans().filter((p) => p.date >= '2026-10-05' && p.date <= '2026-10-11');
+    return {
+      sug: sug.map((x) => ({ date: x.date, t: x.startTime + '-' + x.endTime, p: x.platform, est: x.estimate, free: x.freeDay })),
+      dw: { goal: dw.goal, earned: dw.earned, planned: dw.planned, metOn: dw.metOn, hours: dw.hours },
+      first: first.length, again: again.length, nextKinds: [...new Set(next.map((p) => p.platform))].sort(), nextTimes: next.map((p) => p.date + ' ' + p.startTime).sort(),
+    };
+  });
+  ok(sg.sug.length > 0 && sg.sug.every((x) => x.date >= '2026-09-30'), `suggestions only from today on (${sg.sug.length})`);
+  ok(sg.sug[0].p === 'doordash' && /^17:00-2[01]:00$/.test(sg.sug[0].t), `best suggestion is a DoorDash dinner (${sg.sug[0].date} ${sg.sug[0].t})`);
+  ok(!sg.sug.some((x) => x.date === '2026-10-01' && x.t.startsWith('17')), 'no suggestion on top of the already-planned Thu dinner');
+  ok(!sg.sug.some((x) => x.date === '2026-09-30' && Number(x.t.slice(0, 2)) < 13), 'today: nothing before now (+30 min)');
+  ok(sg.sug.every((x) => x.free === !['2026-09-30', '2026-10-01'].includes(x.date)), 'days with nothing on them are flagged as free days');
+  ok(sg.dw.goal > 0 && sg.dw.planned === 140 && sg.dw.earned === 3 * 215, `deskWeek: earned ${sg.dw.earned} + planned ${sg.dw.planned} vs goal ${sg.dw.goal}`);
+  ok(sg.first > 0 && sg.again === 0, `copy last week: ${sg.first} blocks copied, re-copy skips overlaps`);
+  ok(sg.nextKinds.join(',') === 'doordash,flex' && sg.nextTimes.includes('2026-10-05 06:00') && sg.nextTimes.includes('2026-10-08 17:00'), 'copy brings timed shifts as plans + open plans, same weekday & time');
+
+  console.log('\n28) Planning desk UI (desktop): drag, keys, suggestions, undo');
+  {
+    const dctx = await newCtx({ width: 1440, height: 1000 });
+    const desk = await dctx.newPage();
+    const derr = [];
+    desk.on('pageerror', (e) => derr.push(e.message));
+    await desk.goto(base + '/index.html');
+    await desk.evaluate(async () => {
+      const s = await import('./js/store.js');
+      s.clearAll();
+      const day = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return s.isoDate(d); };
+      for (let n = -42; n < 0; n++) {
+        s.addShift({ platform: 'doordash', date: day(n), startTime: '17:00', endTime: '21:00', hours: 4, gross: 130 });
+        s.addShift({ platform: 'flex', date: day(n), startTime: '06:00', endTime: '09:30', hours: 3.5, gross: 90, tag: 'Express' });
+      }
+    });
+    await desk.reload();
+    await desk.locator('.snav[data-view=desk]').click();
+    await desk.waitForTimeout(150);
+    ok(await desk.locator('#view-desk.active').count() === 1 && await desk.locator('#screen-title').getAttribute('aria-label') === 'PLANNING DESK', 'GT07 opens the planning desk');
+    ok(await desk.locator('.dcol').count() === 7 && await desk.locator('.d-heat').count() === 7, 'week of 7 columns with best-hours shading');
+    await desk.keyboard.press('ArrowRight'); // next week: every day is in the future
+    await desk.waitForTimeout(100);
+    ok(/NEXT WEEK/.test(await desk.locator('#desk-week-sub').innerText()), '→ moves to next week');
+    const plans = () => desk.evaluate(async () => (await import('./js/store.js')).getPlans().map((p) => ({ id: p.id, date: p.date, s: p.startTime, e: p.endTime, est: p.estimate, plat: p.platform })));
+    const colBox = async (i) => desk.locator('.dcol').nth(i).boundingBox();
+    const yAt = (box, min) => box.y + ((min / 60) - 6) * 32;
+
+    // Drag-create on Tuesday 17:00 → 20:00 (DoorDash pays best there).
+    let b = await colBox(1);
+    await desk.mouse.move(b.x + b.width / 2, yAt(b, 17 * 60) + 2);
+    await desk.mouse.down();
+    await desk.mouse.move(b.x + b.width / 2, yAt(b, 18 * 60), { steps: 4 });
+    ok(await desk.locator('.d-tip').count() === 1 && /est \$\d+/.test(await desk.locator('.d-tip').innerText()), 'dragging shows a live time + estimate tip');
+    await desk.mouse.move(b.x + b.width / 2, yAt(b, 20 * 60), { steps: 4 });
+    await desk.mouse.up();
+    await desk.waitForTimeout(150);
+    let ps = await plans();
+    ok(ps.length === 1 && ps[0].s === '17:00' && ps[0].e === '20:00' && ps[0].plat === 'doordash' && Math.abs(ps[0].est - 97.5) <= 1, `drag-create: Tue 17:00–20:00 DoorDash, est from history (${JSON.stringify(ps[0])})`);
+    ok(await desk.locator('#desk-inspector .di-when').count() === 1 && /17:00–20:00/.test(await desk.locator('#desk-inspector').innerText()), 'new block is selected in the inspector');
+
+    // Move it to Thursday 18:00 by its body.
+    const blk = desk.locator(`.dblk[data-id="${ps[0].id}"]`);
+    let bb = await blk.boundingBox();
+    const b3 = await colBox(3);
+    await desk.mouse.move(bb.x + bb.width / 2, bb.y + 10);
+    await desk.mouse.down();
+    await desk.mouse.move(b3.x + b3.width / 2, bb.y + 10 + 32, { steps: 6 });
+    await desk.mouse.up();
+    await desk.waitForTimeout(150);
+    ps = await plans();
+    const thu = await desk.locator('.dcol').nth(3).getAttribute('data-date');
+    ok(ps[0].date === thu && ps[0].s === '18:00' && ps[0].e === '21:00', `move: now ${ps[0].date} ${ps[0].s}–${ps[0].e}`);
+
+    // Resize from the bottom edge to 22:00.
+    bb = await desk.locator(`.dblk[data-id="${ps[0].id}"]`).boundingBox();
+    await desk.mouse.move(bb.x + bb.width / 2, bb.y + bb.height - 2);
+    await desk.mouse.down();
+    await desk.mouse.move(bb.x + bb.width / 2, yAt(b3, 22 * 60), { steps: 5 });
+    await desk.mouse.up();
+    await desk.waitForTimeout(150);
+    ps = await plans();
+    ok(ps[0].e === '22:00' && ps[0].est > 97, `resize: ends 22:00, estimate grew to $${ps[0].est}`);
+
+    // Inspector: a typed estimate sticks.
+    await desk.fill('#di-est', '150');
+    await desk.locator('#di-est').press('Tab');
+    await desk.waitForTimeout(100);
+    ok((await plans())[0].est === 150, 'inspector edits the estimate');
+
+    // Overlap: another block on Thursday 19:00–20:00 → both get the warning.
+    const ovId = await desk.evaluate(async (date) => (await import('./js/store.js')).addPlan({ date, platform: 'flex', startTime: '19:00', endTime: '20:00', estimate: 30 }).id, thu);
+    await desk.waitForTimeout(120);
+    ok(await desk.locator('.dblk.warn').count() === 2, 'overlapping blocks sit side by side with a warning outline');
+    await desk.evaluate(async (id) => (await import('./js/store.js')).deletePlan(id), ovId);
+    await desk.waitForTimeout(80);
+
+    // Undo twice: the estimate edit, then the resize.
+    await desk.keyboard.press('Control+z'); await desk.waitForTimeout(80);
+    await desk.keyboard.press('Control+z'); await desk.waitForTimeout(80);
+    ps = await plans();
+    ok(ps.length === 1 && ps[0].e === '21:00' && ps[0].est !== 150, `⌘Z undoes the last two changes (back to ${ps[0].s}–${ps[0].e}, $${ps[0].est})`);
+
+    // Suggestions: add the top one.
+    const before = ps.length;
+    ok(await desk.locator('#desk-sugg .d-sugg').count() > 0, 'fill-the-gap lists suggestions');
+    await desk.locator('#desk-sugg .d-sugg').first().hover();
+    ok(await desk.locator('.d-ghost.pv').count() === 1 && /With this:/.test(await desk.locator('#desk-gap-line').innerText()), 'hovering a suggestion previews it on the grid + new total');
+    await desk.locator('#desk-sugg [data-add]').first().click();
+    await desk.waitForTimeout(150);
+    ok((await plans()).length === before + 1, '+ Add puts the suggestion on the plan');
+
+    // Keys: H toggles shading, N adds a block, Delete removes the selected one, ⌘D duplicates.
+    await desk.keyboard.press('h'); await desk.waitForTimeout(80);
+    ok(await desk.locator('.d-heat').count() === 0, 'H turns best-hours shading off');
+    await desk.keyboard.press('h'); await desk.waitForTimeout(80);
+    const n0 = (await plans()).length;
+    await desk.keyboard.press('n'); await desk.waitForTimeout(120);
+    ok((await plans()).length === n0 + 1, 'N adds a 3-hour block at the next free slot');
+    await desk.keyboard.press('Control+d'); await desk.waitForTimeout(120);
+    ok((await plans()).length === n0 + 2, '⌘D duplicates the selected block');
+    await desk.keyboard.press('Delete'); await desk.waitForTimeout(120);
+    ok((await plans()).length === n0 + 1, 'Delete removes the selected block');
+
+    // Copy last week into the week after.
+    await desk.keyboard.press('ArrowRight'); await desk.waitForTimeout(100);
+    await desk.locator('#desk-copy').click(); await desk.waitForTimeout(150);
+    ok(await desk.locator('.dblk.k-plan').count() >= 3, 'copy last week fills the next week');
+
+    // Trends heat map → "Plan this slot" opens the desk on that week.
+    await desk.locator('.snav[data-view=trends]').click();
+    await desk.waitForTimeout(150);
+    ok(await desk.locator('#bh-grid .bh-cell').count() === 7 * 18, 'best-hours heat map: 7 days × 18 hours');
+    ok(/\$\d/.test(await desk.locator('#bh-side .bh-rate').innerText()) && await desk.locator('#bh-side .bh-top li').count() > 0, 'slot detail + top slots');
+    await desk.locator('#bh-grid .bh-cell[data-cell="2,18"]').click();
+    ok(/Tue 18:00–19:00/.test(await desk.locator('#bh-side .bh-when').innerText()), 'clicking a cell shows that slot');
+    await desk.locator('#bh-plan').click();
+    await desk.waitForTimeout(150);
+    ok(await desk.locator('#view-desk.active').count() === 1 && await desk.locator('.d-flash').count() === 1, '"Plan this slot" opens the desk with the hour highlighted');
+    ok(derr.length === 0, 'desk: no page errors' + (derr.length ? ': ' + derr.join(' | ') : ''));
+    await dctx.close();
+
+    // On a phone, "Plan this slot" opens Log → Plan prefilled instead.
+    const pctx = await newCtx({ width: 390, height: 844 });
+    const ph = await pctx.newPage();
+    await ph.goto(base + '/index.html');
+    await ph.evaluate(async () => {
+      const s = await import('./js/store.js');
+      s.clearAll();
+      for (let n = -21; n < 0; n++) { const d = new Date(); d.setDate(d.getDate() + n); s.addShift({ platform: 'doordash', date: s.isoDate(d), startTime: '17:00', endTime: '21:00', hours: 4, gross: 120 }); }
+    });
+    await ph.reload();
+    await ph.locator('.tab[data-view=trends]').click();
+    await ph.waitForTimeout(150);
+    await ph.locator('#bh-grid .bh-cell[data-cell="5,17"]').click();
+    await ph.locator('#bh-plan').click();
+    await ph.waitForTimeout(150);
+    ok(await ph.locator('#view-log.active #plan-form:not(.hidden)').count() === 1
+      && await ph.inputValue('#plan-form [name=startTime]') === '17:00' && await ph.inputValue('#plan-form [name=endTime]') === '20:00'
+      && await ph.locator('#plan-platform .chip.active').getAttribute('data-val') === 'doordash'
+      && /for this slot/.test(await ph.locator('#plan-est-hint').innerText()), 'phone: "Plan this slot" opens Log → Plan prefilled (Fri 17–20 DoorDash, slot estimate)');
+    await pctx.close();
   }
 
   ok(errors.length === 0, 'no console/page errors' + (errors.length ? ': ' + errors.slice(0, 3).join(' | ') : ''));

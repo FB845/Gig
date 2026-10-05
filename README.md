@@ -123,6 +123,24 @@ mileage tracking** — without asking for a cent.
   dashboard: a sidebar of station badges with a live clock, a stat ticker, the
   **"Gig Line" route map** (earnings as numbered stations with a pulsing "you
   are here"), multi-column KPIs with sparklines and LED count-up numbers.
+- **Planning desk (desktop · GT07 計画)** — a week timetable you plan on with the
+  mouse: drag down a column to add a block, drag it to move, pull its bottom
+  edge to resize (15-min snap). Each new block gets the platform that pays best
+  in that slot and an estimate from *your* history for that weekday and hour.
+  The week strip tracks earned + planned against the weekly goal and shows the
+  day you'd hit it (and the free days that earns). **Fill the gap** ranks the
+  best open slots from the last 90 days — hover to preview, + Add to plan —
+  preferring ones that keep a free day free. Best-hours shading, overlap
+  warnings, a block inspector, **copy last week**, and keys: N new · ←/→ week ·
+  H shading · Del · ⌘D duplicate · ⌘Z undo. Everything it makes is an ordinary
+  plan, so the phone's planner, Campaign 350 and cloud sync all see it.
+- **Best hours (Trends)** — your $/hr by weekday × hour from shifts logged with
+  start–finish times (pay spread over the minutes worked), gross or net of
+  fuel + wear, by platform and period, coloured on your own scale (top fifth =
+  best). Click a slot for details; **Plan this slot** opens the desk (or the
+  plan form on a phone). Shows how much of your history has clock times —
+  duration-only shifts count in totals but not on the clock. The same slot
+  rates now pre-fill estimates in the phone planner and calendar import.
 
 Amazon Flex block tags map to JR train types (種別): **Local (普通)**, **Rapid
 (快速)**, **Express (急行)**, **Rapid Express (特急)** — shown as colour-coded
@@ -278,6 +296,8 @@ js/parse.js             CSV parsing + OCR/free-text field extraction
 js/ocr.js               lazy Tesseract.js loader for screenshot OCR
 js/geo.js               GPS auto-mileage tracker (Haversine + jitter filtering)
 js/sync.js              optional Firebase cloud sync (one Firestore doc per record)
+js/desk.js              desktop planning desk (week timetable, drag to plan, fill the gap)
+js/besthours.js         Trends best-hours heat map ($/hr by weekday × hour)
 js/firebase-config.js   your Firebase web config (null = paste it in Settings)
 firebase/               Firestore security rules + emulator config
 js/calendar.js          .ics + schedule-screenshot parsing for the planner

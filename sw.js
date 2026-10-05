@@ -4,7 +4,7 @@
 // single reload always gets the latest version when you're online, falling back
 // to cache when offline. CACHE-FIRST for static images/icons (they rarely change
 // and this keeps things fast). Bump CACHE on every release to purge old files.
-const CACHE = 'gig-tracker-v24';
+const CACHE = 'gig-tracker-v25';
 const ASSETS = [
   './',
   './index.html',
@@ -15,7 +15,7 @@ const ASSETS = [
   './js/parse.js',
   './js/ocr.js',
   './js/geo.js',
-  './js/sync.js', './js/firebase-config.js',
+  './js/sync.js', './js/firebase-config.js', './js/desk.js', './js/besthours.js',
   './js/calendar.js',
   './fonts/DotGothic16-subset.woff2',
   './fonts/Silkscreen-Regular.woff2',

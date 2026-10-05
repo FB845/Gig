@@ -32,6 +32,7 @@
       <button class="snav" data-view="campaign"><span class="line-mark num3" style="--c:#f5a524"><i>GT</i><b>350</b></span><span class="snav-t">Campaign 350<small>目標</small></span></button>
       <button class="snav" data-view="log"><span class="line-mark" style="--c:#00b2e5"><i>GT</i><b>03</b></span><span class="snav-t">Log<small>記録</small></span></button>
       <button class="snav" data-view="trends"><span class="line-mark" style="--c:#f15a22"><i>GT</i><b>04</b></span><span class="snav-t">Trends<small>分析</small></span></button>
+      <button class="snav" data-view="desk"><span class="line-mark" style="--c:#b06ab3"><i>GT</i><b>07</b></span><span class="snav-t">Plan desk<small>計画</small></span></button>
       <button class="snav" data-view="import"><span class="line-mark" style="--c:#00ac9a"><i>GT</i><b>05</b></span><span class="snav-t">Import<small>取込</small></span></button>
       <button class="snav" data-view="settings"><span class="line-mark" style="--c:#4a5fd0"><i>GT</i><b>06</b></span><span class="snav-t">Settings<small>設定</small></span></button>
     </div>
@@ -330,6 +331,15 @@
         <ul class="tag-bars" id="flex-tag-list"></ul>
       </div>
 
+      <div class="card" id="best-hours-card">
+        <div class="card-head"><h2 aria-label="Best hours"><span class="swap"><span>最適時間 · 曜日 × 時間帯</span><span>BEST HOURS</span></span></h2></div>
+        <div class="bh-filters" id="bh-filters"></div>
+        <div class="bh-body">
+          <div class="bh-main"><div class="bh-scroll" id="bh-grid"></div><div class="bh-legend muted" id="bh-legend"></div></div>
+          <div class="bh-side" id="bh-side"></div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-head"><h2 aria-label="Weekly net income"><span class="swap"><span>週間純利益</span><span>WEEKLY NET</span></span></h2><span class="muted head-note" id="trend-net-note"></span></div>
         <div class="chart-wrap" id="chart-weekly-net"></div>
@@ -361,6 +371,42 @@
           <button type="button" class="btn" id="tax-print">Print / PDF</button>
         </div>
         <p class="muted tax-disclaimer">Estimate only — not tax advice. You generally deduct the <b>larger</b> of the standard mileage rate <b>or</b> actual vehicle expenses (not both); other business expenses are separate. Confirm with a tax professional.</p>
+      </div>
+    </section>
+
+    <!-- ================= PLANNING DESK (desktop) ================= -->
+    <section id="view-desk" class="view" aria-label="Planning desk">
+      <div class="desk-head">
+        <div class="desk-weeknav">
+          <button type="button" class="btn ghost desk-arrow" id="desk-prev" aria-label="Previous week">‹</button>
+          <span class="desk-week"><span class="led" id="desk-week-label"></span><small class="muted" id="desk-week-sub"></small></span>
+          <button type="button" class="btn ghost desk-arrow" id="desk-next" aria-label="Next week">›</button>
+          <button type="button" class="btn ghost hidden" id="desk-today">今週 This week</button>
+        </div>
+        <span class="desk-spacer"></span>
+        <button type="button" class="btn ghost" id="desk-copy">前週を複製 · Copy last week</button>
+        <div class="segmented desk-heat-seg" id="desk-heat-seg" role="group" aria-label="Best-hours shading">
+          <button type="button" class="seg" data-heat="0">Plain</button>
+          <button type="button" class="seg active" data-heat="1">最適時間 Best hours</button>
+        </div>
+      </div>
+      <div class="card desk-goal" id="desk-goal"></div>
+      <div class="desk-body">
+        <section class="card desk-grid-card" aria-label="Weekly timetable">
+          <div class="desk-scroll"><div class="desk-grid" id="desk-grid"></div></div>
+          <div class="desk-legend muted">
+            <span><i class="lg-plan"></i>planned</span><span><i class="lg-log"></i>logged</span><span><i class="lg-warn"></i>overlap</span>
+            <span>Drag down a column to add · drag a block to move · pull its bottom edge to resize</span>
+          </div>
+        </section>
+        <aside class="desk-side">
+          <section class="card" id="desk-sugg-card">
+            <div class="card-head"><h2 aria-label="Fill the gap"><span class="swap"><span>隙間埋め</span><span>FILL THE GAP</span></span></h2><span class="muted head-note">best open slots · last 90 days</span></div>
+            <ul class="desk-sugg" id="desk-sugg"></ul>
+            <p class="d-gap muted" id="desk-gap-line"></p>
+          </section>
+          <section class="card desk-insp" id="desk-inspector"></section>
+        </aside>
       </div>
     </section>
 
@@ -530,7 +576,7 @@ service cloud.firestore {
         <button class="btn primary hidden" id="install-btn">インストール Install app</button>
       </div>
 
-      <p class="version muted">Gig Tracker · 白色LED · v24</p>
+      <p class="version muted">Gig Tracker · 白色LED · v25</p>
     </section>
   </main>
 

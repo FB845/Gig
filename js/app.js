@@ -6,6 +6,8 @@ import { recognize, ocrAvailable } from './ocr.js';
 import { parseICS, parseScheduleText } from './calendar.js';
 import { DriveTracker } from './geo.js';
 import * as sync from './sync.js';
+import { initDesk, renderDesk, focusSlot } from './desk.js';
+import { initBestHours, renderBestHours } from './besthours.js';
 
 const { PLATFORMS, EXPENSE_CATEGORIES } = store;
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -57,6 +59,7 @@ const SCREEN_TITLES = {
   trends: ['分析 · ぶんせき', 'TRENDS'],
   import: ['取込 · とりこみ', 'IMPORT'],
   settings: ['設定 · せってい', 'SETTINGS'],
+  desk: ['計画 · プランニング', 'PLANNING DESK'],
 };
 function setScreenTitle(jp, en) {
   const h = $('#screen-title');
@@ -74,6 +77,7 @@ function showView(name) {
   if (name === 'trends') renderTrends();
   if (name === 'log') renderLogList();
   if (name === 'campaign') renderCampaign();
+  if (name === 'desk') renderDesk();
 }
 
 $$('.tab, .snav').forEach((t) => t.addEventListener('click', () => showView(t.dataset.view)));
@@ -1107,13 +1111,14 @@ function updatePlanUI() {
   updatePlanLive();
 }
 
-// Suggested estimate for the plan on screen: your recent $/hr × planned hours.
+// Suggested estimate for the plan on screen: what you've made in that weekday
+// + time slot on that platform (best-hours history), else your recent $/hr.
 function planSuggestion(f) {
   const plat = chipValue('#plan-platform');
   const hours = store.hoursBetween(f.startTime.value, f.endTime.value);
   if (plat === 'income' || !hours) return { value: 0, rate: 0 };
-  const rate = store.suggestedRate(plat);
-  return { value: Math.round(rate * hours), rate };
+  const e = store.estimateFor({ date: f.date.value || store.todayISO(), startTime: f.startTime.value, endTime: f.endTime.value, platform: plat });
+  return { value: e.estimate, rate: e.rate, fromSlot: e.fromSlot };
 }
 
 function updatePlanLive() {
@@ -1126,7 +1131,7 @@ function updatePlanLive() {
   // Estimate: blank uses your average $/hr on this platform.
   const sug = planSuggestion(f);
   f.estimate.placeholder = sug.value ? String(sug.value) : '84.00';
-  $('#plan-est-hint').textContent = sug.value ? `blank = ${fmtMoney0(sug.value)} at your ${fmtMoney(sug.rate)}/hr avg` : '';
+  $('#plan-est-hint').textContent = sug.value ? `blank = ${fmtMoney0(sug.value)} at your ${fmtMoney(sug.rate)}/hr ${sug.fromSlot ? 'for this slot' : 'avg'}` : '';
 
   // Checks: clashes with other plans + what this does to the week's goal.
   const est = parseFloat(f.estimate.value) || sug.value;
@@ -1207,6 +1212,24 @@ function editPlan(id) {
   f.estimate.value = p.estimate || ''; f.source.value = p.source || ''; f.note.value = p.note || '';
   setTitle($('#plan-form-title'), 'Edit plan');
   $('#plan-submit').textContent = 'Update plan 保存';
+  updatePlanUI();
+  f.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// "Plan this slot" from the best-hours heat map: the planning desk on a wide
+// screen; on a phone, the Log → Plan form prefilled with a 3-hour block there.
+function planSlot(date, hour) {
+  if (window.matchMedia('(min-width: 960px)').matches) { focusSlot(date, hour); return; }
+  resetPlanForm();
+  showLogForm('plan');
+  showView('log');
+  const f = $('#plan-form');
+  const hh = (h) => `${String(h % 24).padStart(2, '0')}:00`;
+  const end = Math.min(hour + 3, 24);
+  const best = ['flex', 'doordash', 'other'].map((p) => ({ p, e: store.estimateFor({ date, startTime: hh(hour), endTime: hh(end), platform: p }) }))
+    .filter((x) => x.e.fromSlot).sort((a, b) => b.e.rate - a.e.rate)[0];
+  if (best) setChip('#plan-platform', best.p);
+  f.date.value = date; f.startTime.value = hh(hour); f.endTime.value = hh(end);
   updatePlanUI();
   f.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -1527,6 +1550,7 @@ function renderTrends() {
   const shifts = store.getShifts();
   const expenses = store.getExpenses();
   renderTaxSummary();
+  renderBestHours();
 
   // Flex pay by block type — LED bar per 種別, best rate lit green.
   const byTag = store.flexByTag(shifts);
@@ -1765,7 +1789,7 @@ function showCalPreview(events) {
 function calSuggest(r) {
   const hours = store.hoursBetween(r.startTime, r.endTime);
   if (r.platform === 'income' || !hours) return 0;
-  return Math.round(store.suggestedRate(r.platform) * hours);
+  return store.estimateFor({ date: r.date || store.todayISO(), startTime: r.startTime, endTime: r.endTime, platform: r.platform }).estimate;
 }
 
 function addCalRows() {
@@ -2359,6 +2383,8 @@ function boot() {
   initDrive();
   initOfferCalc();
   initTaxSummary();
+  initBestHours({ fmtMoney, fmt1, focusSlot: planSlot });
+  initDesk({ swapHTML, flapHTML, TRAIN_TYPES, fmtMoney, fmtMoney0, fmt1, fmtHM, escapeHtml, toast, showView, editShift, editIncome, logPlan });
   setChip('#shift-platform', 'flex');
   renderDashboard();
   renderLogList();
@@ -2378,6 +2404,7 @@ function boot() {
     else if (active.id === 'view-campaign') renderCampaign();
     else if (active.id === 'view-log') renderLogList();
     else if (active.id === 'view-trends') renderTrends();
+    else if (active.id === 'view-desk') renderDesk();
   });
 
   registerSW();

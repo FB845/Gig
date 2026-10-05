@@ -390,6 +390,13 @@ export function updatePlan(id, data) {
   return db.plans[i];
 }
 
+// Put back a plan exactly as it was (same id) — used by undo.
+export function restorePlan(p) {
+  db.plans = db.plans.filter((x) => x.id !== p.id);
+  db.plans.push(normalizePlan(p));
+  persist();
+}
+
 export function deletePlan(id) {
   db.plans = db.plans.filter((p) => p.id !== id);
   persist();
@@ -463,6 +470,232 @@ export function trajectory(fromISO, toISO, nowISO = todayISO()) {
     out.push({ date: d, actual: actual.get(d) || 0, planned: planned.get(d) || 0 });
   }
   return out;
+}
+
+// =====================================================================
+// Planning desk analytics (desktop): when do you actually earn best?
+// =====================================================================
+const toMinutes = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+const fromMinutes = (m) => `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+const dowOf = (iso) => new Date(iso + 'T00:00:00').getDay(); // 0 = Sun
+
+// [startMin, endMin) for anything with clock times; overnight runs past 1440.
+export function spanOf(x) {
+  if (!HHMM.test(x.startTime || '') || !HHMM.test(x.endTime || '')) return null;
+  const s = toMinutes(x.startTime);
+  let e = toMinutes(x.endTime);
+  if (e <= s) e += 1440;
+  return [s, e];
+}
+
+// $/hr by weekday (0 = Sun) × hour of day, from gig shifts logged with start–
+// finish times. Each shift's pay is spread evenly over the minutes it covered;
+// `net` takes off the IRS mileage rate (fuel + wear) the same way.
+//   opts: { platform: 'all'|'flex'|'doordash'|'other', days: 0 (all) | N, net }
+// → { cells[7][24] = { rate|null, hours, shifts }, timed, total }
+export function hourlyHeat({ platform = 'all', days = 90, net = false } = {}, nowISO = todayISO()) {
+  const from = days ? addDaysISO(nowISO, -(days - 1)) : '';
+  const cells = Array.from({ length: 7 }, () => Array.from({ length: 24 }, () => ({ earned: 0, hours: 0, ids: new Set() })));
+  const rate = db.settings.mileageRate;
+  let timed = 0, total = 0;
+  for (const sh of db.shifts) {
+    if (sh.date > nowISO || (from && sh.date < from)) continue;
+    if (platform !== 'all' && sh.platform !== platform) continue;
+    total++;
+    const span = spanOf(sh);
+    if (!span) continue;
+    timed++;
+    const [s, e] = span;
+    const pay = shiftIncome(sh) - (net ? num(sh.miles) * rate : 0);
+    const perMin = pay / (e - s);
+    const dow = dowOf(sh.date);
+    for (let m = s; m < e;) {
+      const next = Math.min(e, (Math.floor(m / 60) + 1) * 60);
+      const c = cells[(dow + Math.floor(m / 1440)) % 7][Math.floor(m / 60) % 24];
+      c.earned += perMin * (next - m); c.hours += (next - m) / 60; c.ids.add(sh.id);
+      m = next;
+    }
+  }
+  return {
+    timed, total,
+    cells: cells.map((row) => row.map((c) => ({ rate: c.hours >= 0.5 ? c.earned / c.hours : null, hours: c.hours, shifts: c.ids.size }))),
+  };
+}
+
+// Expected $/hr for a slot (weekday × clock span) on a platform, from the heat
+// map; falls back to your overall recent rate when the slot has no history.
+// Your own scale for a heat map, by percentile rank among the cells that
+// have data — level 4 ("best") is your top fifth whatever you earn. Tied
+// rates share the lower level, so a flat week doesn't light up everything.
+// level(rate) → -1 (no data) … 4; bands[L] = [min, max] $/hr in that level.
+export function heatScale(heat) {
+  const xs = heat.cells.flat().map((c) => c.rate).filter((r) => r != null).sort((a, b) => a - b);
+  const n = xs.length;
+  const below = (r) => { let lo = 0, hi = n; while (lo < hi) { const m = (lo + hi) >> 1; if (xs[m] < r) lo = m + 1; else hi = m; } return lo; };
+  const level = (r) => (r == null || !n ? -1 : Math.min(4, Math.floor((5 * below(r)) / Math.max(1, n - 1))));
+  const bands = [null, null, null, null, null];
+  for (const r of xs) { const L = level(r); bands[L] = bands[L] ? [bands[L][0], r] : [r, r]; }
+  return { level, bands, n };
+}
+
+// Average $/hr over a clock span from a precomputed heat map, or null when
+// less than half the span has history.
+export function rateFromHeat(heat, dateISO, startTime, endTime) {
+  const span = spanOf({ startTime, endTime });
+  if (!span || !heat) return null;
+  const dow = dowOf(dateISO);
+  let w = 0, sum = 0, covered = 0;
+  for (let m = span[0]; m < span[1]; m += 60) {
+    const c = heat.cells[(dow + Math.floor(m / 1440)) % 7][Math.floor(m / 60) % 24];
+    w += 1;
+    if (c.rate != null) { sum += c.rate; covered += 1; }
+  }
+  return covered && covered * 2 >= w ? sum / covered : null;
+}
+// Heat map for estimating: last 90 days, else all-time if that has nothing.
+export function estimateHeat(platform, nowISO = todayISO()) {
+  const h = hourlyHeat({ platform, days: 90 }, nowISO);
+  return h.timed ? h : hourlyHeat({ platform, days: 0 }, nowISO);
+}
+
+// Expected $/hr for a slot (weekday × clock span) on a platform, from the heat
+// map; falls back to your overall recent rate when the slot has no history.
+export function slotRate(dateISO, startTime, endTime, platform, nowISO = todayISO()) {
+  const fallback = suggestedRate(platform === 'income' ? 'other' : platform, nowISO);
+  if (platform === 'income') return { rate: fallback, fromSlot: false };
+  const r = rateFromHeat(estimateHeat(platform, nowISO), dateISO, startTime, endTime);
+  return r != null ? { rate: r, fromSlot: true } : { rate: fallback, fromSlot: false };
+}
+export function estimateFor({ date, startTime, endTime, platform }, nowISO = todayISO()) {
+  const h = hoursBetween(startTime, endTime);
+  const { rate, fromSlot } = slotRate(date, startTime, endTime, platform, nowISO);
+  return { estimate: Math.round(rate * h), rate, fromSlot, hours: h };
+}
+
+// Everything on the clock for a date: open plans + logged shifts/incomes with
+// times → [{ id, kind, startMin, endMin }].
+function busyOn(dateISO) {
+  const out = [];
+  for (const p of db.plans) if (p.date === dateISO && !planLogged(p)) { const sp = spanOf(p); if (sp) out.push(sp); }
+  for (const x of [...db.shifts, ...db.incomes]) if (x.date === dateISO) { const sp = spanOf(x); if (sp) out.push(sp); }
+  return out;
+}
+const overlaps = (a, list) => list.some((b) => a[0] < b[1] && b[0] < a[1]);
+
+// The week the desk shows: per-day actual + still-planned money, the goal, and
+// when the plan would meet it (and which free days that earns).
+export function deskWeek(weekStartISO, nowISO = todayISO()) {
+  const dates = Array.from({ length: 7 }, (_, i) => addDaysISO(weekStartISO, i));
+  const end = dates[6];
+  const actualMap = incomeByDateMap();
+  const plannedMap = plannedByDateMap(nowISO);
+  const isCurrent = nowISO >= weekStartISO && nowISO <= end;
+  let goal;
+  if (isCurrent) goal = weeklyGoalStats(nowISO).goal;
+  else {
+    const inCampaign = dates.filter((d) => d >= CAMPAIGN.start && d <= CAMPAIGN.end).length;
+    goal = CAMPAIGN.daily * (inCampaign || 7);
+  }
+  const days = dates.map((d) => {
+    const actual = actualMap.get(d) || 0;
+    const planned = plannedMap.get(d) || 0;
+    const busy = actual > 0 || planned > 0 || db.plans.some((p) => p.date === d && !planLogged(p));
+    return { date: d, actual, planned, total: actual + planned, busy, past: d < nowISO };
+  });
+  const earned = days.reduce((a, d) => a + d.actual, 0);
+  const planned = days.reduce((a, d) => a + d.planned, 0);
+  let cum = 0, metOn = null;
+  for (const d of days) { cum += d.total; if (metOn === null && cum >= goal) metOn = d.date; }
+  const daysOff = metOn ? days.filter((d) => d.date > metOn && !d.busy && d.date >= nowISO).map((d) => d.date) : [];
+  // Hours on the clock and the money earned/planned in them (for $/hr —
+  // "anytime" plans and flat incomes have money but no hours, so skip them).
+  let hours = 0, timedMoney = 0;
+  const inWeek = (x) => x.date >= weekStartISO && x.date <= end;
+  for (const s of db.shifts) if (inWeek(s) && num(s.hours) > 0) { hours += num(s.hours); timedMoney += shiftIncome(s); }
+  for (const i of db.incomes) if (inWeek(i) && num(i.hours) > 0) { hours += num(i.hours); timedMoney += num(i.amount); }
+  for (const p of db.plans) if (inWeek(p) && p.date >= nowISO && !planLogged(p) && num(p.hours) > 0) { hours += num(p.hours); timedMoney += num(p.estimate); }
+  return { start: weekStartISO, end, dates, days, goal, earned, planned, projected: earned + planned, shortfall: Math.max(0, goal - earned - planned), metOn, daysOff, hours, timedMoney, isCurrent };
+}
+
+// Best open slots in a week, from your heat map: 2–4 h windows where every
+// hour has history, on whichever platform pays best there, not overlapping
+// anything already on the clock (or each other), from now on. Days with
+// nothing on them are flagged `freeDay` so the desk can prefer keeping them.
+export function suggestSlots(weekStartISO, { max = 6, perDay = 2, nowISO = todayISO(), nowMin = null } = {}) {
+  const plats = ['flex', 'doordash', 'other'];
+  const heats = Object.fromEntries(plats.map((p) => [p, estimateHeat(p, nowISO)]));
+  const actual = incomeByDateMap();
+  const minute = nowMin ?? (new Date().getHours() * 60 + new Date().getMinutes());
+  const cands = [];
+  const busyMap = {};
+  for (let i = 0; i < 7; i++) {
+    const date = addDaysISO(weekStartISO, i);
+    if (date < nowISO) continue;
+    const busy = busyOn(date);
+    busyMap[date] = busy;
+    const freeDay = !busy.length && !(actual.get(date) > 0) && !db.plans.some((p) => p.date === date && !planLogged(p));
+    const dow = dowOf(date);
+    for (const p of plats) {
+      const cells = heats[p].cells[dow];
+      for (let h = 6; h <= 21; h++) {
+        if (date === nowISO && h * 60 < minute + 30) continue;
+        for (const L of [3, 2, 4]) {
+          if (h + L > 24) continue;
+          const hs = Array.from({ length: L }, (_, k) => cells[h + k]);
+          if (hs.some((c) => c.rate == null)) continue;
+          const span = [h * 60, (h + L) * 60];
+          if (overlaps(span, busy)) continue;
+          const rate = hs.reduce((a, c) => a + c.rate, 0) / L;
+          cands.push({ date, startTime: fromMinutes(span[0]), endTime: fromMinutes(span[1]), span, platform: p, rate, hours: L, estimate: Math.round(rate * L), shifts: Math.max(...hs.map((c) => c.shifts)), freeDay });
+        }
+      }
+    }
+  }
+  cands.sort((a, b) => b.rate - a.rate || b.estimate - a.estimate);
+  const chosen = [];
+  const count = {};
+  for (const c of cands) {
+    if (chosen.length >= max) break;
+    if ((count[c.date] || 0) >= perDay) continue;
+    const taken = chosen.filter((x) => x.date === c.date).map((x) => x.span);
+    if (overlaps(c.span, taken)) continue;
+    chosen.push(c);
+    count[c.date] = (count[c.date] || 0) + 1;
+  }
+  return chosen.map(({ span, ...rest }) => rest);
+}
+
+// Copy a week's plan into another week (same weekdays): open plans, plus
+// timed shifts/incomes as plans at what they actually paid. Skips anything
+// that would overlap what's already in the target week. Returns the new ids.
+export function copyWeekPlans(fromWeekISO, toWeekISO) {
+  const offset = daysInclusive(fromWeekISO, toWeekISO) - 1;
+  const fromEnd = addDaysISO(fromWeekISO, 6);
+  const src = [];
+  for (const p of db.plans) {
+    if (p.date < fromWeekISO || p.date > fromEnd || planLogged(p)) continue;
+    src.push({ date: p.date, platform: p.platform, startTime: p.startTime, endTime: p.endTime, hours: p.hours, tag: p.tag, estimate: p.estimate, source: p.source, note: p.note });
+  }
+  for (const s of db.shifts) {
+    if (s.date < fromWeekISO || s.date > fromEnd || !spanOf(s)) continue;
+    src.push({ date: s.date, platform: s.platform, startTime: s.startTime, endTime: s.endTime, tag: s.tag, estimate: Math.round(shiftIncome(s)) });
+  }
+  for (const i of db.incomes) {
+    if (i.date < fromWeekISO || i.date > fromEnd || !spanOf(i)) continue;
+    src.push({ date: i.date, platform: 'income', source: i.source, startTime: i.startTime, endTime: i.endTime, estimate: Math.round(num(i.amount)) });
+  }
+  const ids = [];
+  for (const x of src) {
+    const date = addDaysISO(x.date, offset);
+    const sp = spanOf(x);
+    if (sp && overlaps(sp, busyOn(date))) continue;
+    if (!sp && db.plans.some((p) => p.date === date && !p.startTime && p.platform === x.platform && !planLogged(p))) continue;
+    const plan = normalizePlan({ ...x, id: uid(), date, createdAt: new Date().toISOString() });
+    db.plans.push(plan);
+    ids.push(plan.id);
+  }
+  if (ids.length) persist();
+  return ids;
 }
 
 // ---- bulk import ----

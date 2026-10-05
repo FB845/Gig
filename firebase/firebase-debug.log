@@ -21361,3 +21361,2007 @@ INFO: Detected non-HTTP/2 connection.
     at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
     at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
     at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[debug] [2026-10-05T13:36:28.842Z] ----------------------------------------------------------------------
+[debug] [2026-10-05T13:36:28.845Z] Command:       /opt/node22/bin/node /tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/.bin/firebase emulators:start --only auth,firestore --project demo-gig
+[debug] [2026-10-05T13:36:28.845Z] CLI Version:   15.32.1
+[debug] [2026-10-05T13:36:28.845Z] Platform:      linux
+[debug] [2026-10-05T13:36:28.846Z] Node Version:  v22.22.2
+[debug] [2026-10-05T13:36:28.846Z] Detected Agent: claude-code_2-1-289_agent
+[debug] [2026-10-05T13:36:28.846Z] Time:          Mon Oct 05 2026 13:36:28 GMT+0000 (Coordinated Universal Time)
+[debug] [2026-10-05T13:36:28.846Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-10-05T13:36:30.601Z] Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djavax.net.ssl.trustStoreType=JKS -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=39321 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=
+
+[debug] [2026-10-05T13:36:30.686Z] openjdk version "21.0.10" 2026-01-20
+OpenJDK Runtime Environment (build 21.0.10+7-Ubuntu-124.04)
+
+[debug] [2026-10-05T13:36:30.686Z] OpenJDK 64-Bit Server VM (build 21.0.10+7-Ubuntu-124.04, mixed mode, sharing)
+
+[debug] [2026-10-05T13:36:30.699Z] Parsed Java major version: 21
+[info] i  emulators: Starting emulators: auth, firestore {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: auth, firestore"}}
+[info] i  emulators: Detected demo project ID "demo-gig", emulated services will use a demo configuration and attempts to access non-emulated services for this project will fail. {"metadata":{"emulator":{"name":"hub"},"message":"Detected demo project ID \"demo-gig\", emulated services will use a demo configuration and attempts to access non-emulated services for this project will fail."}}
+[warn] ⚠  hub: Error when trying to check port 4400 on ::1: Error: listen EAFNOSUPPORT: address family not supported ::1:4400 {"metadata":{"emulator":{"name":"hub"},"message":"Error when trying to check port 4400 on ::1: Error: listen EAFNOSUPPORT: address family not supported ::1:4400"}}
+[warn] ⚠  hub: Port 4400 is available on 127.0.0.1 but not ::1. This may cause issues with some clients. {"metadata":{"emulator":{"name":"hub"},"message":"Port 4400 is available on 127.0.0.1 but not ::1. This may cause issues with some clients."}}
+[warn] ⚠  hub: If you encounter connectivity issues, consider switching to a different port or explicitly specifying "host": "<ip address>" instead of hostname in firebase.json {"metadata":{"emulator":{"name":"hub"},"message":"If you encounter connectivity issues, consider switching to a different port or explicitly specifying \"host\": \"<ip address>\" instead of hostname in firebase.json"}}
+[warn] ⚠  logging: Error when trying to check port 4500 on ::1: Error: listen EAFNOSUPPORT: address family not supported ::1:4500 {"metadata":{"emulator":{"name":"logging"},"message":"Error when trying to check port 4500 on ::1: Error: listen EAFNOSUPPORT: address family not supported ::1:4500"}}
+[warn] ⚠  logging: Port 4500 is available on 127.0.0.1 but not ::1. This may cause issues with some clients. {"metadata":{"emulator":{"name":"logging"},"message":"Port 4500 is available on 127.0.0.1 but not ::1. This may cause issues with some clients."}}
+[warn] ⚠  logging: If you encounter connectivity issues, consider switching to a different port or explicitly specifying "host": "<ip address>" instead of hostname in firebase.json {"metadata":{"emulator":{"name":"logging"},"message":"If you encounter connectivity issues, consider switching to a different port or explicitly specifying \"host\": \"<ip address>\" instead of hostname in firebase.json"}}
+[warn] ⚠  auth: Error when trying to check port 9099 on ::1: Error: listen EAFNOSUPPORT: address family not supported ::1:9099 {"metadata":{"emulator":{"name":"auth"},"message":"Error when trying to check port 9099 on ::1: Error: listen EAFNOSUPPORT: address family not supported ::1:9099"}}
+[warn] ⚠  auth: Port 9099 is available on 127.0.0.1 but not ::1. This may cause issues with some clients. {"metadata":{"emulator":{"name":"auth"},"message":"Port 9099 is available on 127.0.0.1 but not ::1. This may cause issues with some clients."}}
+[warn] ⚠  auth: If you encounter connectivity issues, consider switching to a different port or explicitly specifying "host": "<ip address>" instead of hostname in firebase.json {"metadata":{"emulator":{"name":"auth"},"message":"If you encounter connectivity issues, consider switching to a different port or explicitly specifying \"host\": \"<ip address>\" instead of hostname in firebase.json"}}
+[warn] ⚠  firestore: Error when trying to check port 8080 on ::1: Error: listen EAFNOSUPPORT: address family not supported ::1:8080 {"metadata":{"emulator":{"name":"firestore"},"message":"Error when trying to check port 8080 on ::1: Error: listen EAFNOSUPPORT: address family not supported ::1:8080"}}
+[warn] ⚠  firestore: Port 8080 is available on 127.0.0.1 but not ::1. This may cause issues with some clients. {"metadata":{"emulator":{"name":"firestore"},"message":"Port 8080 is available on 127.0.0.1 but not ::1. This may cause issues with some clients."}}
+[warn] ⚠  firestore: If you encounter connectivity issues, consider switching to a different port or explicitly specifying "host": "<ip address>" instead of hostname in firebase.json {"metadata":{"emulator":{"name":"firestore"},"message":"If you encounter connectivity issues, consider switching to a different port or explicitly specifying \"host\": \"<ip address>\" instead of hostname in firebase.json"}}
+[warn] ⚠  firestore.websocket: Error when trying to check port 9150 on ::1: Error: listen EAFNOSUPPORT: address family not supported ::1:9150 {"metadata":{"emulator":{"name":"firestore"},"message":"Error when trying to check port 9150 on ::1: Error: listen EAFNOSUPPORT: address family not supported ::1:9150"}}
+[warn] ⚠  firestore: Port 9150 is available on 127.0.0.1 but not ::1. This may cause issues with some clients. {"metadata":{"emulator":{"name":"firestore"},"message":"Port 9150 is available on 127.0.0.1 but not ::1. This may cause issues with some clients."}}
+[warn] ⚠  firestore: If you encounter connectivity issues, consider switching to a different port or explicitly specifying "host": "<ip address>" instead of hostname in firebase.json {"metadata":{"emulator":{"name":"firestore"},"message":"If you encounter connectivity issues, consider switching to a different port or explicitly specifying \"host\": \"<ip address>\" instead of hostname in firebase.json"}}
+[debug] [2026-10-05T13:36:30.712Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"auth":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"firestore":[{"address":"127.0.0.1","family":"IPv4","port":8080}],"firestore.websocket":[{"address":"127.0.0.1","family":"IPv4","port":9150}]},"metadata":{"message":"assigned listening specs for emulators"}}
+[debug] [2026-10-05T13:36:30.715Z] Write emulator hub locator at /tmp/hub-demo-gig.json
+[debug] [2026-10-05T13:36:30.734Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"firestore"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2026-10-05T13:36:30.735Z] Ignoring unsupported arg: single_project_mode_error {"metadata":{"emulator":{"name":"firestore"},"message":"Ignoring unsupported arg: single_project_mode_error"}}
+[debug] [2026-10-05T13:36:30.735Z] Starting Firestore Emulator with command {"binary":"java","args":["-Dgoogle.cloud_firestore.debug_log_level=FINE","-Duser.language=en","-jar","/root/.cache/firebase/emulators/cloud-firestore-emulator-v1.22.0.jar","--host","127.0.0.1","--port",8080,"--websocket_port",9150,"--database-edition","standard","--project_id","demo-gig","--rules","/home/user/Gig/firebase/firestore.rules","--single_project_mode",true],"optionalArgs":["port","webchannel_port","host","rules","websocket_port","database-edition","functions_emulator","seed_from_export","project_id","single_project_mode"],"joinArgs":false,"shell":false,"port":8080} {"metadata":{"emulator":{"name":"firestore"},"message":"Starting Firestore Emulator with command {\"binary\":\"java\",\"args\":[\"-Dgoogle.cloud_firestore.debug_log_level=FINE\",\"-Duser.language=en\",\"-jar\",\"/root/.cache/firebase/emulators/cloud-firestore-emulator-v1.22.0.jar\",\"--host\",\"127.0.0.1\",\"--port\",8080,\"--websocket_port\",9150,\"--database-edition\",\"standard\",\"--project_id\",\"demo-gig\",\"--rules\",\"/home/user/Gig/firebase/firestore.rules\",\"--single_project_mode\",true],\"optionalArgs\":[\"port\",\"webchannel_port\",\"host\",\"rules\",\"websocket_port\",\"database-edition\",\"functions_emulator\",\"seed_from_export\",\"project_id\",\"single_project_mode\"],\"joinArgs\":false,\"shell\":false,\"port\":8080}"}}
+[info] i  firestore: Firestore Emulator logging to firestore-debug.log {"metadata":{"emulator":{"name":"firestore"},"message":"Firestore Emulator logging to firestore-debug.log"}}
+[debug] [2026-10-05T13:36:31.142Z] Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djavax.net.ssl.trustStoreType=JKS -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=39321 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Picked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djavax.net.ssl.trustStoreType=JKS -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=39321 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"}}
+[debug] [2026-10-05T13:36:35.782Z] Oct 05, 2026 1:36:35 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketServer start
+INFO: Started WebSocket server on ws://127.0.0.1:9150
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:35 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketServer start\nINFO: Started WebSocket server on ws://127.0.0.1:9150\n"}}
+[debug] [2026-10-05T13:36:35.814Z] 
+API endpoint: http://127.0.0.1:8080
+Database Edition: STANDARD
+Database Mode: CLOUD_FIRESTORE
+
+If you are using a library that supports the FIRESTORE_EMULATOR_HOST environment variable, run:
+
+   export FIRESTORE_EMULATOR_HOST=127.0.0.1:8080
+
+If you are running a Firestore in Datastore Mode project, run:
+
+   export DATASTORE_EMULATOR_HOST=127.0.0.1:8080
+
+Note: Support for Datastore Mode is in preview. If you encounter any bugs please file at https://github.com/firebase/firebase-tools/issues.
+Dev App Server is now running.
+
+ {"metadata":{"emulator":{"name":"firestore"},"message":"\nAPI endpoint: http://127.0.0.1:8080\nDatabase Edition: STANDARD\nDatabase Mode: CLOUD_FIRESTORE\n\nIf you are using a library that supports the FIRESTORE_EMULATOR_HOST environment variable, run:\n\n   export FIRESTORE_EMULATOR_HOST=127.0.0.1:8080\n\nIf you are running a Firestore in Datastore Mode project, run:\n\n   export DATASTORE_EMULATOR_HOST=127.0.0.1:8080\n\nNote: Support for Datastore Mode is in preview. If you encounter any bugs please file at https://github.com/firebase/firebase-tools/issues.\nDev App Server is now running.\n\n"}}
+[info] ✔  firestore: Firestore Emulator was started in standard edition. {"metadata":{"emulator":{"name":"firestore"},"message":"Firestore Emulator was started in standard edition."}}
+[info] ✔  firestore: Firestore Emulator UI websocket is running on 9150. {"metadata":{"emulator":{"name":"firestore"},"message":"Firestore Emulator UI websocket is running on 9150."}}
+[warn] ⚠  emulators: The Emulator UI is not starting because none of the running emulators have a UI component. {"metadata":{"emulator":{"name":"hub"},"message":"The Emulator UI is not starting because none of the running emulators have a UI component."}}
+[debug] [2026-10-05T13:36:42.943Z] Could not find VSCode notification endpoint: TypeError: fetch failed. If you are not running the Firebase SQL Connect VSCode extension, this is expected and not an issue.
+[info] 
+┌─────────────────────────────────────────────────────────────┐
+│ ✔  All emulators ready! It is now safe to connect your app. │
+└─────────────────────────────────────────────────────────────┘
+
+┌────────────────┬────────────────┐
+│ Emulator       │ Host:Port      │
+├────────────────┼────────────────┤
+│ Authentication │ 127.0.0.1:9099 │
+├────────────────┼────────────────┤
+│ Firestore      │ 127.0.0.1:8080 │
+└────────────────┴────────────────┘
+  Emulator Hub host: 127.0.0.1 port: 4400
+  Other reserved ports: 4500, 9150
+
+Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
+ 
+[debug] [2026-10-05T13:36:43.218Z] Oct 05, 2026 1:36:43 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:43 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:43.522Z] Oct 05, 2026 1:36:43 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:43 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:47.468Z] Oct 05, 2026 1:36:47 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:47 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:48.217Z] Oct 05, 2026 1:36:48 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:48 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:48.284Z] Oct 05, 2026 1:36:48 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:48 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:48.308Z] Oct 05, 2026 1:36:48 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:48 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:48.318Z] Oct 05, 2026 1:36:48 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:48 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:48.350Z] Oct 05, 2026 1:36:48 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:48 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:48.367Z] Oct 05, 2026 1:36:48 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:48 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:50.795Z] Oct 05, 2026 1:36:50 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:50 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:50.849Z] Oct 05, 2026 1:36:50 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:50 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:50.900Z] Oct 05, 2026 1:36:50 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:50 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:50.925Z] Oct 05, 2026 1:36:50 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:50 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:50.932Z] Oct 05, 2026 1:36:50 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:50 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:50.954Z] Oct 05, 2026 1:36:50 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:50 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:50.981Z] Oct 05, 2026 1:36:50 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:50 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:51.764Z] Oct 05, 2026 1:36:51 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:51 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:52.551Z] Oct 05, 2026 1:36:52 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:52 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:52.551Z] Oct 05, 2026 1:36:52 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:52 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:52.722Z] Oct 05, 2026 1:36:52 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:52 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:52.760Z] Oct 05, 2026 1:36:52 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:52 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:53.322Z] Oct 05, 2026 1:36:53 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:53 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:54.109Z] Oct 05, 2026 1:36:54 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:54 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:55.018Z] Oct 05, 2026 1:36:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:55.020Z] Oct 05, 2026 1:36:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:55.044Z] Oct 05, 2026 1:36:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:55.059Z] Oct 05, 2026 1:36:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:55.065Z] Oct 05, 2026 1:36:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:55.945Z] Oct 05, 2026 1:36:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:57.255Z] Oct 05, 2026 1:36:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:36:57.291Z] Oct 05, 2026 1:36:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:36:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:37:00.503Z] Oct 05, 2026 1:37:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:37:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:37:00.519Z] Oct 05, 2026 1:37:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:37:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:37:00.529Z] Oct 05, 2026 1:37:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:37:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:37:00.719Z] Oct 05, 2026 1:37:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:37:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:37:00.750Z] Oct 05, 2026 1:37:00 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+WARNING: Operation failed: 
+false for 'list' @ L7
+com.google.cloud.datastore.core.exception.DatastoreException: 
+false for 'list' @ L7
+	at com.google.cloud.datastore.core.exception.DatastoreException$Builder.build(DatastoreException.java:152)
+	at com.google.cloud.datastore.emulator.impl.rules.DefaultEmulatorRulesAuthorizer.verboseError(DefaultEmulatorRulesAuthorizer.java:349)
+	at com.google.cloud.datastore.emulator.impl.rules.DefaultEmulatorRulesAuthorizer.withVerboseErrors(DefaultEmulatorRulesAuthorizer.java:326)
+	at com.google.cloud.datastore.emulator.impl.rules.DefaultEmulatorRulesAuthorizer.checkQuery(DefaultEmulatorRulesAuthorizer.java:193)
+	at com.google.cloud.datastore.emulator.impl.firestore.FirestoreEmulatorHelper.ruleAuthorizeAndReadEntities(FirestoreEmulatorHelper.java:838)
+	at com.google.cloud.datastore.emulator.impl.firestore.FirestoreEmulatorHelper.snapshotQuery(FirestoreEmulatorHelper.java:696)
+	at com.google.cloud.datastore.emulator.impl.firestore.FirestoreEmulatorHelper.lambda$query$0(FirestoreEmulatorHelper.java:680)
+	at com.google.cloud.datastore.emulator.impl.transactions.EmulatorTransactionManager$ReadOnlyTransaction.fold(EmulatorTransactionManager.java:492)
+	at com.google.cloud.datastore.emulator.impl.firestore.FirestoreEmulatorHelper.query(FirestoreEmulatorHelper.java:678)
+	at com.google.cloud.datastore.emulator.impl.firestore.CloudFirestoreV1.listDocuments(CloudFirestoreV1.java:377)
+	at com.google.cloud.datastore.emulator.impl.firestore.CloudFirestoreV1Router.listDocuments(CloudFirestoreV1Router.java:138)
+	at com.google.cloud.datastore.emulator.impl.firestore.CloudFirestoreV1Router.getOrListDocuments(CloudFirestoreV1Router.java:122)
+	at com.google.cloud.datastore.emulator.firestore.v1.FirestoreV1GrpcAdapter$1.lambda$getOrListDocuments$0(FirestoreV1GrpcAdapter.java:108)
+	at com.google.cloud.datastore.emulator.firestore.v1.FirestoreV1GrpcAdapter.unary(FirestoreV1GrpcAdapter.java:72)
+	at com.google.cloud.datastore.emulator.firestore.v1.FirestoreV1GrpcAdapter$1.getOrListDocuments(FirestoreV1GrpcAdapter.java:108)
+	at com.google.firestore.v1.FirestoreGrpc$MethodHandlers.invoke(FirestoreGrpc.java:1376)
+	at io.grpc.stub.ServerCalls$UnaryServerCallHandler$UnaryServerCallListener.onHalfClose(ServerCalls.java:182)
+	at io.grpc.PartialForwardingServerCallListener.onHalfClose(PartialForwardingServerCallListener.java:35)
+	at io.grpc.ForwardingServerCallListener.onHalfClose(ForwardingServerCallListener.java:23)
+	at io.grpc.ForwardingServerCallListener$SimpleForwardingServerCallListener.onHalfClose(ForwardingServerCallListener.java:40)
+	at io.grpc.Contexts$ContextualizedServerCallListener.onHalfClose(Contexts.java:86)
+	at io.grpc.PartialForwardingServerCallListener.onHalfClose(PartialForwardingServerCallListener.java:35)
+	at io.grpc.ForwardingServerCallListener.onHalfClose(ForwardingServerCallListener.java:23)
+	at io.grpc.ForwardingServerCallListener$SimpleForwardingServerCallListener.onHalfClose(ForwardingServerCallListener.java:40)
+	at io.grpc.Contexts$ContextualizedServerCallListener.onHalfClose(Contexts.java:86)
+	at io.grpc.internal.ServerCallImpl$ServerStreamListenerImpl.halfClosed(ServerCallImpl.java:356)
+	at io.grpc.internal.ServerImpl$JumpToApplicationThreadServerStreamListener$1HalfClosed.runInContext(ServerImpl.java:879)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:133)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:37:00 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError\nWARNING: Operation failed: \nfalse for 'list' @ L7\ncom.google.cloud.datastore.core.exception.DatastoreException: \nfalse for 'list' @ L7\n\tat com.google.cloud.datastore.core.exception.DatastoreException$Builder.build(DatastoreException.java:152)\n\tat com.google.cloud.datastore.emulator.impl.rules.DefaultEmulatorRulesAuthorizer.verboseError(DefaultEmulatorRulesAuthorizer.java:349)\n\tat com.google.cloud.datastore.emulator.impl.rules.DefaultEmulatorRulesAuthorizer.withVerboseErrors(DefaultEmulatorRulesAuthorizer.java:326)\n\tat com.google.cloud.datastore.emulator.impl.rules.DefaultEmulatorRulesAuthorizer.checkQuery(DefaultEmulatorRulesAuthorizer.java:193)\n\tat com.google.cloud.datastore.emulator.impl.firestore.FirestoreEmulatorHelper.ruleAuthorizeAndReadEntities(FirestoreEmulatorHelper.java:838)\n\tat com.google.cloud.datastore.emulator.impl.firestore.FirestoreEmulatorHelper.snapshotQuery(FirestoreEmulatorHelper.java:696)\n\tat com.google.cloud.datastore.emulator.impl.firestore.FirestoreEmulatorHelper.lambda$query$0(FirestoreEmulatorHelper.java:680)\n\tat com.google.cloud.datastore.emulator.impl.transactions.EmulatorTransactionManager$ReadOnlyTransaction.fold(EmulatorTransactionManager.java:492)\n\tat com.google.cloud.datastore.emulator.impl.firestore.FirestoreEmulatorHelper.query(FirestoreEmulatorHelper.java:678)\n\tat com.google.cloud.datastore.emulator.impl.firestore.CloudFirestoreV1.listDocuments(CloudFirestoreV1.java:377)\n\tat com.google.cloud.datastore.emulator.impl.firestore.CloudFirestoreV1Router.listDocuments(CloudFirestoreV1Router.java:138)\n\tat com.google.cloud.datastore.emulator.impl.firestore.CloudFirestoreV1Router.getOrListDocuments(CloudFirestoreV1Router.java:122)\n\tat com.google.cloud.datastore.emulator.firestore.v1.FirestoreV1GrpcAdapter$1.lambda$getOrListDocuments$0(FirestoreV1GrpcAdapter.java:108)\n\tat com.google.cloud.datastore.emulator.firestore.v1.FirestoreV1GrpcAdapter.unary(FirestoreV1GrpcAdapter.java:72)\n\tat com.google.cloud.datastore.emulator.firestore.v1.FirestoreV1GrpcAdapter$1.getOrListDocuments(FirestoreV1GrpcAdapter.java:108)\n\tat com.google.firestore.v1.FirestoreGrpc$MethodHandlers.invoke(FirestoreGrpc.java:1376)\n\tat io.grpc.stub.ServerCalls$UnaryServerCallHandler$UnaryServerCallListener.onHalfClose(ServerCalls.java:182)\n\tat io.grpc.PartialForwardingServerCallListener.onHalfClose(PartialForwardingServerCallListener.java:35)\n\tat io.grpc.ForwardingServerCallListener.onHalfClose(ForwardingServerCallListener.java:23)\n\tat io.grpc.ForwardingServerCallListener$SimpleForwardingServerCallListener.onHalfClose(ForwardingServerCallListener.java:40)\n\tat io.grpc.Contexts$ContextualizedServerCallListener.onHalfClose(Contexts.java:86)\n\tat io.grpc.PartialForwardingServerCallListener.onHalfClose(PartialForwardingServerCallListener.java:35)\n\tat io.grpc.ForwardingServerCallListener.onHalfClose(ForwardingServerCallListener.java:23)\n\tat io.grpc.ForwardingServerCallListener$SimpleForwardingServerCallListener.onHalfClose(ForwardingServerCallListener.java:40)\n\tat io.grpc.Contexts$ContextualizedServerCallListener.onHalfClose(Contexts.java:86)\n\tat io.grpc.internal.ServerCallImpl$ServerStreamListenerImpl.halfClosed(ServerCallImpl.java:356)\n\tat io.grpc.internal.ServerImpl$JumpToApplicationThreadServerStreamListener$1HalfClosed.runInContext(ServerImpl.java:879)\n\tat io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)\n\tat io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:133)\n\tat java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)\n\tat java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)\n\tat java.base/java.lang.Thread.run(Thread.java:1583)\n\n"}}
+[debug] [2026-10-05T13:37:00.756Z] Oct 05, 2026 1:37:00 PM io.gapi.emulators.netty.HttpHandler$1 onError
+INFO: Exception when handling request: PERMISSION_DENIED: 
+false for 'list' @ L7
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:37:00 PM io.gapi.emulators.netty.HttpHandler$1 onError\nINFO: Exception when handling request: PERMISSION_DENIED: \nfalse for 'list' @ L7\n"}}
+[debug] [2026-10-05T13:37:00.764Z] Oct 05, 2026 1:37:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:37:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:37:00.781Z] Oct 05, 2026 1:37:00 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError
+WARNING: Operation failed: 
+false for 'create' @ L7
+com.google.cloud.datastore.core.exception.DatastoreException: 
+false for 'create' @ L7
+	at com.google.cloud.datastore.core.exception.DatastoreException$Builder.build(DatastoreException.java:152)
+	at com.google.cloud.datastore.emulator.impl.rules.DefaultEmulatorRulesAuthorizer.verboseError(DefaultEmulatorRulesAuthorizer.java:349)
+	at com.google.cloud.datastore.emulator.impl.rules.DefaultEmulatorRulesAuthorizer.withVerboseErrors(DefaultEmulatorRulesAuthorizer.java:326)
+	at com.google.cloud.datastore.emulator.impl.rules.DefaultEmulatorRulesAuthorizer.checkCommit(DefaultEmulatorRulesAuthorizer.java:113)
+	at com.google.cloud.datastore.emulator.impl.firestore.FirestoreEmulatorHelper.commitHelper(FirestoreEmulatorHelper.java:407)
+	at com.google.cloud.datastore.emulator.impl.firestore.FirestoreEmulatorHelper.internalCommit(FirestoreEmulatorHelper.java:348)
+	at com.google.cloud.datastore.emulator.impl.firestore.CloudFirestoreV1.internalCommit(CloudFirestoreV1.java:1336)
+	at com.google.cloud.datastore.emulator.impl.firestore.CloudFirestoreV1.createDocument(CloudFirestoreV1.java:454)
+	at com.google.cloud.datastore.emulator.impl.firestore.CloudFirestoreV1Router.createDocument(CloudFirestoreV1Router.java:145)
+	at com.google.cloud.datastore.emulator.firestore.v1.FirestoreV1GrpcAdapter$1.lambda$createDocument$0(FirestoreV1GrpcAdapter.java:126)
+	at com.google.cloud.datastore.emulator.firestore.v1.FirestoreV1GrpcAdapter.unary(FirestoreV1GrpcAdapter.java:72)
+	at com.google.cloud.datastore.emulator.firestore.v1.FirestoreV1GrpcAdapter$1.createDocument(FirestoreV1GrpcAdapter.java:126)
+	at com.google.firestore.v1.FirestoreGrpc$MethodHandlers.invoke(FirestoreGrpc.java:1436)
+	at io.grpc.stub.ServerCalls$UnaryServerCallHandler$UnaryServerCallListener.onHalfClose(ServerCalls.java:182)
+	at io.grpc.PartialForwardingServerCallListener.onHalfClose(PartialForwardingServerCallListener.java:35)
+	at io.grpc.ForwardingServerCallListener.onHalfClose(ForwardingServerCallListener.java:23)
+	at io.grpc.ForwardingServerCallListener$SimpleForwardingServerCallListener.onHalfClose(ForwardingServerCallListener.java:40)
+	at io.grpc.Contexts$ContextualizedServerCallListener.onHalfClose(Contexts.java:86)
+	at io.grpc.PartialForwardingServerCallListener.onHalfClose(PartialForwardingServerCallListener.java:35)
+	at io.grpc.ForwardingServerCallListener.onHalfClose(ForwardingServerCallListener.java:23)
+	at io.grpc.ForwardingServerCallListener$SimpleForwardingServerCallListener.onHalfClose(ForwardingServerCallListener.java:40)
+	at io.grpc.Contexts$ContextualizedServerCallListener.onHalfClose(Contexts.java:86)
+	at io.grpc.internal.ServerCallImpl$ServerStreamListenerImpl.halfClosed(ServerCallImpl.java:356)
+	at io.grpc.internal.ServerImpl$JumpToApplicationThreadServerStreamListener$1HalfClosed.runInContext(ServerImpl.java:879)
+	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:133)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:37:00 PM com.google.cloud.datastore.emulator.impl.util.WrappedStreamObserver onError\nWARNING: Operation failed: \nfalse for 'create' @ L7\ncom.google.cloud.datastore.core.exception.DatastoreException: \nfalse for 'create' @ L7\n\tat com.google.cloud.datastore.core.exception.DatastoreException$Builder.build(DatastoreException.java:152)\n\tat com.google.cloud.datastore.emulator.impl.rules.DefaultEmulatorRulesAuthorizer.verboseError(DefaultEmulatorRulesAuthorizer.java:349)\n\tat com.google.cloud.datastore.emulator.impl.rules.DefaultEmulatorRulesAuthorizer.withVerboseErrors(DefaultEmulatorRulesAuthorizer.java:326)\n\tat com.google.cloud.datastore.emulator.impl.rules.DefaultEmulatorRulesAuthorizer.checkCommit(DefaultEmulatorRulesAuthorizer.java:113)\n\tat com.google.cloud.datastore.emulator.impl.firestore.FirestoreEmulatorHelper.commitHelper(FirestoreEmulatorHelper.java:407)\n\tat com.google.cloud.datastore.emulator.impl.firestore.FirestoreEmulatorHelper.internalCommit(FirestoreEmulatorHelper.java:348)\n\tat com.google.cloud.datastore.emulator.impl.firestore.CloudFirestoreV1.internalCommit(CloudFirestoreV1.java:1336)\n\tat com.google.cloud.datastore.emulator.impl.firestore.CloudFirestoreV1.createDocument(CloudFirestoreV1.java:454)\n\tat com.google.cloud.datastore.emulator.impl.firestore.CloudFirestoreV1Router.createDocument(CloudFirestoreV1Router.java:145)\n\tat com.google.cloud.datastore.emulator.firestore.v1.FirestoreV1GrpcAdapter$1.lambda$createDocument$0(FirestoreV1GrpcAdapter.java:126)\n\tat com.google.cloud.datastore.emulator.firestore.v1.FirestoreV1GrpcAdapter.unary(FirestoreV1GrpcAdapter.java:72)\n\tat com.google.cloud.datastore.emulator.firestore.v1.FirestoreV1GrpcAdapter$1.createDocument(FirestoreV1GrpcAdapter.java:126)\n\tat com.google.firestore.v1.FirestoreGrpc$MethodHandlers.invoke(FirestoreGrpc.java:1436)\n\tat io.grpc.stub.ServerCalls$UnaryServerCallHandler$UnaryServerCallListener.onHalfClose(ServerCalls.java:182)\n\tat io.grpc.PartialForwardingServerCallListener.onHalfClose(PartialForwardingServerCallListener.java:35)\n\tat io.grpc.ForwardingServerCallListener.onHalfClose(ForwardingServerCallListener.java:23)\n\tat io.grpc.ForwardingServerCallListener$SimpleForwardingServerCallListener.onHalfClose(ForwardingServerCallListener.java:40)\n\tat io.grpc.Contexts$ContextualizedServerCallListener.onHalfClose(Contexts.java:86)\n\tat io.grpc.PartialForwardingServerCallListener.onHalfClose(PartialForwardingServerCallListener.java:35)\n\tat io.grpc.ForwardingServerCallListener.onHalfClose(ForwardingServerCallListener.java:23)\n\tat io.grpc.ForwardingServerCallListener$SimpleForwardingServerCallListener.onHalfClose(ForwardingServerCallListener.java:40)\n\tat io.grpc.Contexts$ContextualizedServerCallListener.onHalfClose(Contexts.java:86)\n\tat io.grpc.internal.ServerCallImpl$ServerStreamListenerImpl.halfClosed(ServerCallImpl.java:356)\n\tat io.grpc.internal.ServerImpl$JumpToApplicationThreadServerStreamListener$1HalfClosed.runInContext(ServerImpl.java:879)\n\tat io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)\n\tat io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:133)\n\tat java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)\n\tat java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)\n\tat java.base/java.lang.Thread.run(Thread.java:1583)\n\n"}}
+[debug] [2026-10-05T13:37:00.786Z] Oct 05, 2026 1:37:00 PM io.gapi.emulators.netty.HttpHandler$1 onError
+INFO: Exception when handling request: PERMISSION_DENIED: 
+false for 'create' @ L7
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:37:00 PM io.gapi.emulators.netty.HttpHandler$1 onError\nINFO: Exception when handling request: PERMISSION_DENIED: \nfalse for 'create' @ L7\n"}}
+[debug] [2026-10-05T13:37:03.210Z] Oct 05, 2026 1:37:03 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:37:03 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:37:03.235Z] Oct 05, 2026 1:37:03 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:37:03 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:37:03.266Z] Oct 05, 2026 1:37:03 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:37:03 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:37:03.286Z] Oct 05, 2026 1:37:03 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:37:03 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:37:03.295Z] Oct 05, 2026 1:37:03 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:37:03 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:37:03.319Z] Oct 05, 2026 1:37:03 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:37:03 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:37:03.331Z] Oct 05, 2026 1:37:03 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:37:03 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:37:03.375Z] Oct 05, 2026 1:37:03 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:37:03 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:37:03.402Z] Oct 05, 2026 1:37:03 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 05, 2026 1:37:03 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2026-10-05T13:37:03.682Z] Received signal SIGINT (Ctrl-C) 1
+[info]  
+[info] i  emulators: Received SIGINT (Ctrl-C) for the first time. Starting a clean shutdown. 
+[info] i  emulators: Please wait for a clean shutdown or send the SIGINT (Ctrl-C) signal again to stop right now. 
+[debug] [2026-10-05T13:37:03.683Z] Found emulator hub locator: {"version":"15.32.1","origins":["http://127.0.0.1:4400"],"pid":3487}
+[debug] [2026-10-05T13:37:03.685Z] Delete emulator hub locator file: /tmp/hub-demo-gig.json
+[info] i  emulators: Shutting down emulators. {"metadata":{"emulator":{"name":"hub"},"message":"Shutting down emulators."}}
+[info] i  firestore: Stopping Firestore Emulator {"metadata":{"emulator":{"name":"firestore"},"message":"Stopping Firestore Emulator"}}
+[debug] [2026-10-05T13:37:03.691Z] *** shutting down gRPC server since JVM is shutting down
+ {"metadata":{"emulator":{"name":"firestore"},"message":"*** shutting down gRPC server since JVM is shutting down\n"}}
+[debug] [2026-10-05T13:37:03.694Z] *** server shut down
+ {"metadata":{"emulator":{"name":"firestore"},"message":"*** server shut down\n"}}
+[info] i  auth: Stopping Authentication Emulator {"metadata":{"emulator":{"name":"auth"},"message":"Stopping Authentication Emulator"}}
+[debug] [2026-10-05T13:37:04.034Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.035Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.036Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.036Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.037Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.037Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.037Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.038Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.038Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.038Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.039Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.040Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.041Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.041Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.042Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.042Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.042Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.043Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.043Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.043Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.043Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.044Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.044Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.044Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.044Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.045Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.045Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.045Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.045Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.046Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.046Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.047Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.047Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.047Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.049Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.049Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.049Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.049Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.050Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.050Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.051Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.051Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.051Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.051Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.051Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.052Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.052Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.052Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.052Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.052Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.053Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.053Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.053Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.053Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.053Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.054Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.054Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.054Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.056Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.056Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.056Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.057Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.057Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.057Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.057Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.058Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.058Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.058Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.058Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.059Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.059Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.059Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.059Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.060Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.060Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.060Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.060Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.060Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.061Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.062Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.062Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.066Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.067Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.067Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.067Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.067Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.068Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.068Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.068Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.068Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.068Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.069Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.069Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.069Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.069Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.070Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.070Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.070Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.070Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.071Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.071Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.071Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.071Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.071Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[info] i  hub: Stopping emulator hub {"metadata":{"emulator":{"name":"hub"},"message":"Stopping emulator hub"}}
+[info] i  logging: Stopping Logging Emulator {"metadata":{"emulator":{"name":"logging"},"message":"Stopping Logging Emulator"}}
+[debug] [2026-10-05T13:37:04.077Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.078Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.078Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.078Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.079Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.079Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.079Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.079Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.079Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.080Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.080Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.080Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.080Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.081Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.081Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.081Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.081Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.081Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.081Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.082Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.082Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.083Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.083Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.083Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.084Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-10-05T13:37:04.085Z] Error: write EPIPE
+    at afterWriteDispatched (node:internal/stream_base_commons:159:15)
+    at writeGeneric (node:internal/stream_base_commons:150:3)
+    at Socket._writeGeneric (node:net:966:11)
+    at Socket._write (node:net:978:8)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+    at Console.log (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston/lib/winston/transports/console.js:87:23)
+    at Console._write (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/modern.js:103:17)
+    at doWrite (/tmp/claude-0/-home-user-Gig/ea60f280-f5d9-5319-8b91-8d5864dbbb5c/scratchpad/fbemu/node_modules/winston-transport/node_modules/readable-stream/lib/_stream_writable.js:390:139)
