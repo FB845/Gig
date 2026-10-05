@@ -68,6 +68,16 @@ mileage tracking** — without asking for a cent.
   off" or "plan $881 more by Sun", and the days still under $350 even with the
   plan — where to stack more. Plans are forecasts only: they never count as
   income, so earnings, goals, rates and tax stay real.
+- **📅 Calendar → planner** — on the **Import** tab (or *📅 Import calendar* on
+  the Plan form), bring in blocks you've already scheduled: an **.ics** file
+  exported from Google / Apple / Outlook Calendar, or a **screenshot** of your
+  schedule (e.g. the Flex calendar), read on-device with OCR. Time zones,
+  all-day events, durations, cancelled events and **weekly/daily repeating
+  events** are handled; platform and pay are picked up from the event text
+  ("Amazon Flex block $88" → Flex, $88). You review every entry first — work
+  events are pre-ticked, everyday ones (dentist, gym) aren't, anything already
+  in your planner is flagged, and you can fix the date, times, platform or
+  estimate. Imports the next 60 days; past events are skipped.
 - **One form for shifts + income** — pick **Income** under Platform (next to
   Amazon Flex / DoorDash / Other) to log non-gig money, with a **Flat rate |
   Paid by hour** toggle: flat takes an amount; hourly takes a rate plus time
@@ -243,6 +253,7 @@ js/parse.js             CSV parsing + OCR/free-text field extraction
 js/ocr.js               lazy Tesseract.js loader for screenshot OCR
 js/geo.js               GPS auto-mileage tracker (Haversine + jitter filtering)
 js/sync.js              optional Firebase (Firestore) cloud sync
+js/calendar.js          .ics + schedule-screenshot parsing for the planner
 js/app.js               UI wiring
 manifest.webmanifest    PWA manifest
 sw.js                   offline service worker

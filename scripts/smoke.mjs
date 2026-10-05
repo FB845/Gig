@@ -788,6 +788,108 @@ try {
   await page.waitForTimeout(120);
   ok(await page.evaluate(async () => (await import('./js/store.js')).getPlans().length) === 1, 'deleting a plan removes it');
 
+  console.log('\n23) Calendar parsers (.ics + schedule screenshot text)');
+  const cal = await page.evaluate(async () => {
+    const c = await import('./js/calendar.js');
+    const pad = (n) => String(n).padStart(2, '0');
+    const local = (ms) => { const d = new Date(ms); return { date: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`, time: `${pad(d.getHours())}:${pad(d.getMinutes())}` }; };
+    const ics = [
+      'BEGIN:VCALENDAR',
+      'BEGIN:VEVENT', 'SUMMARY:Amazon Flex block $84', 'DTSTART:20261006T160000Z', 'DTEND:20261006T193000Z', 'LOCATION:DWA6\\, Seattle', 'END:VEVENT',
+      'BEGIN:VEVENT', 'SUMMARY:Dash dinner', 'DTSTART;TZID=America/Los_Angeles:20261006T170000', 'DTEND;TZID=America/Los_Angeles:20261006T210000',
+      'RRULE:FREQ=WEEKLY;BYDAY=TU,TH;COUNT=4', 'EXDATE;TZID=America/Los_Angeles:20261008T170000', 'END:VEVENT',
+      'BEGIN:VEVENT', 'SUMMARY:Dentist', 'DTSTART:20261007T150000', 'DURATION:PT1H', 'END:VEVENT',
+      'BEGIN:VEVENT', 'SUMMARY:TraceHaus invoice due', 'DTSTART;VALUE=DATE:20261009', 'END:VEVENT',
+      'BEGIN:VEVENT', 'SUMMARY:Cancelled', 'STATUS:CANCELLED', 'DTSTART:20261007T160000', 'END:VEVENT',
+      'BEGIN:VEVENT', 'SUMMARY:Old', 'DTSTART:20260901T160000', 'DTEND:20260901T190000', 'END:VEVENT',
+      'BEGIN:VEVENT', 'SUMMARY:Far', 'DTSTART:20270301T160000', 'DTEND:20270301T190000', 'END:VEVENT',
+      'BEGIN:VEVENT', 'SUMMARY:Folded ti', ' tle', 'DTSTART:20261010T090000', 'DTEND:20261010T100000', 'END:VEVENT',
+      'END:VCALENDAR'].join('\r\n');
+    const r = c.parseICS(ics, { fromISO: '2026-10-05', toISO: '2026-12-04' });
+    const flexExp = { s: local(Date.UTC(2026, 9, 6, 16, 0)), e: local(Date.UTC(2026, 9, 6, 19, 30)) };
+    // Dash: 17:00 PDT (UTC-7) on Tue 10/6, Tue 10/13, Thu 10/15 (Thu 10/8 excluded, COUNT=4)
+    const dashExp = [6, 13, 15].map((d) => local(Date.UTC(2026, 9, d, 24, 0)).date + ' ' + local(Date.UTC(2026, 9, d, 24, 0)).time);
+    const shot = c.parseScheduleText('Schedule\nToday\n6:00 AM - 9:30 AM\nDWA6\n$96.00\nTue, Oct 6\n8:00 AM - 11:30 AM (3.5 hr)\n$88.00\n5:00 PM - 9:00 PM\nDoorDash dinner\nWednesday, October 7\n$120.00\n9:00 AM - 1:00 PM\n', '2026-10-05').events;
+    return {
+      r, flexExp, dashExp, shot,
+      ranges: ['9:00 AM - 12:30 PM', '11 - 2pm', '17:00–21:00', '10-12 packages', '10 - 2 AM'].map((s) => c.timeRangeFromLine(s)),
+      dates: ['Wed, Oct 7', '10/9', 'Thursday', 'Market 5', 'Jan 3'].map((s) => c.dateFromLine(s, '2026-10-05')),
+    };
+  });
+  const ev = cal.r.events;
+  const flexEv = ev.find((e) => /Flex/.test(e.summary));
+  ok(flexEv && flexEv.date === cal.flexExp.s.date && flexEv.startTime === cal.flexExp.s.time && flexEv.endTime === cal.flexExp.e.time, 'UTC (Z) event converted to local time');
+  ok(flexEv.platform === 'flex' && flexEv.estimate === 84 && flexEv.detail.startsWith('DWA6, Seattle'), 'platform + $ estimate + unescaped location read from the event');
+  const dashOcc = ev.filter((e) => e.summary === 'Dash dinner').map((e) => e.date + ' ' + e.startTime);
+  ok(JSON.stringify(dashOcc) === JSON.stringify(cal.dashExp), 'weekly RRULE (TU,TH, COUNT=4) expanded in its own time zone, EXDATE removed');
+  ok(ev.find((e) => e.summary === 'Dentist').endTime === '16:00' && ev.find((e) => e.summary === 'Dentist').recognized === false, 'DURATION end; non-work event left unticked');
+  const allDay = ev.find((e) => /invoice/.test(e.summary));
+  ok(allDay.startTime === '' && allDay.platform === 'income', 'all-day event has no times; "invoice" → Income');
+  ok(ev.some((e) => e.summary === 'Folded title'), 'folded (wrapped) lines are joined');
+  ok(cal.r.cancelled === 1 && cal.r.skippedPast === 1 && cal.r.skippedLater === 1, 'cancelled, past and beyond-window events skipped + counted');
+  ok(JSON.stringify(cal.ranges) === JSON.stringify([{ startTime: '09:00', endTime: '12:30' }, { startTime: '11:00', endTime: '14:00' }, { startTime: '17:00', endTime: '21:00' }, null, { startTime: '22:00', endTime: '02:00' }]), 'time ranges: 12h/24h, inferred AM/PM, counts like "10-12" ignored');
+  ok(JSON.stringify(cal.dates) === JSON.stringify(['2026-10-07', '2026-10-09', '2026-10-08', null, '2027-01-03']), 'date headers: "Wed, Oct 7", 10/9, weekday, not "Market 5", Jan rolls to next year');
+  ok(cal.shot.length === 4 && cal.shot.map((e) => e.date).join() === '2026-10-05,2026-10-06,2026-10-06,2026-10-07', 'screenshot: 4 blocks dated by the headers above them');
+  ok(cal.shot.map((e) => e.estimate).join() === '96,88,0,120', 'screenshot: each block keeps its own price (none borrowed)');
+  ok(cal.shot[2].platform === 'doordash', 'screenshot: "DoorDash" near a block sets its platform');
+
+  console.log('\n24) Calendar import (UI): .ics + screenshot → review → planner');
+  ok((await page.locator('.tab[data-view=campaign] .line-mark').innerText()) === '350', 'Campaign tab badge reads 350 (was cut to "35")');
+  const dates = await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    s.clearAll();
+    const d = (n) => { const x = new Date(); x.setDate(x.getDate() + n); return s.isoDate(x); };
+    s.addPlan({ date: d(2), platform: 'doordash', startTime: '17:00', endTime: '21:00', estimate: 90 }); // will be a duplicate
+    return { d1: d(1), d2: d(2) };
+  });
+  const ymd = (iso) => iso.replace(/-/g, '');
+  const icsText = ['BEGIN:VCALENDAR',
+    'BEGIN:VEVENT', 'SUMMARY:Amazon Flex $96', `DTSTART:${ymd(dates.d1)}T080000`, `DTEND:${ymd(dates.d1)}T113000`, 'END:VEVENT',
+    'BEGIN:VEVENT', 'SUMMARY:Dash', `DTSTART:${ymd(dates.d2)}T170000`, `DTEND:${ymd(dates.d2)}T210000`, 'END:VEVENT',
+    'BEGIN:VEVENT', 'SUMMARY:Gym', `DTSTART:${ymd(dates.d2)}T070000`, `DTEND:${ymd(dates.d2)}T080000`, 'END:VEVENT',
+    'END:VCALENDAR'].join('\r\n');
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.locator('.tab[data-view=log]').click();
+  await page.locator('#log-segmented .seg[data-log=plan]').click();
+  await page.locator('#plan-import').click();
+  ok(await page.locator('#view-import.active').count() === 1 && await page.locator('#cal-card').isVisible(), 'Plan → "Import calendar" opens the calendar importer');
+  await page.setInputFiles('#cal-ics-file', { name: 'my.ics', mimeType: 'text/calendar', buffer: Buffer.from(icsText) });
+  await page.waitForTimeout(200);
+  ok((await page.locator('#cal-preview .cal-row').count()) === 3 && /Found 3 upcoming/.test(await page.locator('#cal-status').innerText()), '.ics → 3 events to review');
+  const ticks = await page.locator('#cal-preview .cal-row').evaluateAll((els) => els.map((e) => e.querySelector('.cal-title').textContent.split(' ')[0] + ':' + e.querySelector('input[type=checkbox]').checked));
+  ok(JSON.stringify(ticks) === '["Amazon:true","Gym:false","Dash:false"]', 'sorted by time; Flex ticked; the gym and already-planned Dash unticked');
+  ok(/already planned/.test(await page.locator('#cal-preview .cal-row.is-dupe').innerText()), 'duplicate of an existing plan is flagged');
+  const gymRow = page.locator('#cal-preview .cal-row', { hasText: 'Gym' });
+  await gymRow.locator('input[type=checkbox]').check();
+  await gymRow.locator('select').selectOption('other');
+  await gymRow.locator('[data-k=estimate]').fill('15');
+  ok((await page.locator('#cal-add').innerText()) === 'Add 2 to planner', 'button counts the ticked rows');
+  await page.locator('#cal-add').click();
+  await page.waitForTimeout(200);
+  const calPlans = await page.evaluate(async () => (await import('./js/store.js')).getPlans().map((p) => `${p.platform}:${p.startTime}-${p.endTime}:${p.estimate}`).sort());
+  ok(calPlans.length === 3 && calPlans.includes('flex:08:00-11:30:96') && calPlans.includes('other:07:00-08:00:15'), 'added Flex ($96 from the title) + edited gym row; no duplicate Dash');
+  ok(await page.locator('#view-log.active').count() === 1 && await page.locator('#log-segmented .seg.active').getAttribute('data-log') === 'plan', 'lands on Log → Plan afterwards');
+
+  // Screenshot path with the OCR engine stubbed (no network needed).
+  await page.evaluate((d1) => {
+    const [y, m, dd] = d1.split('-').map(Number);
+    const hdr = new Date(y, m - 1, dd).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    window.Tesseract = { createWorker: async () => ({ recognize: async () => ({ data: { text: `Upcoming\n${hdr}\n1:00 PM - 4:30 PM\n$75.00\n` } }), terminate: async () => {} }) };
+  }, dates.d1);
+  await page.locator('.tab[data-view=import]').click();
+  await page.setInputFiles('#cal-img-file', { name: 'shot.png', mimeType: 'image/png', buffer: Buffer.from([137, 80, 78, 71]) });
+  await page.waitForTimeout(300);
+  const shotRow = page.locator('#cal-preview .cal-row').first();
+  ok((await page.locator('#cal-preview .cal-row').count()) === 1
+    && await shotRow.locator('[data-k=date]').inputValue() === dates.d1
+    && await shotRow.locator('[data-k=startTime]').inputValue() === '13:00'
+    && await shotRow.locator('[data-k=estimate]').inputValue() === '75'
+    && await shotRow.locator('select').inputValue() === 'flex', 'screenshot → 1 block: date from header, 13:00–16:30, $75, default platform Flex');
+  await page.locator('#cal-add').click();
+  await page.waitForTimeout(200);
+  ok(await page.evaluate(async () => (await import('./js/store.js')).getPlans().length) === 4, 'screenshot block added to the planner');
+  await page.evaluate(() => { delete window.Tesseract; });
+
   ok(errors.length === 0, 'no console/page errors' + (errors.length ? ': ' + errors.slice(0, 3).join(' | ') : ''));
 } catch (e) {
   console.error('TEST CRASH:', e);

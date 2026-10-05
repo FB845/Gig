@@ -169,6 +169,37 @@ textarea { font-family: var(--font-led); font-size: 13px; line-height: 1.5; resi
 .st-missed .plan-pill { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, var(--border)); }
 .btn.plan-log { padding: 6px 10px; font-size: 12px; flex-shrink: 0; color: #2dd4bf; border-color: color-mix(in srgb, #2dd4bf 55%, var(--border)); background: transparent; }
 
+/* Calendar → planner review list */
+.cal-list { list-style: none; margin: 12px 0 0; padding: 0; }
+.cal-row { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.cal-row.is-dupe { opacity: .6; }
+.cal-pick { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 14px; cursor: pointer; }
+/* Inputs are globally `appearance: none`, so draw the checkbox ourselves. */
+.cal-pick input[type=checkbox] {
+  width: 22px; height: 22px; padding: 0; flex-shrink: 0; border-radius: 6px; cursor: pointer;
+  border: 2px solid var(--muted); background: transparent;
+}
+.cal-pick input[type=checkbox]:checked {
+  border-color: var(--accent);
+  background: var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' stroke='%2305231a' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 15px no-repeat;
+}
+.cal-title { min-width: 0; overflow-wrap: anywhere; }
+.cal-detail { margin: 2px 0 0 32px; font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Phone: date + estimate / start + finish / platform. Wide: one row. */
+.cal-fields {
+  display: grid; gap: 6px; margin-top: 8px;
+  grid-template-columns: 1fr 1fr; grid-template-areas: "date est" "start end" "plat plat";
+}
+.cal-fields input, .cal-fields select { min-width: 0; width: 100%; padding: 8px 10px; font-size: 14px; }
+.cal-fields [data-k=date] { grid-area: date; }
+.cal-fields [data-k=estimate] { grid-area: est; }
+.cal-fields [data-k=startTime] { grid-area: start; }
+.cal-fields [data-k=endTime] { grid-area: end; }
+.cal-fields [data-k=platform] { grid-area: plat; }
+@media (min-width: 640px) {
+  .cal-fields { grid-template-columns: 1.3fr 1fr 1fr 1.3fr .8fr; grid-template-areas: "date start end plat est"; margin-left: 32px; }
+}
+
 /* "Income" label on manual-income rows in the combined Log list */
 .inc-tag { display: inline-block; vertical-align: middle; font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 1px 6px; border-radius: 5px; color: #f5a524; border: 1px solid color-mix(in srgb, #f5a524 55%, var(--border)); }
 input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent-2); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 25%, transparent); }
@@ -433,6 +464,9 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 
 /* Mobile tab bar → JR line symbols */
 .tab .line-mark { width: 26px; height: 26px; border-width: 2px; font-size: 10px; border-radius: 7px; }
+/* Three-character marks (the "350" campaign badge) need a tighter face to fit. */
+.line-mark.num3 { font-size: 10.5px; letter-spacing: -.04em; }
+.tab .line-mark.num3 { font-size: 8.5px; }
 .tab.active .line-mark { box-shadow: 0 0 12px -3px var(--c); }
 
 @media (min-width: 960px) {

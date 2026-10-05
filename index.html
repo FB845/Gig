@@ -26,7 +26,7 @@
     </div>
     <div class="side-nav">
       <button class="snav active" data-view="dashboard"><span class="line-mark" style="--c:var(--jr-green)">GL</span><span class="snav-t">Home<small>ホーム</small></span></button>
-      <button class="snav" data-view="campaign"><span class="line-mark" style="--c:#f5a524">35</span><span class="snav-t">Campaign<small>目標</small></span></button>
+      <button class="snav" data-view="campaign"><span class="line-mark num3" style="--c:#f5a524">350</span><span class="snav-t">Campaign 350<small>目標</small></span></button>
       <button class="snav" data-view="log"><span class="line-mark" style="--c:var(--jr-blue)">LG</span><span class="snav-t">Log<small>記録</small></span></button>
       <button class="snav" data-view="trends"><span class="line-mark" style="--c:var(--jr-orange)">TR</span><span class="snav-t">Trends<small>分析</small></span></button>
       <button class="snav" data-view="import"><span class="line-mark" style="--c:var(--jr-teal)">IM</span><span class="snav-t">Import<small>取込</small></span></button>
@@ -236,7 +236,7 @@
 
       <!-- Plan form (planner: pre-plan blocks/shifts with estimated earnings) -->
       <form id="plan-form" class="card form hidden">
-        <div class="card-head"><h2 id="plan-form-title">Plan a block<span class="jp">予定</span></h2></div>
+        <div class="card-head"><h2 id="plan-form-title">Plan a block<span class="jp">予定</span></h2><button type="button" class="btn ghost camp-add" id="plan-import">📅 Import calendar</button></div>
         <div class="field">
           <label>Platform</label>
           <div class="choice" id="plan-platform">
@@ -369,6 +369,33 @@
 
     <!-- ================= IMPORT ================= -->
     <section id="view-import" class="view" aria-label="Import">
+      <div class="card" id="cal-card">
+        <div class="card-head"><h2>📅 Calendar → planner<span class="jp">予定取込</span></h2></div>
+        <p class="muted">Bring blocks and shifts you've already scheduled into <b>Log → Plan</b>: an <b>.ics</b> calendar file (Google / Apple / Outlook export) or a <b>screenshot</b> of your schedule (e.g. the Flex calendar). You review everything before it's added; past events are skipped.</p>
+        <div class="field"><label>Unrecognized entries default to</label>
+          <div class="choice" id="cal-platform">
+            <button type="button" class="chip active" data-val="flex">Flex</button>
+            <button type="button" class="chip" data-val="doordash">Dasher</button>
+            <button type="button" class="chip" data-val="other">Other</button>
+            <button type="button" class="chip" data-val="income">Income</button>
+          </div>
+        </div>
+        <div class="row">
+          <label class="dropzone" id="cal-ics-drop">
+            <input type="file" id="cal-ics-file" accept=".ics,.ical,.ifb,.icalendar,text/calendar" hidden />
+            <span class="dz-icon">🗓️</span>
+            <span>Calendar file (.ics)</span>
+          </label>
+          <label class="dropzone" id="cal-img-drop">
+            <input type="file" id="cal-img-file" accept="image/*" hidden />
+            <span class="dz-icon">🖼️</span>
+            <span>Schedule screenshot</span>
+          </label>
+        </div>
+        <div id="cal-status" class="ocr-status hidden"></div>
+        <div id="cal-preview" class="hidden"></div>
+      </div>
+
       <div class="card">
         <div class="card-head"><h2>📸 Screenshot import (OCR)</h2></div>
         <p class="muted">Snap or upload a screenshot of your Flex or Dasher earnings screen. The app reads the amounts, miles and counts for you to review before saving.</p>
@@ -508,7 +535,7 @@ service cloud.firestore {
 
   <nav class="tabbar" role="tablist" aria-label="Sections">
     <button class="tab active" data-view="dashboard"><span class="line-mark" style="--c:var(--jr-green)">GL</span><span>Home</span></button>
-    <button class="tab" data-view="campaign"><span class="line-mark" style="--c:#f5a524">35</span><span>350</span></button>
+    <button class="tab" data-view="campaign"><span class="line-mark num3" style="--c:#f5a524">350</span><span>350</span></button>
     <button class="tab" data-view="log"><span class="line-mark" style="--c:var(--jr-blue)">LG</span><span>Log</span></button>
     <button class="tab" data-view="trends"><span class="line-mark" style="--c:var(--jr-orange)">TR</span><span>Trends</span></button>
     <button class="tab" data-view="import"><span class="line-mark" style="--c:var(--jr-teal)">IM</span><span>Import</span></button>

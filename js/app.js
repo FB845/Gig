@@ -3,6 +3,7 @@ import * as store from './store.js';
 import * as charts from './charts.js';
 import { csvToShifts, extractFromText } from './parse.js';
 import { recognize, ocrAvailable } from './ocr.js';
+import { parseICS, parseScheduleText } from './calendar.js';
 import { DriveTracker } from './geo.js';
 import * as sync from './sync.js';
 
@@ -1526,6 +1527,160 @@ function initImport() {
   ocrFile.addEventListener('change', onOcrFile);
 
   $('#csv-file').addEventListener('change', onCsvFile);
+
+  bindChips('#cal-platform');
+  $('#cal-ics-file').addEventListener('change', onCalIcsFile);
+  $('#cal-img-file').addEventListener('change', onCalImageFile);
+  $('#plan-import').addEventListener('click', () => {
+    showView('import');
+    $('#cal-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
+
+// ---- Calendar → planner (.ics file or schedule screenshot) ----
+// Both sources produce rows for one review list; nothing is saved until you
+// tap "Add to planner".
+const CAL_WINDOW_DAYS = 60; // import today → +60 days (keeps big calendars sane)
+let calRows = [];
+
+async function onCalIcsFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const status = $('#cal-status');
+  status.classList.remove('hidden');
+  try {
+    const today = store.todayISO();
+    const to = store.isoDate(new Date(Date.now() + CAL_WINDOW_DAYS * 86400000));
+    const r = parseICS(await file.text(), { fromISO: today, toISO: to });
+    const skipped = [
+      r.skippedPast ? `${r.skippedPast} past` : '',
+      r.skippedLater ? `${r.skippedLater} after ${friendlyDate(to)}` : '',
+      r.cancelled ? `${r.cancelled} cancelled` : '',
+    ].filter(Boolean).join(', ');
+    status.innerHTML = r.events.length
+      ? `✓ Found ${r.events.length} upcoming event${r.events.length === 1 ? '' : 's'}${skipped ? ` (skipped ${skipped})` : ''}. Work-looking ones are ticked — review, then add.`
+      : `No upcoming events in the next ${CAL_WINDOW_DAYS} days${skipped ? ` (skipped ${skipped})` : ''}.`;
+    showCalPreview(r.events);
+  } catch (err) {
+    status.innerHTML = '⚠️ Couldn’t read that calendar file: ' + escapeHtml(err.message || String(err));
+  } finally {
+    e.target.value = '';
+  }
+}
+
+async function onCalImageFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const status = $('#cal-status');
+  status.classList.remove('hidden');
+  $('#cal-preview').classList.add('hidden');
+  if (!ocrAvailable()) {
+    status.innerHTML = '⚠️ Reading a screenshot needs the internet the first time (to download the text engine). Connect and try again, or use an .ics file.';
+    e.target.value = '';
+    return;
+  }
+  status.innerHTML = 'Reading schedule… <div class="progress"><span id="cal-bar"></span></div>';
+  try {
+    const text = await recognize(file, (p) => { const bar = $('#cal-bar'); if (bar) bar.style.width = Math.round(p * 100) + '%'; });
+    const today = store.todayISO();
+    const events = parseScheduleText(text, today).events.filter((ev) => ev.date >= today);
+    status.innerHTML = events.length
+      ? `✓ Read ${events.length} block${events.length === 1 ? '' : 's'} — check dates, times and pay (screenshots can misread), then add.`
+      : '⚠️ Couldn’t find any time ranges like “9:00 AM – 12:30 PM”. Try a sharper screenshot of the schedule list, or an .ics file.';
+    showCalPreview(events);
+  } catch (err) {
+    status.innerHTML = '⚠️ ' + escapeHtml(err.message || 'Could not read the screenshot');
+  } finally {
+    e.target.value = '';
+  }
+}
+
+// Same date + start + finish as a plan you already have → probably a re-import.
+function calIsDuplicate(row) {
+  return store.getPlans().some((p) => p.date === row.date && p.startTime === row.startTime && p.endTime === row.endTime);
+}
+
+function showCalPreview(events) {
+  const host = $('#cal-preview');
+  const fallback = chipValue('#cal-platform') || 'flex';
+  calRows = events.map((ev) => {
+    const dupe = calIsDuplicate(ev);
+    return { ...ev, platform: ev.platform || fallback, checked: ev.recognized && !dupe, dupe };
+  });
+  if (!calRows.length) { host.classList.add('hidden'); host.innerHTML = ''; return; }
+  const opts = (sel) => ['flex', 'doordash', 'other', 'income']
+    .map((v) => `<option value="${v}"${v === sel ? ' selected' : ''}>${v === 'income' ? 'Income' : PLATFORMS[v].label}</option>`).join('');
+  host.classList.remove('hidden');
+  host.innerHTML = `
+    <ul class="cal-list">${calRows.map((r, i) => `
+      <li class="cal-row${r.dupe ? ' is-dupe' : ''}" data-i="${i}">
+        <label class="cal-pick"><input type="checkbox" data-k="checked"${r.checked ? ' checked' : ''} />
+          <span class="cal-title">${escapeHtml(r.summary)}${r.dupe ? ' <span class="plan-pill">already planned</span>' : ''}</span>
+        </label>
+        ${r.detail ? `<div class="cal-detail">${escapeHtml(r.detail)}</div>` : ''}
+        <div class="cal-fields">
+          <input type="date" data-k="date" value="${r.date}" aria-label="date" />
+          <input type="time" data-k="startTime" value="${r.startTime}" aria-label="start" />
+          <input type="time" data-k="endTime" value="${r.endTime}" aria-label="finish" />
+          <select data-k="platform" aria-label="platform">${opts(r.platform)}</select>
+          <input type="number" data-k="estimate" step="0.01" min="0" inputmode="decimal" value="${r.estimate || ''}" placeholder="${calSuggest(r) || 'est. $'}" aria-label="estimated earnings" />
+        </div>
+      </li>`).join('')}
+    </ul>
+    <div class="form-actions">
+      <button type="button" class="btn ghost" id="cal-cancel">Cancel</button>
+      <button type="button" class="btn primary" id="cal-add"></button>
+    </div>`;
+  const refreshCount = () => {
+    const n = calRows.filter((r) => r.checked).length;
+    $('#cal-add').textContent = `Add ${n} to planner`;
+    $('#cal-add').disabled = n === 0;
+  };
+  host.querySelectorAll('.cal-row').forEach((li) => {
+    const r = calRows[+li.dataset.i];
+    li.querySelectorAll('[data-k]').forEach((inp) => {
+      const onEdit = () => {
+        r[inp.dataset.k] = inp.type === 'checkbox' ? inp.checked : inp.value;
+        if (inp.dataset.k !== 'checked' && inp.dataset.k !== 'estimate') {
+          li.querySelector('[data-k=estimate]').placeholder = calSuggest(r) || 'est. $';
+        }
+        refreshCount();
+      };
+      inp.addEventListener(inp.type === 'checkbox' || inp.tagName === 'SELECT' ? 'change' : 'input', onEdit);
+    });
+  });
+  $('#cal-cancel').addEventListener('click', () => { host.classList.add('hidden'); $('#cal-status').classList.add('hidden'); calRows = []; });
+  $('#cal-add').addEventListener('click', addCalRows);
+  refreshCount();
+}
+
+// Suggested estimate for an imported row: your $/hr on that platform × hours.
+function calSuggest(r) {
+  const hours = store.hoursBetween(r.startTime, r.endTime);
+  if (r.platform === 'income' || !hours) return 0;
+  return Math.round(store.suggestedRate(r.platform) * hours);
+}
+
+function addCalRows() {
+  const picked = calRows.filter((r) => r.checked && r.date);
+  let added = 0, noEstimate = 0;
+  for (const r of picked) {
+    if (!!r.startTime !== !!r.endTime) continue; // half a time range — skip
+    const estimate = parseFloat(r.estimate) || calSuggest(r);
+    if (!(estimate > 0)) noEstimate += 1;
+    store.addPlan({
+      date: r.date, platform: r.platform, startTime: r.startTime, endTime: r.endTime,
+      estimate, source: r.platform === 'income' ? r.summary : '',
+      note: r.summary.slice(0, 60),
+    });
+    added += 1;
+  }
+  calRows = [];
+  $('#cal-preview').classList.add('hidden');
+  $('#cal-status').innerHTML = `✓ Added ${added} plan${added === 1 ? '' : 's'}.${noEstimate ? ` ${noEstimate} ha${noEstimate === 1 ? 's' : 've'} no estimate yet — tap them in Log → Plan to add one.` : ''}`;
+  toast(`Added ${added} to your planner ✓`);
+  showLogForm('plan');
+  showView('log');
 }
 
 async function onOcrFile(e) {
