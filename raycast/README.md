@@ -29,6 +29,21 @@ Raycast has no desktop widgets; its menu-bar command is the always-visible
    it. In Raycast Settings → Extensions you can pin **Campaign 350** to the
    menu bar.
 
+### Raycast not picking it up?
+
+Run `npm run doctor` in this folder. It checks the things `npm run dev`
+depends on and says what to fix:
+
+- **Raycast must be open** when you run `npm run dev` — the CLI looks for the
+  running app (bundle ID `com.raycast.macos`) and hands it the extension.
+- **Node 22.22.2 or newer** (the current Raycast API requires it).
+- **`npm install`** must have run in this `raycast/` folder (not the repo root).
+- A different Raycast build (beta/internal) has a different bundle ID — the
+  doctor tells you the `RAY_Target=… npm run dev` to use.
+
+No CLI needed at all: in Raycast run **Import Extension** and pick this
+`raycast/` folder. Afterwards search Raycast for "Campaign 350" or "Gig".
+
 The key lets Raycast read and write *your* records only (the same Firestore
 rules as the app). Treat it like a password. To revoke it, disable or delete
 the user in Firebase console → Authentication (signing out of the app doesn't
