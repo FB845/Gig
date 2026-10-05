@@ -1217,3 +1217,25 @@ main { padding-top: 6px; }
 .drive-actions .btn { height: 52px; justify-content: center; font-size: 16px; }
 .form-actions > :only-child { grid-column: 1 / -1; }
 .kpi .k-label .jp { font-size: inherit; }
+
+/* ---- No sideways spill on phones ----
+   iOS gives date/time inputs a wide intrinsic size; in an auto-sized grid
+   track that stretched the whole form past the card (and the page past the
+   screen). Tracks are now capped at the available width and the inputs may
+   shrink. */
+.form { grid-template-columns: minmax(0, 1fr); }
+.form > *, .field, .row > * { min-width: 0; }
+.row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+input[type=date], input[type=time] {
+  -webkit-appearance: none; appearance: none; display: block;
+  width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; text-align: left;
+}
+input[type=date]::-webkit-date-and-time-value, input[type=time]::-webkit-date-and-time-value { text-align: left; }
+.time-range input, .hm-input input { width: auto; flex: 1 1 0; }
+.form .card-head { flex-wrap: wrap; gap: 8px; }
+.form .card-head .btn { white-space: nowrap; }
+.choice .chip { overflow: hidden; text-overflow: ellipsis; }
+/* Last line of defence: never let the page itself scroll sideways
+   (clip, unlike hidden, keeps the sticky header working). */
+html, body { overflow-x: clip; }
+#shift-platform .chip, #plan-platform .chip { font-size: 13px; padding: 0 1px; }

@@ -920,6 +920,25 @@ try {
   ok(/WEEKLY GOAL/.test(await page.locator('#week-goal').innerText()) && /週間目標/.test(await page.locator('#week-goal').innerText()), 'goal card title flips 週間目標 ⇄ WEEKLY GOAL');
   ok((await page.locator('#traj-chart svg .led-lattice').count()) === 1, 'charts carry the LED dot lattice');
 
+  console.log('\n26) No sideways spill on small phones (incl. iOS-wide date/time inputs)');
+  {
+    const narrow = await browser.newContext({ viewport: { width: 320, height: 700 } }).then((c) => c.newPage());
+    await narrow.goto(base + '/index.html');
+    // Clip guard off so real overflow shows; mimic iOS's wide intrinsic
+    // date/time inputs at UA-level (zero) specificity.
+    await narrow.addStyleTag({ content: 'html,body{overflow-x:visible!important} :where(input[type=date],input[type=time]){min-width:360px}' });
+    const spills = [];
+    for (const [view, sub] of [['dashboard'], ['campaign'], ['log', 'shift'], ['log', 'plan'], ['log', 'expense'], ['log', 'trip'], ['trends'], ['import'], ['settings']]) {
+      await narrow.locator(`.tab[data-view=${view}]`).click();
+      if (sub) await narrow.locator(`#log-segmented .seg[data-log=${sub}]`).click();
+      await narrow.waitForTimeout(80);
+      const w = await narrow.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      if (w > 0) spills.push(`${view}${sub ? '/' + sub : ''} +${w}px`);
+    }
+    ok(spills.length === 0, 'every screen fits 320 px wide' + (spills.length ? ': ' + spills.join(', ') : ''));
+    await narrow.close();
+  }
+
   ok(errors.length === 0, 'no console/page errors' + (errors.length ? ': ' + errors.slice(0, 3).join(' | ') : ''));
 } catch (e) {
   console.error('TEST CRASH:', e);
