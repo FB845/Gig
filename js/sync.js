@@ -47,7 +47,9 @@ function getDeviceId() {
   return id;
 }
 
-function activeConfig() { return FIREBASE_CONFIG || cfg.config || null; }
+// Tests point a pasted demo config at the local emulators; otherwise the
+// built-in config wins.
+function activeConfig() { return (localStorage.getItem(EMU_KEY) && cfg.config) || FIREBASE_CONFIG || cfg.config || null; }
 export function isConfigured() { const c = activeConfig(); return !!(c && c.apiKey && c.projectId); }
 export function getSyncState() { return { ...state }; }
 export function onSyncState(cb) { stateListeners.add(cb); cb(getSyncState()); return () => stateListeners.delete(cb); }
@@ -240,8 +242,14 @@ async function push() {
 // web apps can't open the popup — use email/password there (same method on
 // every device, so they share one account).
 export async function signInGoogle() {
-  if (!fb) await initFirebase();
-  if (!fb) throw new Error('Sync isn’t configured yet.');
+  // The popup must open inside the tap itself; if the SDK is still loading,
+  // finish loading and ask for a second tap rather than get the popup blocked.
+  if (!fb) {
+    await initFirebase();
+    const msg = fb ? 'Still connecting — tap Sign in with Google again.' : (state.error || 'Sync isn’t configured yet.');
+    setState({ error: msg });
+    throw new Error(msg);
+  }
   const { authM, auth } = fb;
   cfg.method = 'google'; saveCfg();
   try {

@@ -5,6 +5,12 @@
 // your data is protected by Firebase Authentication + the Firestore security
 // rules in the README, and by the project's authorized domains.
 //
-// While this is null, Settings → Cloud sync offers a box to paste the config on
-// each device instead.
-export const FIREBASE_CONFIG = null;
+// Set to null to go back to pasting a config per device in Settings → Cloud sync.
+export const FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyCPPRCcZdtPuZ6Gsq_rjS1o_ojKaHjwafs',
+  authDomain: 'gig-tracker-c0ad8.firebaseapp.com',
+  projectId: 'gig-tracker-c0ad8',
+  storageBucket: 'gig-tracker-c0ad8.firebasestorage.app',
+  messagingSenderId: '162235790385',
+  appId: '1:162235790385:web:c7f5443c65628f6ef95110',
+};

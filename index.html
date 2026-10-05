@@ -487,7 +487,7 @@ service cloud.firestore {
         <div id="sync-auth" class="hidden">
           <button type="button" class="btn primary sync-google" id="sync-google">Sign in with Google · Google でログイン</button>
           <p class="muted sync-tip">Use the same sign-in on every device. <a href="#" id="sync-email-toggle">Use email instead</a></p>
-          <div class="hidden" id="sync-email-box">
+          <form class="hidden" id="sync-email-box" onsubmit="return false">
             <div class="row">
               <div class="field"><label>Email</label><input type="email" id="sync-email" autocomplete="username" placeholder="you@example.com" /></div>
               <div class="field"><label>Password</label><input type="password" id="sync-pass" autocomplete="current-password" placeholder="••••••••" /></div>
@@ -496,7 +496,7 @@ service cloud.firestore {
               <button type="button" class="btn ghost" id="sync-signup">Create account</button>
               <button type="button" class="btn primary" id="sync-signin">Sign in</button>
             </div>
-          </div>
+          </form>
         </div>
 
         <div id="sync-account" class="hidden">
@@ -530,7 +530,7 @@ service cloud.firestore {
         <button class="btn primary hidden" id="install-btn">インストール Install app</button>
       </div>
 
-      <p class="version muted">Gig Tracker · 白色LED · v23</p>
+      <p class="version muted">Gig Tracker · 白色LED · v24</p>
     </section>
   </main>
 

@@ -231,7 +231,8 @@ stays in an account you control.
    paste the rules from [`firebase/firestore.rules`](firebase/firestore.rules)
    into the **Rules** tab and **Publish**. They let each signed-in user read and
    write only their own records.
-4. Put the config in the app — either:
+4. Put the config in the app (this repo already ships one, for the
+   `gig-tracker-c0ad8` project) — either:
    - **Built in (recommended):** paste it into `js/firebase-config.js`
      (`export const FIREBASE_CONFIG = { … }`) and deploy. These values are
      public identifiers, not secrets; the rules and authorized domains protect

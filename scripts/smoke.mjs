@@ -28,7 +28,12 @@ const port = server.address().port;
 const base = `http://localhost:${port}`;
 
 const browser = await chromium.launch({ executablePath: EXE });
-const page = await browser.newContext({ viewport: { width: 390, height: 800 } }).then((c) => c.newPage());
+const page = await browser.newContext({ viewport: { width: 390, height: 800 } }).then(async (c) => {
+  // Never touch the real Firebase project from tests: the SDK "fails to load"
+  // (as when offline), which the app handles. scripts/sync-test.mjs covers sync.
+  await c.route(/^https:\/\/www\.gstatic\.com\/firebasejs\//, (r) => r.fulfill({ status: 200, contentType: 'text/javascript', body: 'throw new Error("no Firebase in smoke test")' }));
+  return c.newPage();
+});
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
@@ -424,13 +429,13 @@ try {
   await page.locator('.tab[data-view=settings]').click();
   await page.waitForTimeout(100);
   ok((await page.locator('#sync-card').count()) === 1, 'Cloud sync card present in Settings');
-  ok((await page.locator('#sync-pill').innerText()).trim() === 'Off', 'sync pill shows Off when unconfigured');
-  ok((await page.locator('#sync-config-field:not(.hidden)').count()) === 1, 'config field shown when unconfigured');
-  ok((await page.locator('#sync-auth.hidden').count()) === 1, 'sign-in hidden until configured');
-  await page.fill('#sync-config', 'not a config');
-  await page.locator('#sync-save-config').click();
-  await page.waitForTimeout(100);
-  ok((await page.locator('#sync-error:not(.hidden)').count()) === 1, 'invalid config shows an error (no network)');
+  // The app ships with its Firebase config built in: no paste box, just sign-in.
+  ok((await page.locator('#sync-config-field.hidden').count()) === 1, 'built-in config: no paste-config box');
+  ok((await page.locator('#sync-auth:not(.hidden) #sync-google').count()) === 1, 'built-in config: "Sign in with Google" shown straight away');
+  ok((await page.locator('#sync-email-box.hidden').count()) === 1, 'email sign-in tucked away until asked for');
+  await page.locator('#sync-email-toggle').click();
+  ok((await page.locator('#sync-email-box:not(.hidden) #sync-email').count()) === 1, '"Use email instead" reveals email + password');
+  ok((await page.locator('#sync-account.hidden').count()) === 1, 'account panel hidden while signed out');
 
   console.log('\n18) "Worth it?" offer calculator + tax summary');
   const ov = await page.evaluate(async () => {
