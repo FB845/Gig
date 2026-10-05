@@ -1045,6 +1045,12 @@ try {
     await desk.waitForTimeout(150);
     ok(await desk.locator('#view-desk.active').count() === 1 && await desk.locator('#screen-title').getAttribute('aria-label') === 'PLANNING DESK', 'GT07 opens the planning desk');
     ok(await desk.locator('.dcol').count() === 7 && await desk.locator('.d-heat').count() === 7, 'week of 7 columns with best-hours shading');
+    const align = await desk.evaluate(() => {
+      const heads = [...document.querySelectorAll('.d-head')], cols = [...document.querySelectorAll('.dcol')];
+      const sc = document.querySelector('.desk-scroll');
+      return { off: Math.max(...cols.map((c, i) => Math.abs(c.getBoundingClientRect().left - heads[i].getBoundingClientRect().left) + Math.abs(c.getBoundingClientRect().width - heads[i].getBoundingClientRect().width))), scroll: sc.scrollWidth - sc.clientWidth };
+    });
+    ok(align.off < 1 && align.scroll === 0, `day heads line up with their columns (off by ${align.off.toFixed(1)} px) and all 7 days fit without scrolling`);
     await desk.keyboard.press('ArrowRight'); // next week: every day is in the future
     await desk.waitForTimeout(100);
     ok(/NEXT WEEK/.test(await desk.locator('#desk-week-sub').innerText()), '→ moves to next week');

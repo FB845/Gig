@@ -1403,3 +1403,27 @@ main:has(#view-desk.active) { max-width: none; }
 .bh-tw .led { font-size: 14px; }
 .bh-tw .muted { font-size: 11px; }
 .bh-cov .led { font-size: 20px; }
+
+/* Desk column heads line up with their columns: same left divider, stacked
+   day / total, a full-width progress track, today tinted top to bottom. */
+.d-row { column-gap: 0; }
+.d-head, .d-chips, .dcol { border-left: 1px solid #1a2030; }
+.d-head { display: grid; gap: 2px; padding: 0 8px 0 7px; }
+.d-hl { display: block; font-size: 13px; color: var(--label); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.d-hl small { font-size: 11px; color: var(--muted); }
+.d-hamt { font-size: 17px; line-height: 1.2; }
+.d-hbar { display: block; height: 4px; background: #1a2030; margin-top: 2px; }
+.d-hbar span { display: block; height: 4px; }
+.d-head.today .d-hl { color: var(--plan); }
+.d-head.today, .d-chips.today, .dcol.today { background-color: rgba(45,212,191,.035); }
+.d-chips { padding: 0 3px; }
+.d-heads { padding-bottom: 6px; }
+/* All seven days fit on a 1366 px laptop next to the side panel. */
+.desk-grid { min-width: 640px; }
+.desk-grid-card { flex-basis: 600px; }
+.desk-side { flex-basis: 280px; }
+.d-head { padding: 0 6px; }
+.d-hl { font-size: 12px; letter-spacing: 0; }
+.d-hl small { font-size: 10px; }
+#desk-sugg-card .card-head { flex-wrap: wrap; row-gap: 2px; }
+#desk-sugg-card .card-head h2 { white-space: nowrap; }

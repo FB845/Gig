@@ -223,16 +223,17 @@ function renderGrid(wk, items, today) {
     const isToday = d === today;
     const tc = day.total >= store.CAMPAIGN.daily ? 'var(--accent)' : day.total > 0 ? 'var(--text)' : '#3a4150';
     head += `<div class="d-head${isToday ? ' today' : ''}${day.past ? ' past' : ''}">
-      <span class="d-hl"><span>${DOW_JP[dow]} ${DOW_EN[dow].toUpperCase()} <small>${md(d)}</small></span><span class="led" style="color:${tc}">${day.total ? C.fmtMoney0(day.total) : '—'}</span></span>
-      <span class="d-hbar"><span style="width:${Math.min(100, (day.total / store.CAMPAIGN.daily) * 100)}%;background:${tc}"></span></span></div>`;
+      <span class="d-hl">${DOW_JP[dow]} ${DOW_EN[dow].toUpperCase()} <small>${md(d)}</small></span>
+      <span class="led d-hamt" style="color:${tc}">${day.total ? C.fmtMoney0(day.total) : '—'}</span>
+      <span class="d-hbar" title="${C.fmtMoney0(day.total)} of $${store.CAMPAIGN.daily}"><span style="width:${Math.min(100, (day.total / store.CAMPAIGN.daily) * 100)}%;background:${tc}"></span></span></div>`;
     const list = items.get(d);
-    chips += `<div class="d-chips">${list.filter((x) => !x.span).map((x) => `<button type="button" class="d-chip k-${x.kind}${isSel(x) ? ' sel' : ''}" data-kind="${x.kind}" data-id="${x.id}" style="--c:${PCOL[x.platform] || PCOL.other}">${x.kind === 'plan' ? 'Anytime' : x.hours ? C.fmtHM(x.hours) : '—'} · ${esc(x.name)} <b>${C.fmtMoney0(x.amount)}${x.kind === 'plan' ? ' est' : ''}</b></button>`).join('')}</div>`;
+    chips += `<div class="d-chips${isToday ? ' today' : ''}">${list.filter((x) => !x.span).map((x) => `<button type="button" class="d-chip k-${x.kind}${isSel(x) ? ' sel' : ''}" data-kind="${x.kind}" data-id="${x.id}" style="--c:${PCOL[x.platform] || PCOL.other}">${x.kind === 'plan' ? 'Anytime' : x.hours ? C.fmtHM(x.hours) : '—'} · ${esc(x.name)} <b>${C.fmtMoney0(x.amount)}${x.kind === 'plan' ? ' est' : ''}</b></button>`).join('')}</div>`;
     const heat = st.heat ? `<div class="d-heat" aria-hidden="true">${Array.from({ length: h1 - h0 }, (_, i) => `<span style="background:${heatBg(st.cache.all.cells[dow][h0 + i].rate)}"></span>`).join('')}</div>` : '';
     const off = wk.daysOff.includes(d) ? '<div class="d-off" aria-hidden="true"><span class="led">休</span></div>' : '';
     const now = isToday && nm >= h0 * 60 && nm < h1 * 60 ? `<div class="d-now" style="top:${(nm / 60 - h0) * ROW}px" aria-hidden="true"></div>` : '';
     const flash = st.flash && st.flash.date === d ? `<div class="d-flash" style="top:${(st.flash.min / 60 - h0) * ROW}px;height:${ROW}px" aria-hidden="true"></div>` : '';
     const blocks = layout(list).map((it) => blockHTML(it, d)).join('');
-    cols += `<div class="dcol${day.past ? ' past' : ''}" data-date="${d}" style="height:${H}px">${heat}${off}${flash}${blocks}${now}</div>`;
+    cols += `<div class="dcol${day.past ? ' past' : ''}${isToday ? ' today' : ''}" data-date="${d}" style="height:${H}px">${heat}${off}${flash}${blocks}${now}</div>`;
   });
   $('#desk-grid').innerHTML = `
     <div class="d-row d-heads">${head}</div>
