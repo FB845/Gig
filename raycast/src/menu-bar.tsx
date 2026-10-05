@@ -1,4 +1,7 @@
 import { Color, Icon, LaunchType, MenuBarExtra, launchCommand, open, openExtensionPreferences } from "@raycast/api";
+
+// The ギグ線 glyph (black for a light menu bar, white for a dark one).
+const GLYPH = { source: { light: "menubar-icon.png", dark: "menubar-icon@dark.png" } };
 import { DOW, dowOf, money0, PLATFORM_NAME } from "./lib/format";
 import { appUrl, useGig } from "./lib/gig";
 import { summarize } from "./lib/summary";
@@ -12,7 +15,7 @@ export default function Command() {
 
   if (error || !store) {
     return (
-      <MenuBarExtra icon={Icon.Train} title="350" isLoading={loading} tooltip="Gig Tracker">
+      <MenuBarExtra icon={GLYPH} title="350" isLoading={loading} tooltip="Gig Tracker">
         <MenuBarExtra.Item icon={Icon.Warning} title={error || "Add your connection key"} />
         <MenuBarExtra.Item title="Open Preferences…" onAction={openExtensionPreferences} />
         <MenuBarExtra.Item title="Retry" icon={Icon.ArrowClockwise} onAction={refresh} />
@@ -26,7 +29,7 @@ export default function Command() {
 
   return (
     <MenuBarExtra
-      icon={{ source: Icon.Train, tintColor: s.hit ? Color.Green : undefined }}
+      icon={s.hit ? { ...GLYPH, tintColor: Color.Green } : GLYPH}
       title={title}
       isLoading={loading}
       tooltip={`Gig Tracker · today ${money0(s.earned)} of ${money0(s.daily)}`}

@@ -1429,3 +1429,5 @@ main:has(#view-desk.active) { max-width: none; }
 #desk-sugg-card .card-head h2 { white-space: nowrap; }
 .sync-raycast { margin-top: 12px; padding-top: 12px; border-top: 1px dashed #263040; display: grid; gap: 4px; }
 .sync-raycast .btn { justify-self: start; }
+/* ギグ線 logo in the sidebar */
+.side-brand .logo-mark { display: block; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 8px; background: none; box-shadow: 0 0 0 1px var(--border); }

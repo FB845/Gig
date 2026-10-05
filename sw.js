@@ -4,7 +4,7 @@
 // single reload always gets the latest version when you're online, falling back
 // to cache when offline. CACHE-FIRST for static images/icons (they rarely change
 // and this keeps things fast). Bump CACHE on every release to purge old files.
-const CACHE = 'gig-tracker-v27';
+const CACHE = 'gig-tracker-v28';
 const ASSETS = [
   './',
   './index.html',
@@ -25,6 +25,7 @@ const ASSETS = [
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
   './icons/favicon-32.png',
+  './icons/logo.svg',
 ];
 
 self.addEventListener('install', (e) => {

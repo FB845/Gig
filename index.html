@@ -7,6 +7,7 @@
   <meta name="description" content="Track earnings, expenses, and trends for your Amazon Flex and DoorDash gigs. Private, on-device, works offline." />
   <title>Gig Tracker</title>
   <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="icons/logo.svg" />
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -22,9 +23,7 @@
 
   <nav class="sidebar" aria-label="Primary navigation">
     <div class="side-brand">
-      <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="22" height="22"><rect x="3" y="13" width="3.5" height="8" rx="1" fill="#60a5fa"/><rect x="8.5" y="9" width="3.5" height="12" rx="1" fill="#34d399"/><rect x="14" y="6" width="3.5" height="15" rx="1" fill="#60a5fa"/><rect x="19" y="3" width="2" height="18" rx="1" fill="#34d399"/></svg>
-      </span>
+      <img class="brand-mark logo-mark" src="icons/logo.svg" alt="" width="34" height="34" />
       <div class="sb-title"><b>Gig Tracker</b><small>ギグ・トラッカー</small></div>
     </div>
     <div class="side-nav">
@@ -580,7 +579,7 @@ service cloud.firestore {
         <button class="btn primary hidden" id="install-btn">インストール Install app</button>
       </div>
 
-      <p class="version muted">Gig Tracker · 白色LED · v27</p>
+      <p class="version muted">Gig Tracker · 白色LED · v28</p>
     </section>
   </main>
 

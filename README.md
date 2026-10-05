@@ -285,6 +285,15 @@ merge, settings, the security rules, Google sign-in) is tested against the
 Firebase emulators: `node scripts/sync-test.mjs` (needs `firebase-tools` and
 Java; see the script header).
 
+## Raycast (Mac menu bar)
+
+`raycast/` is a Raycast extension that syncs with the app: **Campaign 350** sits
+in the menu bar (today's $ vs $350; the menu has today, this week's goal, your
+next blocks and the campaign pace), plus **Today & This Week**, **Log Shift**,
+**Plan Block** and **Week Plan** (with Fill the gap). It runs the app's own
+`store.js`, so the numbers always match. Set-up: copy your key from **Settings →
+Cloud sync → Copy Raycast key**, then see [raycast/README.md](raycast/README.md).
+
 ## Project layout
 
 ```
@@ -305,7 +314,8 @@ fonts/                  bundled pixel fonts (DotGothic16 subset, Silkscreen) + t
 js/app.js               UI wiring
 manifest.webmanifest    PWA manifest
 sw.js                   offline service worker
-icons/                  generated PWA icons
+icons/                  logo.svg (ギグ線 mark) + glyph.svg → PNG icons via `npm run icons`
+raycast/                Raycast extension (menu bar + commands), syncs with the app
 scripts/                icon generator + headless smoke test + screenshot tool
 ```
 
@@ -313,7 +323,7 @@ scripts/                icon generator + headless smoke test + screenshot tool
 
 ```bash
 npm test         # headless smoke test + GPS drive end-to-end (simulated movement)
-npm run icons    # regenerate PWA icons (pure Python, no deps)
+npm run icons    # render icons/logo.svg → PWA + Raycast icons (headless Chromium)
 npm run shots    # generate seeded screenshots
 ```
 

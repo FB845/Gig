@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Gig Tracker · ギグ線 (Gig Line): stations climbing like a chart, the
+       last one ringed "you are here". Line colour = GT01 Home green. -->
+  <defs>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <pattern id="unlit" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="8" cy="8" r="3" fill="#141821"/></pattern>
+  </defs>
+  <rect width="512" height="512" fill="#000"/>
+  <rect class="dots" width="512" height="512" fill="url(#unlit)"/>
+  <g class="mark">
+    <polyline points="92,392 196,332 300,246 420,132" fill="none" stroke="#80c241" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="92" cy="392" r="30" fill="#fff" stroke="#000" stroke-width="12"/>
+    <circle cx="196" cy="332" r="30" fill="#fff" stroke="#000" stroke-width="12"/>
+    <circle cx="300" cy="246" r="30" fill="#fff" stroke="#000" stroke-width="12"/>
+    <g filter="url(#glow)">
+      <circle cx="420" cy="132" r="44" fill="#fff" stroke="#000" stroke-width="14"/>
+      <circle cx="420" cy="132" r="70" fill="none" stroke="#3dff7a" stroke-width="10"/>
+    </g>
+  </g>
+</svg>
