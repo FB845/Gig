@@ -2158,6 +2158,12 @@ function initSyncUI() {
   $('#sync-signin').addEventListener('click', () => doAuth('signIn'));
   $('#sync-signup').addEventListener('click', () => doAuth('signUp'));
   $('#sync-now').addEventListener('click', async () => { await sync.syncNow(); });
+  $('#sync-raycast').addEventListener('click', async () => {
+    const key = sync.getConnectionKey();
+    if (!key) { showErr('Sign in to cloud sync first.'); return; }
+    try { await navigator.clipboard.writeText(key); toast('Raycast key copied — paste it in the extension’s preferences'); }
+    catch { window.prompt('Copy your Raycast connection key:', key); }
+  });
   $('#sync-signout').addEventListener('click', async () => { try { await sync.signOutSync(); toast('Signed out of sync'); } catch { /* ignore */ } });
 
   const STATUS = { idle: 'Signed out', loading: 'Connecting…', syncing: 'Syncing…', synced: 'Synced ✓', offline: 'Offline — will sync when back online', error: 'Error' };
@@ -2406,6 +2412,14 @@ function boot() {
     else if (active.id === 'view-trends') renderTrends();
     else if (active.id === 'view-desk') renderDesk();
   });
+
+  // Deep links (e.g. from Raycast): …/#desk, #log, #trends, #campaign …
+  const openHash = () => {
+    const v = location.hash.slice(1);
+    if (['dashboard', 'campaign', 'log', 'trends', 'desk', 'import', 'settings'].includes(v)) showView(v);
+  };
+  window.addEventListener('hashchange', openHash);
+  openHash();
 
   registerSW();
 }

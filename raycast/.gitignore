@@ -1,0 +1,4 @@
+node_modules/
+dist/
+# copied from ../js/store.js by scripts/copy-core.mjs before dev/build
+src/lib/store.js

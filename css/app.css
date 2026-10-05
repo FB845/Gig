@@ -1427,3 +1427,5 @@ main:has(#view-desk.active) { max-width: none; }
 .d-hl small { font-size: 10px; }
 #desk-sugg-card .card-head { flex-wrap: wrap; row-gap: 2px; }
 #desk-sugg-card .card-head h2 { white-space: nowrap; }
+.sync-raycast { margin-top: 12px; padding-top: 12px; border-top: 1px dashed #263040; display: grid; gap: 4px; }
+.sync-raycast .btn { justify-self: start; }

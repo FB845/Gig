@@ -274,6 +274,16 @@ export async function signOutSync() {
   if (fb) await fb.authM.signOut(fb.auth);
   setState({ signedIn: false, status: 'idle' });
 }
+// A key for the Raycast extension (or any other trusted client of yours): the
+// project's public config plus this sign-in's refresh token, which lets it act
+// as you on your own records. Treat it like a password.
+export function getConnectionKey() {
+  const user = fb && fb.auth.currentUser;
+  const c = activeConfig();
+  if (!user || !c) return null;
+  const json = JSON.stringify({ v: 1, k: c.apiKey, p: c.projectId, r: user.refreshToken, e: user.email || '' });
+  return 'gt1.' + btoa(unescape(encodeURIComponent(json))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
 export async function syncNow() { if (records) { listenRestart(); await push(); } }
 function listenRestart() { if (unsub) { unsub(); unsub = null; } listen(); }
 

@@ -206,6 +206,48 @@ try {
     await phone.page.locator('#sync-card').screenshot({ path: `${process.env.SHOTS}/sync-signedin.png` });
   }
 
+  console.log('\n11) Raycast extension client (Node, same records) with the app\'s connection key');
+  {
+    execFileSync('node', [path.join(root, 'raycast/scripts/copy-core.mjs')]);
+    const { createCloud, parseKey } = await import(path.join(root, 'raycast/src/lib/cloud.js'));
+    const key = await desk.page.evaluate(async () => (await import('./js/sync.js')).getConnectionKey());
+    ok(/^gt1\./.test(key || '') && parseKey(key).projectId === PROJECT && parseKey(key).email === 'driver@example.com', 'app hands out a gt1. connection key for this account');
+    let bad = '';
+    try { parseKey('nope'); } catch (e) { bad = e.message; }
+    ok(/copy it from the app/.test(bad), 'a wrong key gets a helpful message');
+    const mem = new Map();
+    const storage = { get: async (k) => mem.get(k), set: async (k, v) => { mem.set(k, v); } };
+    const cloud = createCloud({ key, storage, endpoints: { auth: 'http://localhost:9099', firestore: 'http://localhost:8080' } });
+    const first = await cloud.pull();
+    const deskShifts = await desk.s(shiftIds);
+    ok(first.changed > 0 && JSON.stringify(cloud.store.getShifts().map((x) => x.id).sort()) === JSON.stringify(deskShifts), `Raycast pulls the same shifts as the desktop (${deskShifts.length})`);
+    ok(cloud.store.getSettings().mpg === 31 && cloud.store.getSettings().fuelPrice === 3.89, 'and the same settings (MPG 31, fuel $3.89)');
+    const wk = cloud.store.weeklyGoalStats();
+    ok(wk.goal > 0 && typeof wk.earned === 'number', `goal maths run in Raycast (week goal ${wk.goal})`);
+
+    const today = cloud.store.todayISO();
+    const { result: rShift, written } = await cloud.mutate((s) => s.addShift({ platform: 'doordash', date: today, startTime: '11:00', endTime: '13:00', hours: 2, gross: 77, miles: 10, mpg: 25, notes: 'from raycast' }));
+    ok(written === 2, `Log Shift from Raycast writes the shift + its auto fuel expense (${written} docs)`);
+    ok(await waitFor(desk, (s) => s.getShifts().some((x) => x.notes === 'from raycast') && s.getExpenses().some((e) => e.linkedShiftId), null, 'raycast → desktop'), 'the desktop gets it live');
+    const { written: w2 } = await cloud.mutate((s) => s.addPlan({ date: today, platform: 'flex', startTime: '18:00', endTime: '21:00', estimate: 90, note: 'raycast plan' }));
+    ok(w2 === 1 && await waitFor(phone, (s) => s.getPlans().some((p) => p.note === 'raycast plan'), null, 'plan → phone'), 'Plan Block from Raycast reaches the phone');
+
+    await desk.s((s) => s.updateSettings({ fuelPrice: 4.05 }));
+    await sleep(800);
+    await cloud.pull();
+    ok(cloud.store.getSettings().fuelPrice === 4.05, 'a desktop change shows up on the next Raycast refresh');
+
+    const { written: w3 } = await cloud.mutate((s, ) => s.deleteShift(rShift.id));
+    ok(w3 >= 1 && await waitFor(desk, (s, id) => !s.getShifts().some((x) => x.id === id), rShift.id, 'raycast delete'), 'deleting in Raycast deletes everywhere');
+    const noop = await cloud.mutate(() => null);
+    ok(noop.written === 0, 'an action that changes nothing uploads nothing');
+
+    // A fresh Raycast install with an empty cache must not wipe anything.
+    const fresh = createCloud({ key, storage: { get: async () => undefined, set: async () => {} }, endpoints: { auth: 'http://localhost:9099', firestore: 'http://localhost:8080' } });
+    const { written: w4 } = await fresh.mutate((s) => s.addExpense({ date: today, category: 'Parking', amount: 3, note: 'fresh raycast' }));
+    ok(w4 === 1 && await waitFor(desk, (s) => s.getExpenses().some((e) => e.note === 'fresh raycast') && s.getShifts().length === 3, null, 'fresh'), 'a fresh install syncs first — writes only its own expense, deletes nothing');
+  }
+
   console.log('\n10) Final state identical on both devices');
   const snapshot = (s) => JSON.stringify({ sh: s.getShifts().map((x) => [x.id, x.gross, x.notes]).sort(), pl: s.getPlans().map((x) => x.id).sort(), ex: s.getExpenses().map((x) => x.id).sort(), set: s.getSettings() });
   ok(await desk.s(snapshot) === await phone.s(snapshot), 'desktop and phone data match exactly');

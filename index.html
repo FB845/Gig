@@ -553,6 +553,10 @@ service cloud.firestore {
             <button type="button" class="btn" id="sync-signout">Sign out</button>
           </div>
           <p class="muted sync-tip hidden" id="sync-change-wrap"><a href="#" id="sync-change-config">Change Firebase config</a></p>
+          <div class="sync-raycast">
+            <button type="button" class="btn ghost" id="sync-raycast">Raycast 連携 · Copy Raycast key</button>
+            <p class="muted sync-tip">Paste it into Raycast → Gig Tracker → preferences. It signs Raycast in as you — treat it like a password.</p>
+          </div>
         </div>
 
         <p class="muted sync-error hidden" id="sync-error"></p>
@@ -576,7 +580,7 @@ service cloud.firestore {
         <button class="btn primary hidden" id="install-btn">インストール Install app</button>
       </div>
 
-      <p class="version muted">Gig Tracker · 白色LED · v26</p>
+      <p class="version muted">Gig Tracker · 白色LED · v27</p>
     </section>
   </main>
 
