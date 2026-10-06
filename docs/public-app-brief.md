@@ -35,10 +35,20 @@ app for **American delivery and rideshare drivers**.
   draw it on a guide-sign plate (green, white inset border, white line, last
   stop filled). A one-colour glyph covers the Dynamic Island and notifications.
   See the "Mark + names" board.
-- **Name candidates** (none checked yet): Milepost (fits C best), Takehome,
-  Daymark; Gig Line for continuity, though "gig" is too generic to trademark.
-  Avoid Dash / Flex / Spark / Uber / Lyft and names close to Gridwise, Stride or
-  Everlance. Check the App Store, USPTO (TESS) and domains before choosing.
+- **Two separate apps (decided 2026-10-06).** The public app starts as a new
+  app with its own repo and Firebase project. This repo stays the personal
+  build, unchanged, as the test ground: features land here first and are
+  ported to the public app by hand once proven. Raycast stays personal-only.
+- **Name:** short and catchy. Quick web check on 2026-10-06 (not a trademark
+  search):
+  - Taken or crowded: Gigify (a Maltese gig-booking app on iOS, plus
+    gigify.io), Gigways (an existing gig-driver tools app), Milepost ("The
+    MILEPOST®" travel guide and Mile-1), Odo (many mileage trackers).
+  - Open in that check: **Gigmark** (front-runner: gig + mile marker, and the
+    logo is literally a marked route), Upmile, Laneup. Blinker is possible but
+    clashes with a 2016 car-marketplace app.
+  - Before committing, check USPTO trademarks (classes 9 and 42), the exact
+    App Store name and a domain.
 
 ## What exists (reuse it)
 
@@ -91,13 +101,28 @@ app for **American delivery and rideshare drivers**.
 
 ## Build plan
 
-Phase 1 (design) is done. Every phase below keeps `npm test` and the Raycast
-tests green, and each step lands as its own small PR.
+Phase 1 (design) is done. Everything below happens in the **new public repo**.
+This repo is not modified, except for porting notes. Each step lands as its own
+small PR with its tests green.
 
-### Phase 2A: generalize the model (`js/store.js`), no UI change
+### Phase 2.0: set up the new app
 
-The safest first step: it changes maths and data only, and the personal app
-must show exactly the same numbers afterwards.
+- Make a new repo named after the app. Copy in the reusable, DOM-free parts
+  from this repo at a recorded commit: `js/store.js`, `geo.js`, `parse.js`,
+  `calendar.js`, `charts.js`, the best-hours maths and the test harness.
+  Personal-only parts stay here: the LED/JP UI, Raycast, Campaign 350
+  defaults, TraceHaus.
+- Create a new Firebase project. Public users never share a database with the
+  personal app; `firestore.rules` is copied over as-is.
+- Add a `PORTING.md` log in the new repo: for each feature ported from here,
+  record the source commit, what changed in the port, and its tests. Keep
+  function names in the maths module aligned with this repo's `store.js`, so
+  ports stay copy-and-adapt rather than rewrites.
+
+### Phase 2A: generalize the model (`js/store.js` in the new repo), no UI yet
+
+Maths and data only. The proof that it's right: configured as Campaign 350, it
+must give exactly the same numbers as the personal app.
 
 - **Goal settings** replace the hard-coded `CAMPAIGN`:
   `goal: { period: 'day' | 'week' | 'month', amount, drivingDays: [1..6],
@@ -121,15 +146,18 @@ must show exactly the same numbers afterwards.
   set-aside %).
 - **Personal bits become data:** the TraceHaus keyword in `calendar.js` becomes
   an "income keywords" setting. The JP labels stay in the personal UI only.
-- **Migration v1 → v2:** an existing database gets the challenge "Campaign 350"
-  (2026-09-12 → 12-31, $350/day), a 7-day weekly goal of $2,450 and the platforms
-  Amazon Flex, DoorDash and Other.
-- **Tests:** a golden test that loads a v1 snapshot, migrates it and checks that
-  campaign, weekly and monthly stats match today's results to the cent. Add unit
-  cases for driving days, carry-over across weeks, a challenge overlapping a
-  weekly goal, and monthly goals.
+- **No migration needed:** the public app starts empty. An import of a
+  personal-app JSON export would be nice to have, so you can test with real
+  data, but it isn't required.
+- **Tests:**
+  - A golden test: a fixture of real-shaped personal data, run through
+    (a) this repo's `store.js` and (b) the generalized engine set up as the
+    challenge "Campaign 350" (2026-09-12 → 12-31, $350/day, 7 driving days).
+    Campaign, weekly and monthly stats must match to the cent.
+  - Unit cases for driving days, carry-over across weeks, a challenge
+    overlapping a weekly goal, and monthly goals.
 
-### Phase 2B: the Mile Marker UI in the web app
+### Phase 2B: the Mile Marker UI (new repo)
 
 - New `css/road.css` with light and dark tokens (follows the system setting).
   Overpass is bundled.
@@ -200,16 +228,12 @@ Needs a Mac with current Xcode and the Apple Developer Program.
 
 ### Decisions still open
 
-1. **The personal build.** Recommended: the Mile Marker app becomes the one
-   app, and your setup is just data (the Campaign 350 challenge). The LED UI
-   stays frozen on its branch rather than kept as a second theme, because two
-   full UIs double every change. Needed before Phase 2B.
-2. **Name.** Needed before Phase 3: the bundle ID is permanent, though the
-   display name can change later.
-3. **Sign-in providers.** Recommended: Apple + Google. Google keeps your current
-   account working, and Apple is then required (Guideline 4.8). Email/password
-   is optional.
-4. **Business model.** Needed before submission. For example: a free on-device
+1. **Name.** Needed before Phase 2.0, because the repo, Firebase project and
+   bundle ID are named after it, and the bundle ID is permanent. Front-runner:
+   Gigmark (see Decisions so far).
+2. **Sign-in providers.** Recommended: Apple + Google, with Apple then required
+   (Guideline 4.8). Email/password is optional.
+3. **Business model.** Needed before submission. For example: a free on-device
    core plus a subscription for sync, Insights and widgets.
-5. **Developer account type.** An individual account shows your name as the
+4. **Developer account type.** An individual account shows your name as the
    seller. An organization account needs a D-U-N-S number.
