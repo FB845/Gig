@@ -39,8 +39,10 @@ app for **American delivery and rideshare drivers**.
   app with its own repo and Firebase project. This repo stays the personal
   build, unchanged, as the test ground: features land here first and are
   ported to the public app by hand once proven. Raycast stays personal-only.
-- **Name:** short and catchy. Quick web check on 2026-10-06 (not a trademark
-  search):
+- **Name: Gigmark (picked 2026-10-06).** Still to do before launch: a USPTO
+  trademark search (classes 9 and 42), the exact name in App Store Connect,
+  and a domain. The other candidates from the quick web check on 2026-10-06
+  (not a trademark search):
   - Taken or crowded: Gigify (a Maltese gig-booking app on iOS, plus
     gigify.io), Gigways (an existing gig-driver tools app), Milepost ("The
     MILEPOST®" travel guide and Mile-1), Odo (many mileage trackers).
@@ -228,9 +230,8 @@ Needs a Mac with current Xcode and the Apple Developer Program.
 
 ### Decisions still open
 
-1. **Name.** Needed before Phase 2.0, because the repo, Firebase project and
-   bundle ID are named after it, and the bundle ID is permanent. Front-runner:
-   Gigmark (see Decisions so far).
+1. **Bundle ID.** Permanent once the app is created in App Store Connect, e.g.
+   `com.<you>.gigmark`. Needed before Phase 3.
 2. **Sign-in providers.** Recommended: Apple + Google, with Apple then required
    (Guideline 4.8). Email/password is optional.
 3. **Business model.** Needed before submission. For example: a free on-device
