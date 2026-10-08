@@ -36,7 +36,7 @@ app for **American delivery and rideshare drivers**.
   stop filled). A one-colour glyph covers the Dynamic Island and notifications.
   See the "Mark + names" board.
 - **Two separate apps (decided 2026-10-06).** The public app starts as a new
-  app with its own repo and Firebase project. This repo stays the personal
+  app with its own repo (**FB845/Gig_Public**) and Firebase project. This repo stays the personal
   build, unchanged, as the test ground: features land here first and are
   ported to the public app by hand once proven. Raycast stays personal-only.
 - **Name: Gigmark (picked 2026-10-06).** Still to do before launch: a USPTO
@@ -103,11 +103,12 @@ app for **American delivery and rideshare drivers**.
 
 ## Build plan
 
-Phase 1 (design) is done. Everything below happens in the **new public repo**.
+Phase 1 (design) is done. Everything below happens in the public repo,
+**FB845/Gig_Public**.
 This repo is not modified, except for porting notes. Each step lands as its own
 small PR with its tests green.
 
-### Phase 2.0: set up the new app
+### Phase 2.0: set up the new app (done 2026-10-08)
 
 - Make a new repo named after the app. Copy in the reusable, DOM-free parts
   from this repo at a recorded commit: `js/store.js`, `geo.js`, `parse.js`,
@@ -121,7 +122,10 @@ small PR with its tests green.
   function names in the maths module aligned with this repo's `store.js`, so
   ports stay copy-and-adapt rather than rewrites.
 
-### Phase 2A: generalize the model (`js/store.js` in the new repo), no UI yet
+### Phase 2A: generalize the model (`js/store.js` in the new repo), no UI yet (done 2026-10-08)
+
+Done: see `PORTING.md` in FB845/Gig_Public. 26 tests pass, including the
+golden test against this repo's `store.js`.
 
 Maths and data only. The proof that it's right: configured as Campaign 350, it
 must give exactly the same numbers as the personal app.
