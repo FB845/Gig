@@ -503,6 +503,19 @@
         </div>
       </div>
 
+      <div class="card" id="display-card">
+        <div class="card-head"><h2 aria-label="Display"><span class="swap"><span>表示</span><span>DISPLAY</span></span></h2></div>
+        <div class="field">
+          <label>Labels 表示言語</label>
+          <div class="segmented label-mode" id="label-mode" role="group" aria-label="Label language">
+            <button type="button" class="seg" data-labels="both">切替 Switch</button>
+            <button type="button" class="seg" data-labels="en">English</button>
+            <button type="button" class="seg" data-labels="jp">日本語</button>
+          </div>
+          <p class="muted sync-tip">Switch flips every bilingual label between 日本語 and English every 6 seconds; pick one to hold it still.</p>
+        </div>
+      </div>
+
       <div class="card" id="sync-card">
         <div class="card-head"><h2 aria-label="Cloud sync"><span class="swap"><span>同期</span><span>CLOUD SYNC</span></span></h2><span class="sync-pill" id="sync-pill">Off</span></div>
         <p class="muted" id="sync-intro">Plan on desktop, log on your phone — every shift, plan and expense syncs on its own, so edits on both devices merge instead of overwriting. Optional; the app works fully on-device without it.</p>
@@ -579,7 +592,7 @@ service cloud.firestore {
         <button class="btn primary hidden" id="install-btn">インストール Install app</button>
       </div>
 
-      <p class="version muted">Gig Tracker · 白色LED · v28</p>
+      <p class="version muted">Gig Tracker · 白色LED · v29</p>
     </section>
   </main>
 

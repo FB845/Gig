@@ -2059,10 +2059,24 @@ function startLangSwap() {
     queued = true;
     queueMicrotask(() => { queued = false; decorateSwaps(document); });
   }).observe(document.body, { childList: true, subtree: true });
-  if (reducedMotion()) return;
-  setInterval(() => {
+  applyLabelMode();
+}
+// Labels: 'both' flips 日本語 ⇄ English every 6 s; 'en' / 'jp' hold one
+// language (Settings → Display). Reduce-motion also holds still.
+const LABELS_KEY = 'gigtracker.labels';
+let swapTimer = null;
+function labelMode() {
+  try { return localStorage.getItem(LABELS_KEY) || 'both'; } catch { return 'both'; }
+}
+function applyLabelMode() {
+  const mode = labelMode();
+  clearInterval(swapTimer); swapTimer = null;
+  document.documentElement.classList.toggle('lang-en', mode === 'en');
+  $$('#label-mode .seg').forEach((b) => b.classList.toggle('active', b.dataset.labels === mode));
+  if (mode !== 'both' || reducedMotion()) return;
+  swapTimer = setInterval(() => {
     if (!document.hidden) document.documentElement.classList.toggle('lang-en');
-  }, 3000);
+  }, 6000);
 }
 // "English<span class=jp>日本語</span>" headings → a JP ⇄ EN swap.
 function decorateSwaps(root) {
@@ -2120,6 +2134,13 @@ function parseFirebaseConfig(txt) {
   try { return JSON.parse(objText); } catch { /* fall through */ }
   // tolerate a JS object literal (unquoted keys, single quotes, trailing commas)
   return (new Function('return (' + objText + ')'))();
+}
+
+function initDisplaySettings() {
+  $$('#label-mode .seg').forEach((b) => b.addEventListener('click', () => {
+    try { localStorage.setItem(LABELS_KEY, b.dataset.labels); } catch { /* ignore */ }
+    applyLabelMode();
+  }));
 }
 
 function initSyncUI() {
@@ -2385,6 +2406,7 @@ function boot() {
   initImport();
   initSettings();
   initSyncUI();
+  initDisplaySettings();
   initInstall();
   initDrive();
   initOfferCalc();

@@ -1431,3 +1431,38 @@ main:has(#view-desk.active) { max-width: none; }
 .sync-raycast .btn { justify-self: start; }
 /* ギグ線 logo in the sidebar */
 .side-brand .logo-mark { display: block; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 8px; background: none; box-shadow: 0 0 0 1px var(--border); }
+
+/* =====================================================================
+   Legibility pass (personal build). Same look, easier to read:
+   denser LED dots (strokes stay joined, kanji stay legible), brighter
+   secondary greys, nothing under 12 px, quieter placeholders.
+   ===================================================================== */
+:root {
+  /* 2 px dot grid with dots ~2.3 px across: joined strokes, faint texture */
+  --led-mask: radial-gradient(circle, #000 .95px, transparent 1.15px);
+  --muted: #a0aab9;
+  --label: #b6c4d8;
+}
+input::placeholder, textarea::placeholder { color: #4f5a6d; }
+
+/* Small text floor: 12 px (was 9–11 px in places) */
+.chart text.axis, .route-svg .stn, .route-svg .day { font-size: 12px; }
+.plan-amt small, .plan-pill, .auto-pill, .inc-tag, .type-chip i, .ov-stat small,
+.tax-card .tax-take .tt-label, .offer-avg, .tax-subhead, .tax-disclaimer, .sync-pill,
+.dep-rec .rec-sub, .tag-meta, .d-gut, .d-gutter, .d-chip, .db-name, .ds-free,
+.d-hl small, .bh-hr, .bh-cell, .ch-days em, .wg-days em, .rec-sub, .ds-main .muted,
+.bh-tw .muted, .split-legend, .desk-legend, .dg-sub, .head-note, .tab > span:last-child,
+.sync-tip, .k-sub, .fe-sub, .tax-sub, .sub-note { font-size: 12px; }
+.dblk .dep-type.sm { font-size: 11px; }
+.k-sub, .tax-sub, .fe-sub, .wg-msg, .wg-note, .ch-sub, .traj-sum { font-size: 13px; line-height: 1.45; }
+.muted { color: var(--muted); }
+/* The romaji under the rollsign (MONTHLY…) was 9–11 px, wide-spaced */
+.rs-dest small { font-size: 12px; letter-spacing: .12em; color: var(--muted); }
+@media (min-width: 960px) {
+  .snav-t small, .sb-title small, .side-clock-sub { font-size: 12px; }
+  .dep-dest small { font-size: 12px; }
+}
+.label-mode { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; border: 1px solid var(--border); margin: 6px 0 0; }
+.label-mode .seg { padding: 7px 4px; font-size: 14px; }
+/* Descenders (y, g, p) were clipped inside selects ("Mondav") */
+select { line-height: 1.4; padding-top: 0; padding-bottom: 2px; }

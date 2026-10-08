@@ -925,8 +925,8 @@ try {
   ok((await page.locator('#departure-board .dep-row .dep-type').first().innerText()) === '急行', 'departure board: 種別 flap shows 急行');
   const dest = await page.locator('#departure-board .dep-row .dep-dest').first().innerText();
   ok(/フレックス/.test(dest) && /AMAZON FLEX/.test(dest), '行先 carries both フレックス and AMAZON FLEX');
-  const flips = await page.evaluate(() => new Promise((res) => { const a = document.documentElement.classList.contains('lang-en'); setTimeout(() => res(a !== document.documentElement.classList.contains('lang-en')), 3200); }));
-  ok(flips, 'JP ⇄ EN flips page-wide after 3 s (one class on <html>)');
+  const flips = await page.evaluate(() => new Promise((res) => { const a = document.documentElement.classList.contains('lang-en'); setTimeout(() => res(a !== document.documentElement.classList.contains('lang-en')), 6300); }));
+  ok(flips, 'JP ⇄ EN flips page-wide every 6 s (one class on <html>)');
   ok((await page.locator('.card-head h2 .swap').count()) >= 5 && await page.locator('#view-dashboard .card-head h2[aria-label="Recent shifts"]').count() === 1, 'card headings decorated into JP ⇄ EN swaps (aria-label keeps English)');
   await page.fill('#offer-pay', '20'); await page.fill('#offer-miles', '8');
   ok((await page.locator('#offer-verdict .flap.grn').innerText()) === '乗車', 'Worth it? verdict shows a green 乗車 flap');
@@ -938,6 +938,22 @@ try {
   ok(!(await page.locator('#camp-marquee.hidden').count()) && /あと \$150/.test(marq) && /次は/.test(marq) && /DOORDASH/.test(marq), 'まもなく marquee: あと $150 · 次は … ドアダッシュ / NEXT … DOORDASH');
   ok(/WEEKLY GOAL/.test(await page.locator('#week-goal').innerText()) && /週間目標/.test(await page.locator('#week-goal').innerText()), 'goal card title flips 週間目標 ⇄ WEEKLY GOAL');
   ok((await page.locator('#traj-chart svg .led-lattice').count()) === 1, 'charts carry the LED dot lattice');
+
+  console.log('\n25b) Display: label language setting');
+  {
+    await page.locator('.tab[data-view=settings]').click();
+    await page.locator('#label-mode .seg[data-labels=en]').click();
+    await page.waitForTimeout(6500); // longer than one switch interval
+    const en = await page.evaluate(() => ({ cls: document.documentElement.classList.contains('lang-en'), saved: localStorage.getItem('gigtracker.labels') }));
+    ok(en.cls && en.saved === 'en' && await page.locator('#label-mode .seg.active').getAttribute('data-labels') === 'en', 'English only: labels hold in English (no switching)');
+    await page.locator('#label-mode .seg[data-labels=jp]').click();
+    await page.waitForTimeout(100);
+    ok(!(await page.evaluate(() => document.documentElement.classList.contains('lang-en'))), '日本語 only: labels hold in Japanese');
+    await page.reload();
+    await page.waitForTimeout(150);
+    ok(!(await page.evaluate(() => document.documentElement.classList.contains('lang-en'))) && await page.locator('#label-mode .seg.active').getAttribute('data-labels') === 'jp', 'the choice survives a reload');
+    await page.evaluate(() => localStorage.removeItem('gigtracker.labels'));
+  }
 
   console.log('\n26) No sideways spill on small phones (incl. iOS-wide date/time inputs)');
   {
