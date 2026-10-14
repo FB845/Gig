@@ -364,6 +364,7 @@ function normalizePlan(p) {
     estimate: num(p.estimate),
     source: platform === 'income' ? (p.source || '').trim() : '',
     note: p.note || '',
+    skipped: !!p.skipped, // "didn't work it" — drops out of the plan, no more prompts
     loggedType: p.loggedType === 'shift' || p.loggedType === 'income' ? p.loggedType : '',
     loggedId: p.loggedId || '',
     createdAt: p.createdAt || new Date().toISOString(),
@@ -402,9 +403,32 @@ export function deletePlan(id) {
   persist();
 }
 
+export function skipPlan(id) { return updatePlan(id, { skipped: true }); }
+export function unskipPlan(id) { return updatePlan(id, { skipped: false }); }
+
+// Planned blocks that are over and still waiting to be logged (or skipped):
+// timed blocks once their finish time has passed (overnight = next morning),
+// "anytime" ones from 21:00 that day. Looks back `days` days so old history
+// doesn't nag. Oldest first. nowMin = minutes since midnight.
+export function plansToLog({ nowISO = todayISO(), nowMin = null, days = 3 } = {}) {
+  const minute = nowMin ?? (new Date().getHours() * 60 + new Date().getMinutes());
+  const from = addDaysISO(nowISO, -days);
+  const dueAt = (p) => {
+    const span = spanOf(p);
+    if (!span) return { date: p.date, min: 21 * 60 };
+    return span[1] > 1440 ? { date: addDaysISO(p.date, 1), min: span[1] - 1440 } : { date: p.date, min: span[1] };
+  };
+  return db.plans
+    .filter((p) => planOpen(p) && p.date >= from && p.date <= nowISO)
+    .map((p) => ({ p, due: dueAt(p) }))
+    .filter(({ due }) => due.date < nowISO || (due.date === nowISO && minute >= due.min))
+    .sort((a, b) => (a.due.date + String(a.due.min).padStart(4, '0')).localeCompare(b.due.date + String(b.due.min).padStart(4, '0')))
+    .map(({ p }) => p);
+}
+
 // Link a plan to the shift/income that was logged from it.
 export function markPlanLogged(id, loggedType, loggedId) {
-  return updatePlan(id, { loggedType, loggedId });
+  return updatePlan(id, { loggedType, loggedId, skipped: false });
 }
 
 // A plan counts as logged only while its linked record still exists (delete
@@ -415,9 +439,13 @@ export function planLogged(p) {
   return arr.some((x) => x.id === p.loggedId);
 }
 
-// 'logged' | 'missed' (past, never logged) | 'today' | 'upcoming'
+// Still on the plan: not logged, not marked as "didn't work it".
+export function planOpen(p) { return !planLogged(p) && !p.skipped; }
+
+// 'logged' | 'skipped' | 'missed' (past, never logged) | 'today' | 'upcoming'
 export function planStatus(p, nowISO = todayISO()) {
   if (planLogged(p)) return 'logged';
+  if (p.skipped) return 'skipped';
   if (p.date < nowISO) return 'missed';
   return p.date === nowISO ? 'today' : 'upcoming';
 }
@@ -445,7 +473,7 @@ export function planOverlaps(plan, excludeId = plan.id) {
     return [s, e];
   };
   const [s1, e1] = span(plan);
-  return db.plans.filter((p) => p.id !== excludeId && p.date === plan.date && p.startTime && p.endTime && !planLogged(p))
+  return db.plans.filter((p) => p.id !== excludeId && p.date === plan.date && p.startTime && p.endTime && planOpen(p))
     .filter((p) => { const [s2, e2] = span(p); return s1 < e2 && s2 < e1; });
 }
 
@@ -454,7 +482,7 @@ export function planOverlaps(plan, excludeId = plan.id) {
 function plannedByDateMap(nowISO = todayISO()) {
   const m = new Map();
   for (const p of db.plans) {
-    if (p.date < nowISO || planLogged(p)) continue;
+    if (p.date < nowISO || !planOpen(p)) continue;
     m.set(p.date, (m.get(p.date) || 0) + num(p.estimate));
   }
   return m;
@@ -576,7 +604,7 @@ export function estimateFor({ date, startTime, endTime, platform }, nowISO = tod
 // times → [{ id, kind, startMin, endMin }].
 function busyOn(dateISO) {
   const out = [];
-  for (const p of db.plans) if (p.date === dateISO && !planLogged(p)) { const sp = spanOf(p); if (sp) out.push(sp); }
+  for (const p of db.plans) if (p.date === dateISO && planOpen(p)) { const sp = spanOf(p); if (sp) out.push(sp); }
   for (const x of [...db.shifts, ...db.incomes]) if (x.date === dateISO) { const sp = spanOf(x); if (sp) out.push(sp); }
   return out;
 }
@@ -599,7 +627,7 @@ export function deskWeek(weekStartISO, nowISO = todayISO()) {
   const days = dates.map((d) => {
     const actual = actualMap.get(d) || 0;
     const planned = plannedMap.get(d) || 0;
-    const busy = actual > 0 || planned > 0 || db.plans.some((p) => p.date === d && !planLogged(p));
+    const busy = actual > 0 || planned > 0 || db.plans.some((p) => p.date === d && planOpen(p));
     return { date: d, actual, planned, total: actual + planned, busy, past: d < nowISO };
   });
   const earned = days.reduce((a, d) => a + d.actual, 0);
@@ -613,7 +641,7 @@ export function deskWeek(weekStartISO, nowISO = todayISO()) {
   const inWeek = (x) => x.date >= weekStartISO && x.date <= end;
   for (const s of db.shifts) if (inWeek(s) && num(s.hours) > 0) { hours += num(s.hours); timedMoney += shiftIncome(s); }
   for (const i of db.incomes) if (inWeek(i) && num(i.hours) > 0) { hours += num(i.hours); timedMoney += num(i.amount); }
-  for (const p of db.plans) if (inWeek(p) && p.date >= nowISO && !planLogged(p) && num(p.hours) > 0) { hours += num(p.hours); timedMoney += num(p.estimate); }
+  for (const p of db.plans) if (inWeek(p) && p.date >= nowISO && planOpen(p) && num(p.hours) > 0) { hours += num(p.hours); timedMoney += num(p.estimate); }
   return { start: weekStartISO, end, dates, days, goal, earned, planned, projected: earned + planned, shortfall: Math.max(0, goal - earned - planned), metOn, daysOff, hours, timedMoney, isCurrent };
 }
 
@@ -633,7 +661,7 @@ export function suggestSlots(weekStartISO, { max = 6, perDay = 2, nowISO = today
     if (date < nowISO) continue;
     const busy = busyOn(date);
     busyMap[date] = busy;
-    const freeDay = !busy.length && !(actual.get(date) > 0) && !db.plans.some((p) => p.date === date && !planLogged(p));
+    const freeDay = !busy.length && !(actual.get(date) > 0) && !db.plans.some((p) => p.date === date && planOpen(p));
     const dow = dowOf(date);
     for (const p of plats) {
       const cells = heats[p].cells[dow];
@@ -673,7 +701,7 @@ export function copyWeekPlans(fromWeekISO, toWeekISO) {
   const fromEnd = addDaysISO(fromWeekISO, 6);
   const src = [];
   for (const p of db.plans) {
-    if (p.date < fromWeekISO || p.date > fromEnd || planLogged(p)) continue;
+    if (p.date < fromWeekISO || p.date > fromEnd || !planOpen(p)) continue;
     src.push({ date: p.date, platform: p.platform, startTime: p.startTime, endTime: p.endTime, hours: p.hours, tag: p.tag, estimate: p.estimate, source: p.source, note: p.note });
   }
   for (const s of db.shifts) {
@@ -689,7 +717,7 @@ export function copyWeekPlans(fromWeekISO, toWeekISO) {
     const date = addDaysISO(x.date, offset);
     const sp = spanOf(x);
     if (sp && overlaps(sp, busyOn(date))) continue;
-    if (!sp && db.plans.some((p) => p.date === date && !p.startTime && p.platform === x.platform && !planLogged(p))) continue;
+    if (!sp && db.plans.some((p) => p.date === date && !p.startTime && p.platform === x.platform && planOpen(p))) continue;
     const plan = normalizePlan({ ...x, id: uid(), date, createdAt: new Date().toISOString() });
     db.plans.push(plan);
     ids.push(plan.id);

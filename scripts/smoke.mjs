@@ -955,6 +955,77 @@ try {
     await page.evaluate(() => localStorage.removeItem('gigtracker.labels'));
   }
 
+  console.log('\n25c) "Block done — log it?" prompt');
+  const due = await page.evaluate(async () => {
+    const s = await import('./js/store.js');
+    s.clearAll();
+    const now = '2026-10-14';
+    const a = s.addPlan({ date: '2026-10-14', platform: 'doordash', startTime: '11:00', endTime: '14:00', estimate: 90 });
+    const b = s.addPlan({ date: '2026-10-14', platform: 'flex', startTime: '17:00', endTime: '20:30', estimate: 96 });
+    const night = s.addPlan({ date: '2026-10-13', platform: 'doordash', startTime: '22:00', endTime: '01:00', estimate: 70 });
+    const any = s.addPlan({ date: '2026-10-14', platform: 'income', source: 'TraceHaus', estimate: 200 });
+    s.addPlan({ date: '2026-10-09', platform: 'flex', startTime: '06:00', endTime: '09:00', estimate: 80 }); // too old to nag
+    const at = (min) => s.plansToLog({ nowISO: now, nowMin: min }).map((p) => p.id);
+    const r = { at1259: at(12 * 60 + 59), at1400: at(14 * 60), at2100: at(21 * 60), ids: { a: a.id, b: b.id, night: night.id, any: any.id } };
+    const before = s.trajectory('2026-10-15', '2026-10-15', now)[0].planned;
+    const c = s.addPlan({ date: '2026-10-15', platform: 'flex', startTime: '08:00', endTime: '11:00', estimate: 88 });
+    const withC = s.trajectory('2026-10-15', '2026-10-15', now)[0].planned;
+    s.skipPlan(c.id);
+    r.traj = { before, withC, afterSkip: s.trajectory('2026-10-15', '2026-10-15', now)[0].planned, status: s.planStatus(s.getPlans().find((p) => p.id === c.id), now) };
+    s.skipPlan(a.id);
+    r.afterSkip = at(14 * 60);
+    return r;
+  });
+  ok(due.at1259.join() === due.ids.night, 'due: the overnight block (ended 01:00 today) — not the lunch block before it ends');
+  ok(due.at1400.join() === [due.ids.night, due.ids.a].join(), 'due at 14:00: overnight block, then lunch (oldest first); old plans ignored');
+  ok(due.at2100.join() === [due.ids.night, due.ids.a, due.ids.b, due.ids.any].join(), 'due at 21:00: + the 17:00–20:30 block and the "anytime" income');
+  ok(due.traj.withC === due.traj.before + 88 && due.traj.afterSkip === due.traj.before && due.traj.status === 'skipped', '"didn\'t work it" drops a plan from the trajectory (status: skipped)');
+  ok(!due.afterSkip.includes(due.ids.a), 'a skipped block is never asked about again');
+
+  {
+    const dctx = await newCtx({ width: 390, height: 844 });
+    const ph = await dctx.newPage();
+    await ph.goto(base + '/index.html');
+    await ph.evaluate(async () => {
+      const s = await import('./js/store.js');
+      s.clearAll();
+      const y = new Date(); y.setDate(y.getDate() - 1);
+      s.addPlan({ date: s.isoDate(y), platform: 'flex', startTime: '06:00', endTime: '09:30', tag: 'Express', estimate: 96 });
+      s.addPlan({ date: s.isoDate(y), platform: 'doordash', startTime: '17:00', endTime: '21:00', estimate: 118, note: 'dinner rush' });
+    });
+    await ph.reload();
+    await ph.waitForTimeout(200);
+    ok(await ph.locator('#due-sheet:not(.hidden)').count() === 1 && /06:00–09:30/.test(await ph.locator('#due-body').innerText()) && (await ph.locator('#due-count').innerText()) === '1 / 2', 'Home pops up yesterday\'s unlogged 06:00–09:30 block (1 / 2)');
+    await ph.locator('.tab[data-view=trends]').click();
+    ok(await ph.locator('#due-sheet.hidden').count() === 1, 'only on Home: hidden on other screens');
+    await ph.locator('.tab[data-view=dashboard]').click();
+    await ph.locator('#due-sheet [data-due=skip]').click();
+    await ph.waitForTimeout(150);
+    ok(/17:00–21:00/.test(await ph.locator('#due-body').innerText()) && (await ph.locator('#due-count').innerText()) === '', 'Didn\'t work it → next block (17:00–21:00) shows');
+    await ph.locator('#due-sheet button[data-due=later]').click();
+    ok(await ph.locator('#due-sheet.hidden').count() === 1, 'Later hides it…');
+    await ph.reload();
+    await ph.waitForTimeout(200);
+    ok(await ph.locator('#due-sheet.hidden').count() === 1, '…and it stays quiet after a reload (snoozed 30 min)');
+    await ph.evaluate(() => localStorage.removeItem('gigtracker.dueSnooze'));
+    await ph.reload();
+    await ph.waitForTimeout(200);
+    await ph.locator('#due-sheet [data-due=log]').click();
+    await ph.waitForTimeout(150);
+    ok(await ph.locator('#view-log.active').count() === 1 && /Log planned block/i.test(await ph.locator('#shift-form-title').innerText()) && await ph.inputValue('#shift-form [name=gross]') === '118', 'Log it → shift form prefilled from the plan ($118)');
+    await ph.locator('#shift-form [name=startTime]').fill('17:00');
+    await ph.locator('#shift-form [name=endTime]').fill('21:10');
+    await ph.locator('#shift-submit').click();
+    await ph.waitForTimeout(150);
+    await ph.evaluate(() => localStorage.removeItem('gigtracker.dueSnooze'));
+    await ph.locator('.tab[data-view=dashboard]').click();
+    await ph.waitForTimeout(150);
+    ok(await ph.locator('#due-sheet.hidden').count() === 1, 'once logged, no more prompt');
+    const sk = await ph.evaluate(async () => (await import('./js/store.js')).getPlans().map((p) => p.skipped));
+    ok(sk.filter(Boolean).length === 1, 'the skipped flag is saved on the plan (syncs to other devices)');
+    await dctx.close();
+  }
+
   console.log('\n26) No sideways spill on small phones (incl. iOS-wide date/time inputs)');
   {
     const narrow = await newCtx({ width: 320, height: 700 }).then((c) => c.newPage());

@@ -134,6 +134,12 @@ mileage tracking** — without asking for a cent.
   warnings, a block inspector, **copy last week**, and keys: N new · ←/→ week ·
   H shading · Del · ⌘D duplicate · ⌘Z undo. Everything it makes is an ordinary
   plan, so the phone's planner, Campaign 350 and cloud sync all see it.
+- **"Block done — log it?"** — once a planned block's finish time passes (or
+  9 pm for an "anytime" one) and it isn't logged, Home pops up a prompt: **Log
+  it** (the shift form, prefilled from the plan), **Later** (asks again in 30
+  min) or **Didn't work it** (marks the plan skipped — it drops out of your
+  plan totals, and since it syncs, no other device asks either). Looks back 3
+  days; the tab bar stays usable while it's up.
 - **Best hours (Trends)** — your $/hr by weekday × hour from shifts logged with
   start–finish times (pay spread over the minutes worked), gross or net of
   fuel + wear, by platform and period, coloured on your own scale (top fifth =

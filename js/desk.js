@@ -118,7 +118,7 @@ function itemsByDate(dates) {
   const set = new Set(dates);
   const m = new Map(dates.map((d) => [d, []]));
   for (const p of store.getPlans()) {
-    if (!set.has(p.date) || store.planLogged(p)) continue;
+    if (!set.has(p.date) || !store.planOpen(p)) continue;
     m.get(p.date).push({ kind: 'plan', id: p.id, rec: p, span: store.spanOf(p), platform: p.platform, tag: p.tag, amount: p.estimate, name: p.platform === 'income' ? (p.source || 'Income') : PNAME[p.platform], status: store.planStatus(p) });
   }
   for (const s of store.getShifts()) {

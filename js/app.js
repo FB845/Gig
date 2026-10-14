@@ -74,6 +74,7 @@ function showView(name) {
   $$('.tab, .snav').forEach((t) => t.classList.toggle('active', t.dataset.view === name));
   window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
   if (name === 'dashboard') renderDashboard();
+  checkDue();
   if (name === 'trends') renderTrends();
   if (name === 'log') renderLogList();
   if (name === 'campaign') renderCampaign();
@@ -1216,6 +1217,84 @@ function editPlan(id) {
   f.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+// ---- "Block done — log it?" prompt (Home) ----
+// Once a planned block has finished and isn't logged, Home asks: Log it (opens
+// the shift form prefilled), Later (30 min), or Didn't work it (marks the plan
+// skipped — synced, so no other device asks either).
+const SNOOZE_KEY = 'gigtracker.dueSnooze';
+let dueId = null;
+function readSnoozes() {
+  let m = {};
+  try { m = JSON.parse(localStorage.getItem(SNOOZE_KEY) || '{}'); } catch { /* ignore */ }
+  const now = Date.now();
+  for (const k of Object.keys(m)) if (m[k] <= now) delete m[k];
+  return m;
+}
+function snoozePlans(ids, minutes) {
+  const m = readSnoozes();
+  for (const id of ids) m[id] = Date.now() + minutes * 60000;
+  try { localStorage.setItem(SNOOZE_KEY, JSON.stringify(m)); } catch { /* ignore */ }
+}
+function duePlans() {
+  const sn = readSnoozes();
+  return store.plansToLog().filter((p) => !sn[p.id]);
+}
+function hideDue() {
+  dueId = null;
+  $('#due-sheet').classList.add('hidden');
+}
+function checkDue() {
+  const sheet = $('#due-sheet');
+  if (!sheet) return;
+  if (!$('#view-dashboard').classList.contains('active') || document.hidden) { hideDue(); return; }
+  const due = duePlans();
+  if (!due.length) { hideDue(); return; }
+  const p = due[0];
+  const fresh = dueId !== p.id;
+  dueId = p.id;
+  const today = store.todayISO();
+  const yest = store.isoDate(new Date(Date.now() - 86400000));
+  const when = p.date === today ? '今日 Today' : p.date === yest ? '昨日 Yesterday' : friendlyDate(p.date);
+  const ty = p.tag && TRAIN_TYPES[p.tag];
+  const name = p.platform === 'income' ? (p.source || 'Income') : (PLATFORMS[p.platform] || PLATFORMS.other).label;
+  $('#due-body').innerHTML = `
+    <div class="due-when muted">${when}</div>
+    <div class="due-time"><span class="led">${p.startTime ? `${p.startTime}–${p.endTime}` : 'Anytime'}</span>${ty ? flapHTML(ty.label, ty.color, ty.ink) : ''}</div>
+    <div class="due-what">${escapeHtml(name)}${p.hours ? ` · ${fmtHM(p.hours)}` : ''}${p.note ? ` · ${escapeHtml(p.note)}` : ''}</div>
+    <div class="due-est"><span class="led">${fmtMoney0(p.estimate)}</span> <span class="muted">planned</span></div>`;
+  $('#due-count').textContent = due.length > 1 ? `1 / ${due.length}` : '';
+  sheet.classList.remove('hidden');
+  if (fresh) setTimeout(() => $('#due-sheet .due-log')?.focus({ preventScroll: true }), 50);
+}
+function initDuePrompt() {
+  const sheet = $('#due-sheet');
+  if (!sheet) return;
+  sheet.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-due]');
+    if (!b || !dueId) return;
+    const id = dueId;
+    const act = b.dataset.due;
+    if (act === 'log') {
+      snoozePlans([id], 15); // don't re-ask the moment you come back mid-form
+      hideDue();
+      logPlan(id);
+    } else if (act === 'later') {
+      snoozePlans(duePlans().map((p) => p.id), 30);
+      hideDue();
+      toast('OK — I’ll ask again in 30 min');
+    } else if (act === 'skip') {
+      store.skipPlan(id); // re-render + checkDue() run from the change listener
+      toast('Marked as not worked');
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && dueId) sheet.querySelector('[data-due="later"]').click();
+  });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) checkDue(); });
+  setInterval(checkDue, 60000);
+  checkDue();
+}
+
 // "Plan this slot" from the best-hours heat map: the planning desk on a wide
 // screen; on a phone, the Log → Plan form prefilled with a 3-hour block there.
 function planSlot(date, hour) {
@@ -1266,7 +1345,7 @@ function planRow(p, today) {
   const plat = PLATFORMS[p.platform];
   const color = p.platform === 'income' ? '#e9eef6' : (plat ? plat.color : PLATFORMS.other.color);
   const when = p.startTime ? `${p.startTime}–${p.endTime}` : 'Anytime';
-  const pill = { logged: 'Logged ✓', missed: 'Missed', today: 'Today', upcoming: '' }[st];
+  const pill = { logged: 'Logged ✓', skipped: 'Skipped', missed: 'Missed', today: 'Today', upcoming: '' }[st];
   let amount = `<span class="led">${fmtMoney0(p.estimate)}</span><small>est</small>`;
   if (st === 'logged') {
     const rec = p.loggedType === 'income' ? store.getIncomes().find((x) => x.id === p.loggedId) : store.getShifts().find((x) => x.id === p.loggedId);
@@ -1277,7 +1356,7 @@ function planRow(p, today) {
   const name = p.platform === 'income' ? planName(p) : (plat || PLATFORMS.other).label;
   const nameJP = p.platform === 'income' ? escapeHtml(p.source || '収入') : (plat ? plat.jp : name);
   const extra = [p.hours ? fmtHM(p.hours) : '', p.note ? escapeHtml(p.note) : ''].filter(Boolean).join(' · ');
-  const canLog = st === 'today' || st === 'missed';
+  const canLog = st === 'today' || st === 'missed' || st === 'skipped';
   return `<li class="record plan-row st-${st}" data-id="${p.id}" data-type="plan">
     <span class="plan-bar" style="--c:${color}"></span>
     <div class="rec-main">
@@ -1304,7 +1383,7 @@ function renderPlanList(list) {
   plans.forEach((p) => { if (!byDay.has(p.date)) byDay.set(p.date, []); byDay.get(p.date).push(p); });
   let html = '';
   for (const [date, ps] of byDay) {
-    const open = ps.filter((p) => !store.planLogged(p) && p.date >= today).reduce((a, p) => a + p.estimate, 0);
+    const open = ps.filter((p) => store.planOpen(p) && p.date >= today).reduce((a, p) => a + p.estimate, 0);
     const rel = date === today ? ' · 今日 Today' : date === store.isoDate(new Date(Date.now() - 86400000)) ? ' · 昨日' : '';
     html += `<li class="plan-day${date === today ? ' is-today' : ''}"><span>${dowDate(date).toUpperCase()}${rel}</span>${open ? `<b class="led">${fmtMoney0(open)} planned</b>` : ''}</li>`;
     html += ps.map((p) => planRow(p, today)).join('');
@@ -1432,7 +1511,7 @@ function renderCampaignMarquee(c) {
   const items = [];
   if (c.todayHit) items.push('本日 350 達成', 'TODAY $350 HIT');
   else if (c.todayTotal > 0) items.push('まもなく 350 達成', `あと ${fmtMoney0(c.daily - c.todayTotal)}`, `${fmtMoney0(c.daily - c.todayTotal)} TO GO`);
-  const next = store.getPlans().find((p) => p.date >= today && !store.planLogged(p));
+  const next = store.getPlans().find((p) => p.date >= today && store.planOpen(p));
   if (next) {
     const when = `${next.date === today ? '' : dowShort(next.date) + ' '}${next.startTime || ''}`.trim();
     const jpName = next.platform === 'income' ? (next.source || '収入') : (PLATFORMS[next.platform] || PLATFORMS.other).jp;
@@ -1485,7 +1564,7 @@ function renderTrajectory(c) {
   // under $350 even with the plan — where to stack more.
   const ahead = days.filter((d) => d.date >= today);
   const plannedAhead = ahead.reduce((a, d) => a + d.planned, 0);
-  const blocks = store.getPlans().filter((p) => p.date >= today && p.date <= store.isoDate(endD) && !store.planLogged(p)).length;
+  const blocks = store.getPlans().filter((p) => p.date >= today && p.date <= store.isoDate(endD) && store.planOpen(p)).length;
   const gaps = ahead.filter((d) => d.actual + d.planned < c.daily);
   const gapTxt = gaps.length
     ? `Under $${c.daily} even with the plan: ${gaps.slice(0, 5).map((d) => `${dowShort(d.date)} ${d.date.slice(5).replace('-', '/')}`).join(', ')}${gaps.length > 5 ? ` +${gaps.length - 5} more` : ''} — fine if they're days off, otherwise stack more there.`
@@ -2407,6 +2486,7 @@ function boot() {
   initSettings();
   initSyncUI();
   initDisplaySettings();
+  initDuePrompt();
   initInstall();
   initDrive();
   initOfferCalc();
@@ -2428,6 +2508,7 @@ function boot() {
   store.onChange(() => {
     const active = document.querySelector('.view.active');
     if (!active) return;
+    checkDue();
     if (active.id === 'view-dashboard') renderDashboard();
     else if (active.id === 'view-campaign') renderCampaign();
     else if (active.id === 'view-log') renderLogList();

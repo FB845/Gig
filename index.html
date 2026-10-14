@@ -592,7 +592,7 @@ service cloud.firestore {
         <button class="btn primary hidden" id="install-btn">インストール Install app</button>
       </div>
 
-      <p class="version muted">Gig Tracker · 白色LED · v29</p>
+      <p class="version muted">Gig Tracker · 白色LED · v30</p>
     </section>
   </main>
 
@@ -632,6 +632,25 @@ service cloud.firestore {
     <div class="ub-actions">
       <button id="update-dismiss" class="ub-btn">Later</button>
       <button id="update-apply" class="ub-btn primary">Refresh</button>
+    </div>
+  </div>
+
+  <!-- A planned block has finished: log it? (Home screen) -->
+  <div id="due-sheet" class="due-sheet hidden" role="dialog" aria-labelledby="due-title">
+    <div class="due-backdrop" data-due="later"></div>
+    <div class="due-panel">
+      <div class="due-head">
+        <span class="led due-title" id="due-title"><span class="swap"><span>ブロック終了 · 記録しますか</span><span>BLOCK DONE · LOG IT?</span></span></span>
+        <span class="muted due-count" id="due-count"></span>
+      </div>
+      <div class="due-body" id="due-body"></div>
+      <div class="due-actions">
+        <button type="button" class="btn primary due-log" data-due="log">記録 · Log it</button>
+        <div class="due-row">
+          <button type="button" class="btn ghost" data-due="later">後で · Later</button>
+          <button type="button" class="btn ghost due-skip" data-due="skip">未実施 · Didn’t work it</button>
+        </div>
+      </div>
     </div>
   </div>
 

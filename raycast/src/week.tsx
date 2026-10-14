@@ -41,7 +41,7 @@ export default function Command() {
 
   // Everything on each day: open plans, logged shifts and income.
   const byDay = new Map<string, any[]>(wk.dates.map((d: string) => [d, []]));
-  for (const p of store.getPlans()) if (byDay.has(p.date) && !store.planLogged(p)) byDay.get(p.date)!.push({ kind: "plan", rec: p, platform: p.platform, start: p.startTime, end: p.endTime, amount: p.estimate, name: p.platform === "income" ? p.source || "Income" : PLATFORM_NAME[p.platform], tag: p.tag });
+  for (const p of store.getPlans()) if (byDay.has(p.date) && store.planOpen(p)) byDay.get(p.date)!.push({ kind: "plan", rec: p, platform: p.platform, start: p.startTime, end: p.endTime, amount: p.estimate, name: p.platform === "income" ? p.source || "Income" : PLATFORM_NAME[p.platform], tag: p.tag });
   for (const x of store.getShifts()) if (byDay.has(x.date)) byDay.get(x.date)!.push({ kind: "shift", rec: x, platform: x.platform, start: x.startTime, end: x.endTime, amount: store.shiftIncome(x), name: PLATFORM_NAME[x.platform], tag: x.tag, hours: x.hours });
   for (const x of store.getIncomes()) if (byDay.has(x.date)) byDay.get(x.date)!.push({ kind: "income", rec: x, platform: "income", start: x.startTime, end: x.endTime, amount: x.amount, name: x.source || "Income" });
 

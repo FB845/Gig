@@ -1466,3 +1466,40 @@ input::placeholder, textarea::placeholder { color: #4f5a6d; }
 .label-mode .seg { padding: 7px 4px; font-size: 14px; }
 /* Descenders (y, g, p) were clipped inside selects ("Mondav") */
 select { line-height: 1.4; padding-top: 0; padding-bottom: 2px; }
+
+/* ---- "Block done — log it?" sheet (Home) ---- */
+.due-sheet { position: fixed; inset: 0; z-index: 70; display: flex; align-items: flex-end; justify-content: center; }
+.due-sheet.hidden { display: none; }
+.due-backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, .62); }
+.due-panel {
+  position: relative; width: 100%; max-width: 480px; box-sizing: border-box;
+  margin: 0 12px calc(86px + env(safe-area-inset-bottom)); padding: 16px;
+  display: grid; gap: 12px; border-radius: 10px;
+  background-color: var(--card); background-image: var(--unlit); background-size: 2px 2px;
+  border: 1px solid #5a4a1a; box-shadow: 0 0 0 1px #000, 0 12px 40px rgba(0, 0, 0, .7);
+  animation: dueUp .22s ease-out;
+}
+@keyframes dueUp { from { transform: translateY(16px); opacity: 0; } }
+.due-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.due-title { font-size: 17px; color: var(--gold); }
+.due-count { font-size: 13px; }
+.due-body { display: grid; gap: 6px; }
+.due-when { font-size: 13px; }
+.due-time { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.due-time .led { font-size: 30px; }
+.due-what { font-size: 15px; color: var(--label); }
+.due-est .led { font-size: 20px; color: var(--plan); }
+.due-est .muted { font-size: 13px; }
+.due-actions { display: grid; gap: 8px; }
+.due-actions .btn { height: 46px; justify-content: center; font-size: 15px; }
+.due-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.btn.due-skip { color: var(--muted); }
+@media (min-width: 960px) {
+  .due-sheet { align-items: center; padding-left: var(--side-w); }
+  .due-panel { margin: 0 24px; }
+}
+@media (prefers-reduced-motion: reduce) { .due-panel { animation: none; } }
+.due-row { grid-template-columns: 2fr 3fr; }
+.due-row .btn { font-size: 14px; white-space: nowrap; padding: 0 6px; }
+/* The tab bar stays usable while the prompt is up (switching screens hides it) */
+@media (max-width: 959px) { .tabbar { z-index: 75; } }

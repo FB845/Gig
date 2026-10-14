@@ -13,7 +13,7 @@ export function summarize(store: Store) {
   const now = nowHHMM();
   const upcoming = store
     .getPlans()
-    .filter((p: any) => !store.planLogged(p) && (p.date > today || (p.date === today && (!p.endTime || p.endTime > now))))
+    .filter((p: any) => store.planOpen(p) && (p.date > today || (p.date === today && (!p.endTime || p.endTime > now))))
     .slice(0, 5);
   const todaysPlans = store.getPlans().filter((p: any) => p.date === today);
   const toGo = Math.max(0, daily - earned);
