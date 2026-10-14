@@ -406,17 +406,17 @@ export function deletePlan(id) {
 export function skipPlan(id) { return updatePlan(id, { skipped: true }); }
 export function unskipPlan(id) { return updatePlan(id, { skipped: false }); }
 
-// Planned blocks that are over and still waiting to be logged (or skipped):
-// timed blocks once their finish time has passed (overnight = next morning),
-// "anytime" ones from 21:00 that day. Looks back `days` days so old history
-// doesn't nag. Oldest first. nowMin = minutes since midnight.
+// Planned blocks that have started and are still waiting to be logged (or
+// skipped): timed blocks from their start time (blocks often finish early, so
+// you can log the moment you're done), "anytime" ones from 21:00 that day.
+// Looks back `days` days so old history doesn't nag. Oldest first.
+// nowMin = minutes since midnight.
 export function plansToLog({ nowISO = todayISO(), nowMin = null, days = 3 } = {}) {
   const minute = nowMin ?? (new Date().getHours() * 60 + new Date().getMinutes());
   const from = addDaysISO(nowISO, -days);
   const dueAt = (p) => {
     const span = spanOf(p);
-    if (!span) return { date: p.date, min: 21 * 60 };
-    return span[1] > 1440 ? { date: addDaysISO(p.date, 1), min: span[1] - 1440 } : { date: p.date, min: span[1] };
+    return { date: p.date, min: span ? span[0] : 21 * 60 };
   };
   return db.plans
     .filter((p) => planOpen(p) && p.date >= from && p.date <= nowISO)

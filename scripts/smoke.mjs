@@ -955,7 +955,7 @@ try {
     await page.evaluate(() => localStorage.removeItem('gigtracker.labels'));
   }
 
-  console.log('\n25c) "Block done — log it?" prompt');
+  console.log('\n25c) "Log this block?" prompt');
   const due = await page.evaluate(async () => {
     const s = await import('./js/store.js');
     s.clearAll();
@@ -966,7 +966,7 @@ try {
     const any = s.addPlan({ date: '2026-10-14', platform: 'income', source: 'TraceHaus', estimate: 200 });
     s.addPlan({ date: '2026-10-09', platform: 'flex', startTime: '06:00', endTime: '09:00', estimate: 80 }); // too old to nag
     const at = (min) => s.plansToLog({ nowISO: now, nowMin: min }).map((p) => p.id);
-    const r = { at1259: at(12 * 60 + 59), at1400: at(14 * 60), at2100: at(21 * 60), ids: { a: a.id, b: b.id, night: night.id, any: any.id } };
+    const r = { at1059: at(10 * 60 + 59), at1100: at(11 * 60), at1700: at(17 * 60), at2100: at(21 * 60), ids: { a: a.id, b: b.id, night: night.id, any: any.id } };
     const before = s.trajectory('2026-10-15', '2026-10-15', now)[0].planned;
     const c = s.addPlan({ date: '2026-10-15', platform: 'flex', startTime: '08:00', endTime: '11:00', estimate: 88 });
     const withC = s.trajectory('2026-10-15', '2026-10-15', now)[0].planned;
@@ -976,9 +976,10 @@ try {
     r.afterSkip = at(14 * 60);
     return r;
   });
-  ok(due.at1259.join() === due.ids.night, 'due: the overnight block (ended 01:00 today) — not the lunch block before it ends');
-  ok(due.at1400.join() === [due.ids.night, due.ids.a].join(), 'due at 14:00: overnight block, then lunch (oldest first); old plans ignored');
-  ok(due.at2100.join() === [due.ids.night, due.ids.a, due.ids.b, due.ids.any].join(), 'due at 21:00: + the 17:00–20:30 block and the "anytime" income');
+  ok(due.at1059.join() === due.ids.night, 'due: last night\'s 22:00 block — not the 11:00 lunch block before it starts');
+  ok(due.at1100.join() === [due.ids.night, due.ids.a].join(), 'due at 11:00 (its start): overnight block, then lunch (oldest first); old plans ignored');
+  ok(due.at1700.join() === [due.ids.night, due.ids.a, due.ids.b].join(), 'due at 17:00: + the 17:00–20:30 block as it starts');
+  ok(due.at2100.join() === [due.ids.night, due.ids.a, due.ids.b, due.ids.any].join(), 'due at 21:00: + the "anytime" income');
   ok(due.traj.withC === due.traj.before + 88 && due.traj.afterSkip === due.traj.before && due.traj.status === 'skipped', '"didn\'t work it" drops a plan from the trajectory (status: skipped)');
   ok(!due.afterSkip.includes(due.ids.a), 'a skipped block is never asked about again');
 

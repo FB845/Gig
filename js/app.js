@@ -1217,8 +1217,8 @@ function editPlan(id) {
   f.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// ---- "Block done — log it?" prompt (Home) ----
-// Once a planned block has finished and isn't logged, Home asks: Log it (opens
+// ---- "Log this block?" prompt (Home) ----
+// Once a planned block has started and isn't logged, Home asks: Log it (opens
 // the shift form prefilled), Later (30 min), or Didn't work it (marks the plan
 // skipped — synced, so no other device asks either).
 const SNOOZE_KEY = 'gigtracker.dueSnooze';
@@ -1254,7 +1254,16 @@ function checkDue() {
   dueId = p.id;
   const today = store.todayISO();
   const yest = store.isoDate(new Date(Date.now() - 86400000));
-  const when = p.date === today ? '今日 Today' : p.date === yest ? '昨日 Yesterday' : friendlyDate(p.date);
+  let when = p.date === today ? '今日 Today' : p.date === yest ? '昨日 Yesterday' : friendlyDate(p.date);
+  // Still inside the planned window → say so (you may well be done early).
+  if (p.startTime && p.endTime) {
+    const d = new Date();
+    const nowMin = d.getHours() * 60 + d.getMinutes();
+    const [s, e] = [p.startTime, p.endTime].map((t) => +t.slice(0, 2) * 60 + +t.slice(3));
+    const end = e <= s ? e + 1440 : e;
+    const elapsed = p.date === today ? nowMin - s : p.date === yest ? nowMin + 1440 - s : Infinity;
+    if (elapsed >= 0 && elapsed < end - s) when += ` · 進行中 in progress, ends ${p.endTime}`;
+  }
   const ty = p.tag && TRAIN_TYPES[p.tag];
   const name = p.platform === 'income' ? (p.source || 'Income') : (PLATFORMS[p.platform] || PLATFORMS.other).label;
   $('#due-body').innerHTML = `
