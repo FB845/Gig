@@ -8,6 +8,7 @@ import { DriveTracker } from './geo.js';
 import * as sync from './sync.js';
 import { initDesk, renderDesk, focusSlot } from './desk.js';
 import { initBestHours, renderBestHours } from './besthours.js';
+import { initTime24, T24_ATTRS } from './time24.js';
 
 const { PLATFORMS, EXPENSE_CATEGORIES } = store;
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -1839,8 +1840,8 @@ function showCalPreview(events) {
         ${r.detail ? `<div class="cal-detail">${escapeHtml(r.detail)}</div>` : ''}
         <div class="cal-fields">
           <input type="date" data-k="date" value="${r.date}" aria-label="date" />
-          <input type="time" data-k="startTime" value="${r.startTime}" aria-label="start" />
-          <input type="time" data-k="endTime" value="${r.endTime}" aria-label="finish" />
+          <input ${T24_ATTRS} data-k="startTime" value="${r.startTime}" aria-label="start" />
+          <input ${T24_ATTRS} data-k="endTime" value="${r.endTime}" aria-label="finish" />
           <select data-k="platform" aria-label="platform">${opts(r.platform)}</select>
           <input type="number" data-k="estimate" step="0.01" min="0" inputmode="decimal" value="${r.estimate || ''}" placeholder="${calSuggest(r) || 'est. $'}" aria-label="estimated earnings" />
         </div>
@@ -2490,6 +2491,7 @@ function boot() {
   // mid-page scroll that hides the KPI row behind the sticky header).
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   window.scrollTo(0, 0);
+  initTime24();
   initForms();
   initImport();
   initSettings();

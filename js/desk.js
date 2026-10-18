@@ -6,6 +6,7 @@
 // Log → Plan list, Campaign 350's trajectory and cloud sync all see the same
 // blocks. Logged shifts/incomes with clock times show as solid blocks.
 import * as store from './store.js';
+import { T24_ATTRS } from './time24.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -374,8 +375,8 @@ function renderInspector(items) {
     <div class="di-plats">${platChips}</div>
     ${tags}
     <div class="row">
-      <div class="field"><label for="di-start">Start 発</label><input type="time" id="di-start" value="${r.startTime || ''}" /></div>
-      <div class="field"><label for="di-end">Finish 着</label><input type="time" id="di-end" value="${r.endTime || ''}" /></div>
+      <div class="field"><label for="di-start">Start 発</label><input ${T24_ATTRS} id="di-start" value="${r.startTime || ''}" /></div>
+      <div class="field"><label for="di-end">Finish 着</label><input ${T24_ATTRS} id="di-end" value="${r.endTime || ''}" /></div>
     </div>
     <div class="field"><label for="di-est">Estimate 見込 $ ${est ? `<span class="hint">your ${dow} avg here ${C.fmtMoney(est.rate)}/hr → ${C.fmtMoney0(est.estimate)}${est.fromSlot ? '' : ' (overall avg)'}</span>` : ''}</label><input type="number" id="di-est" min="0" step="1" inputmode="decimal" value="${r.estimate || ''}" /></div>
     ${r.platform === 'income' ? `<div class="field"><label for="di-source">Source 取引先</label><input type="text" id="di-source" value="${esc(r.source)}" /></div>` : ''}

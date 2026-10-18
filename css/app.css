@@ -1231,6 +1231,9 @@ input[type=date], input[type=time] {
   width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; text-align: left;
 }
 input[type=date]::-webkit-date-and-time-value, input[type=time]::-webkit-date-and-time-value { text-align: left; }
+/* 24-hour time fields (js/time24.js) */
+input.t24 { font-variant-numeric: tabular-nums; letter-spacing: .04em; }
+input.t24.t24-bad { border-color: var(--danger); box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 30%, transparent); }
 .time-range input, .hm-input input { width: auto; flex: 1 1 0; }
 .form .card-head { flex-wrap: wrap; gap: 8px; }
 .form .card-head .btn { white-space: nowrap; }

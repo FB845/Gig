@@ -212,9 +212,9 @@
             <input type="number" name="hoursM" min="0" max="59" step="1" inputmode="numeric" placeholder="20" aria-label="minutes" /><span class="hm-unit">m</span>
           </div>
           <div class="time-range hidden" id="time-range">
-            <input type="time" name="startTime" aria-label="start time" />
+            <input type="text" inputmode="numeric" class="t24" maxlength="5" placeholder="--:--" autocomplete="off" spellcheck="false" enterkeyhint="done" name="startTime" aria-label="start time" />
             <span class="tr-arrow">→</span>
-            <input type="time" name="endTime" aria-label="finish time" />
+            <input type="text" inputmode="numeric" class="t24" maxlength="5" placeholder="--:--" autocomplete="off" spellcheck="false" enterkeyhint="done" name="endTime" aria-label="finish time" />
           </div>
           <div class="tr-dur hidden" id="time-range-dur"></div>
         </div>
@@ -277,9 +277,9 @@
         <div class="field">
           <label>Start → Finish 発 → 着 <span class="hint" id="plan-time-hint"></span></label>
           <div class="time-range">
-            <input type="time" name="startTime" aria-label="planned start" />
+            <input type="text" inputmode="numeric" class="t24" maxlength="5" placeholder="--:--" autocomplete="off" spellcheck="false" enterkeyhint="done" name="startTime" aria-label="planned start" />
             <span class="tr-arrow">→</span>
-            <input type="time" name="endTime" aria-label="planned finish" />
+            <input type="text" inputmode="numeric" class="t24" maxlength="5" placeholder="--:--" autocomplete="off" spellcheck="false" enterkeyhint="done" name="endTime" aria-label="planned finish" />
           </div>
           <div class="tr-dur hidden" id="plan-dur"></div>
         </div>
@@ -592,7 +592,7 @@ service cloud.firestore {
         <button class="btn primary hidden" id="install-btn">インストール Install app</button>
       </div>
 
-      <p class="version muted">Gig Tracker · 白色LED · v31</p>
+      <p class="version muted">Gig Tracker · 白色LED · v32</p>
     </section>
   </main>
 

@@ -1027,6 +1027,38 @@ try {
     await dctx.close();
   }
 
+  console.log('\n25d) 24-hour time fields');
+  {
+    const tctx = await newCtx({ width: 390, height: 844 });
+    const tp = await tctx.newPage();
+    await tp.goto(base + '/index.html');
+    ok(await tp.locator('input[type=time]').count() === 0, 'no native time pickers (they show AM/PM on a US iPhone)');
+    ok(await tp.locator('#shift-form [name=startTime]').getAttribute('inputmode') === 'numeric', 'time fields open the numeric keypad');
+    await tp.locator('.tab[data-view=log]').click();
+    await tp.locator('#log-segmented .seg[data-log=plan]').click();
+    await tp.locator('#plan-platform .chip[data-val=flex]').click();
+    await tp.locator('#plan-blockpreset .chip[data-val="3.5"]').click();
+    const start = tp.locator('#plan-form [name=startTime]');
+    const end = tp.locator('#plan-form [name=endTime]');
+    const tap = async (el) => { await el.click(); await tp.waitForTimeout(60); }; // tap → old time selected
+    await tap(start);
+    await start.pressSequentially('173');
+    ok(await start.inputValue() === '17:3' && await end.inputValue() === '', 'typing 173 → "17:3", and the form waits for a whole time');
+    await start.pressSequentially('0');
+    ok(await start.inputValue() === '17:30' && await end.inputValue() === '21:00', '1730 → 17:30; the 3:30 preset fills finish 21:00');
+    await tap(end);
+    await tap(start);
+    await start.pressSequentially('9');
+    await tap(end);
+    ok(await start.inputValue() === '09:00' && await end.inputValue() === '12:30', '"9" completes to 09:00 on leaving the field (finish follows: 12:30)');
+    await end.pressSequentially('1975');
+    await tap(start);
+    ok(await end.inputValue() === '12:30', 'an impossible time (19:75) reverts to the previous one');
+    await start.press('ArrowUp');
+    ok(await start.inputValue() === '09:15', '↑ steps 15 minutes');
+    await tctx.close();
+  }
+
   console.log('\n26) No sideways spill on small phones (incl. iOS-wide date/time inputs)');
   {
     const narrow = await newCtx({ width: 320, height: 700 }).then((c) => c.newPage());

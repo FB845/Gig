@@ -25,7 +25,7 @@ export default function Command() {
 
   const s = summarize(store);
   const title = s.hit ? `✓ ${money0(s.earned)}` : `${money0(s.earned)} / ${money0(s.daily)}`;
-  const synced = lastSync ? new Date(lastSync).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "never";
+  const synced = lastSync ? new Date(lastSync).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hourCycle: "h23" }) : "never";
 
   return (
     <MenuBarExtra
