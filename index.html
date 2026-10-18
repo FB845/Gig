@@ -429,9 +429,9 @@
             <span>Calendar file (.ics)</span>
           </label>
           <label class="dropzone" id="cal-img-drop">
-            <input type="file" id="cal-img-file" accept="image/*" hidden />
+            <input type="file" id="cal-img-file" accept="image/*" multiple hidden />
             <span class="dz-icon led">IMG</span>
-            <span>Schedule screenshot</span>
+            <span>Schedule screenshot(s)</span>
           </label>
         </div>
         <div id="cal-status" class="ocr-status hidden"></div>
@@ -516,6 +516,20 @@
         </div>
       </div>
 
+      <div class="card" id="vision-card">
+        <div class="card-head"><h2 aria-label="Screenshot reading"><span class="swap"><span>スクショ読取 · Claude</span><span>SCREENSHOT READING</span></span></h2><span class="sync-pill" id="vision-pill">Off</span></div>
+        <p class="muted">Add your Anthropic API key and Claude reads your schedule and earnings screenshots: exact dates, 24-hour times and pay, far more accurately than on-device reading. Each screenshot is sent to Anthropic and costs about 1–2¢ on your Anthropic account. The key stays on this device only — it isn't synced or included in backups, so add it on each device you import from.</p>
+        <div class="field">
+          <label for="vision-key">Anthropic API key</label>
+          <input type="password" id="vision-key" placeholder="sk-ant-…" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="btn-grid2">
+          <button type="button" class="btn primary" id="vision-save">Save &amp; test</button>
+          <button type="button" class="btn ghost" id="vision-remove">Remove key</button>
+        </div>
+        <p class="muted sync-tip" id="vision-status"></p>
+      </div>
+
       <div class="card" id="sync-card">
         <div class="card-head"><h2 aria-label="Cloud sync"><span class="swap"><span>同期</span><span>CLOUD SYNC</span></span></h2><span class="sync-pill" id="sync-pill">Off</span></div>
         <p class="muted" id="sync-intro">Plan on desktop, log on your phone — every shift, plan and expense syncs on its own, so edits on both devices merge instead of overwriting. Optional; the app works fully on-device without it.</p>
@@ -592,7 +606,7 @@ service cloud.firestore {
         <button class="btn primary hidden" id="install-btn">インストール Install app</button>
       </div>
 
-      <p class="version muted">Gig Tracker · 白色LED · v33</p>
+      <p class="version muted">Gig Tracker · 白色LED · v34</p>
     </section>
   </main>
 

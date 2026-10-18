@@ -9,6 +9,7 @@ import * as sync from './sync.js';
 import { initDesk, renderDesk, focusSlot } from './desk.js';
 import { initBestHours, renderBestHours } from './besthours.js';
 import { initTime24, T24_ATTRS } from './time24.js';
+import * as vision from './vision.js';
 
 const { PLATFORMS, EXPENSE_CATEGORIES } = store;
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -1791,11 +1792,30 @@ async function onCalIcsFile(e) {
 }
 
 async function onCalImageFile(e) {
-  const file = e.target.files[0];
-  if (!file) return;
+  const files = [...e.target.files];
+  if (!files.length) return;
   const status = $('#cal-status');
   status.classList.remove('hidden');
   $('#cal-preview').classList.add('hidden');
+  if (vision.visionEnabled()) {
+    status.innerHTML = `Claude is reading ${files.length > 1 ? `${files.length} screenshots` : 'your schedule'}… <div class="progress indeterminate"><span></span></div>`;
+    try {
+      const today = store.todayISO();
+      const { events: all, unreadable } = await vision.readSchedule(files, today);
+      const events = all.filter((ev) => ev.date >= today);
+      const past = all.length - events.length;
+      status.innerHTML = (events.length
+        ? `✓ Claude read ${events.length} block${events.length === 1 ? '' : 's'}${past ? ` (skipped ${past} past)` : ''} — review, then add.`
+        : `No upcoming blocks found${past ? ` (${past} already past)` : ''}.`) + (unreadable ? `<br><span class="muted">Note: ${escapeHtml(unreadable)}</span>` : '');
+      showCalPreview(events);
+    } catch (err) {
+      status.innerHTML = '⚠️ ' + escapeHtml(err.message || 'Claude couldn’t read the screenshot');
+    } finally {
+      e.target.value = '';
+    }
+    return;
+  }
+  const file = files[0];
   if (!ocrAvailable()) {
     status.innerHTML = '⚠️ Reading a screenshot needs the internet the first time (to download the text engine). Connect and try again, or use an .ics file.';
     e.target.value = '';
@@ -1806,9 +1826,10 @@ async function onCalImageFile(e) {
     const text = await recognize(file, (p) => { const bar = $('#cal-bar'); if (bar) bar.style.width = Math.round(p * 100) + '%'; });
     const today = store.todayISO();
     const events = parseScheduleText(text, today).events.filter((ev) => ev.date >= today);
-    status.innerHTML = events.length
+    const tip = ' <span class="muted">For far more accurate reading, add a Claude API key in Settings → Screenshot reading.</span>';
+    status.innerHTML = (events.length
       ? `✓ Read ${events.length} block${events.length === 1 ? '' : 's'} — check dates, times and pay (screenshots can misread), then add.`
-      : '⚠️ Couldn’t find any time ranges like “9:00 AM – 12:30 PM”. Try a sharper screenshot of the schedule list, or an .ics file.';
+      : '⚠️ Couldn’t find any time ranges like “9:00 AM – 12:30 PM”. Try a sharper screenshot of the schedule list, or an .ics file.') + tip;
     showCalPreview(events);
   } catch (err) {
     status.innerHTML = '⚠️ ' + escapeHtml(err.message || 'Could not read the screenshot');
@@ -1913,6 +1934,22 @@ async function onOcrFile(e) {
   preview.classList.add('hidden'); preview.innerHTML = '';
   statusEl.classList.remove('hidden');
 
+  if (vision.visionEnabled()) {
+    statusEl.innerHTML = 'Claude is reading the screenshot… <div class="progress indeterminate"><span></span></div>';
+    try {
+      const g = await vision.readEarnings(file, store.todayISO(), chipValue('#ocr-platform'));
+      if (!g.date) g.date = store.todayISO();
+      if (!g.hours && g.startTime && g.endTime) g.hours = store.hoursBetween(g.startTime, g.endTime);
+      statusEl.innerHTML = (g._confidence ? '✓ Claude read it — check the values below, then save.' : '⚠️ Claude couldn’t find the pay on this screen. Please fill it in below.')
+        + (g.unreadable ? `<br><span class="muted">Note: ${escapeHtml(g.unreadable)}</span>` : '');
+      showOcrReview(g, '');
+    } catch (err) {
+      statusEl.innerHTML = '⚠️ ' + escapeHtml(err.message || 'Claude couldn’t read the screenshot');
+    } finally {
+      e.target.value = '';
+    }
+    return;
+  }
   if (!ocrAvailable()) {
     statusEl.innerHTML = '⚠️ Reading a screenshot needs the internet the first time (to download the text engine). Connect and try again, or enter the numbers manually.';
     return;
@@ -1961,18 +1998,19 @@ function showOcrReview(g, rawText) {
         <div class="field"><label>Miles</label><input type="number" step="0.1" id="ocr-r-miles" value="${g.miles || ''}"></div>
       </div>
       <div class="form-actions">
-        <button type="button" class="btn ghost" id="ocr-raw-toggle">View raw text</button>
+        ${rawText ? '<button type="button" class="btn ghost" id="ocr-raw-toggle">View raw text</button>' : '<span></span>'}
         <button type="button" class="btn primary" id="ocr-save">Save shift</button>
       </div>
       <pre id="ocr-raw" class="hidden muted" style="white-space:pre-wrap;font-size:11px;margin-top:8px;max-height:160px;overflow:auto">${escapeHtml(rawText)}</pre>
     </div>`;
   bindChips('#ocr-r-platform');
-  $('#ocr-raw-toggle').addEventListener('click', () => $('#ocr-raw').classList.toggle('hidden'));
+  $('#ocr-raw-toggle')?.addEventListener('click', () => $('#ocr-raw').classList.toggle('hidden'));
   $('#ocr-save').addEventListener('click', () => {
     store.addShift({
       platform: chipValue('#ocr-r-platform') || 'other',
       date: $('#ocr-r-date').value || store.todayISO(),
       hours: $('#ocr-r-hours').value, gross: $('#ocr-r-gross').value, tips: $('#ocr-r-tips').value,
+      startTime: g.startTime || '', endTime: g.endTime || '',
       jobs: $('#ocr-r-jobs').value, miles: $('#ocr-r-miles').value, notes: 'Screenshot import',
     });
     toast('Saved from screenshot ✓');
@@ -2232,6 +2270,35 @@ function initDisplaySettings() {
     try { localStorage.setItem(LABELS_KEY, b.dataset.labels); } catch { /* ignore */ }
     applyLabelMode();
   }));
+}
+
+// Settings → Screenshot reading: the Anthropic API key (this device only).
+function initVisionSettings() {
+  const input = $('#vision-key'), status = $('#vision-status'), pill = $('#vision-pill');
+  const show = (msg = '') => {
+    const on = vision.visionEnabled();
+    pill.textContent = on ? 'On' : 'Off';
+    pill.className = `sync-pill${on ? ' ok' : ''}`;
+    input.value = '';
+    input.placeholder = on ? 'Key saved — paste a new one to replace it' : 'sk-ant-…';
+    status.textContent = msg || (on ? 'Screenshots are read by Claude on this device.' : 'Off — screenshots are read on-device (less accurate).');
+  };
+  $('#vision-save').addEventListener('click', async () => {
+    const key = input.value.trim();
+    if (!key && !vision.visionEnabled()) { status.textContent = 'Paste your key first (Anthropic Console → API keys).'; return; }
+    const prev = vision.getApiKey();
+    if (key) vision.setApiKey(key);
+    status.textContent = 'Checking the key…';
+    try {
+      await vision.testKey();
+      show('✓ Key works — screenshots will be read by Claude.');
+    } catch (err) {
+      vision.setApiKey(key ? prev : vision.getApiKey()); // keep the old key if the new one fails
+      show(`⚠️ ${err.message || err}`);
+    }
+  });
+  $('#vision-remove').addEventListener('click', () => { vision.setApiKey(''); show('Key removed from this device.'); });
+  show();
 }
 
 function initSyncUI() {
@@ -2501,6 +2568,7 @@ function boot() {
   initSettings();
   initSyncUI();
   initDisplaySettings();
+  initVisionSettings();
   initDuePrompt();
   initInstall();
   initDrive();

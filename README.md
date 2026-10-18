@@ -71,8 +71,9 @@ mileage tracking** — without asking for a cent.
   income, so earnings, goals, rates and tax stay real.
 - **📅 Calendar → planner** — on the **Import** tab (or *📅 Import calendar* on
   the Plan form), bring in blocks you've already scheduled: an **.ics** file
-  exported from Google / Apple / Outlook Calendar, or a **screenshot** of your
-  schedule (e.g. the Flex calendar), read on-device with OCR. Time zones,
+  exported from Google / Apple / Outlook Calendar, or **screenshots** of your
+  schedule (e.g. the Flex calendar), read by Claude when you've added an
+  Anthropic API key (see *Screenshot reading* below), else on-device OCR. Time zones,
   all-day events, durations, cancelled events and **weekly/daily repeating
   events** are handled; platform and pay are picked up from the event text
   ("Amazon Flex block $88" → Flex, $88). You review every entry first — work
@@ -188,6 +189,15 @@ assisted paths to get earnings in fast:
    (Tesseract.js) and pre-fills the earnings, tips, miles and delivery count for
    you to review and save. *First use needs internet to download the OCR engine
    (~a few MB); after that it's cached.*
+
+   **Screenshot reading with Claude** — in **Settings → Screenshot reading**,
+   paste your Anthropic API key and both screenshot imports (schedule and
+   earnings) are read by Claude instead: exact dates, 24-hour times, pay,
+   tips, miles and deliveries, with the Flex station in the title. Several
+   schedule screenshots can go in at once (duplicates are merged). Each read
+   sends the screenshot to Anthropic and costs about 1–2¢ on your account. The
+   key is stored in that browser only — never synced to the cloud or included
+   in backups.
 2. **📄 CSV import** — Import DoorDash's earnings export (or any spreadsheet with
    date / earnings / miles / deliveries columns). Columns are auto-detected; you
    preview before importing.
@@ -310,6 +320,8 @@ js/store.js             on-device data model + metrics ($/hr, $/mi, net, tax)
 js/charts.js            dependency-free SVG bar / line / donut charts
 js/parse.js             CSV parsing + OCR/free-text field extraction
 js/ocr.js               lazy Tesseract.js loader for screenshot OCR
+js/vision.js            Claude screenshot reading (schedule + earnings → JSON)
+js/time24.js            24-hour time fields (replace the native time pickers)
 js/geo.js               GPS auto-mileage tracker (Haversine + jitter filtering)
 js/sync.js              optional Firebase cloud sync (one Firestore doc per record)
 js/desk.js              desktop planning desk (week timetable, drag to plan, fill the gap)

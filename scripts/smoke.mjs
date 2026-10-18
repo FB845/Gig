@@ -27,7 +27,10 @@ await new Promise((r) => server.listen(0, r));
 const port = server.address().port;
 const base = `http://localhost:${port}`;
 
-const browser = await chromium.launch({ executablePath: EXE });
+// The Anthropic SDK is loaded from jsdelivr; go through the agent proxy when
+// there is one (localhost stays direct). The Anthropic API itself is mocked.
+const proxy = process.env.HTTPS_PROXY ? { server: process.env.HTTPS_PROXY, bypass: 'localhost,127.0.0.1' } : undefined;
+const browser = await chromium.launch({ executablePath: EXE, proxy });
 // Never touch the real Firebase project from tests: the SDK "fails to load"
 // (as when offline), which the app handles. scripts/sync-test.mjs covers sync.
 const newCtx = async (viewport) => {
@@ -1059,6 +1062,73 @@ try {
     await start.press('ArrowUp');
     ok(await start.inputValue() === '09:15', '↑ steps 15 minutes');
     await tctx.close();
+  }
+
+  console.log('\n25e) Claude reads screenshots (Anthropic API mocked)');
+  {
+    const vctx = await newCtx({ width: 390, height: 844 });
+    const calls = [];
+    let reply = null; // what the mocked Messages API returns next
+    await vctx.route('https://api.anthropic.com/**', async (r) => {
+      const req = r.request();
+      const body = req.postData() ? JSON.parse(req.postData()) : null;
+      calls.push({ method: req.method(), path: new URL(req.url()).pathname, headers: req.headers(), body });
+      if (req.headers()['x-api-key'] === 'sk-ant-bad') return r.fulfill({ status: 401, contentType: 'application/json', body: JSON.stringify({ type: 'error', error: { type: 'authentication_error', message: 'invalid x-api-key' } }) });
+      if (req.method() === 'GET') return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ id: 'claude-opus-5-5', type: 'model', display_name: 'Claude', created_at: '2026-01-01T00:00:00Z' }) });
+      return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ id: 'msg_test', type: 'message', role: 'assistant', model: 'claude-opus-5-5', content: [{ type: 'text', text: JSON.stringify(reply) }], stop_reason: 'end_turn', stop_sequence: null, usage: { input_tokens: 1, output_tokens: 1 } }) });
+    });
+    const vp = await vctx.newPage();
+    await vp.goto(base + '/index.html');
+    await vp.locator('.tab[data-view=settings]').click();
+    ok(await vp.locator('#vision-pill').innerText() === 'Off', 'Settings: screenshot reading off without a key');
+    await vp.fill('#vision-key', 'sk-ant-bad');
+    await vp.locator('#vision-save').click();
+    await vp.waitForFunction(() => /wasn’t accepted/.test(document.querySelector('#vision-status').textContent), null, { timeout: 30000 });
+    ok(await vp.locator('#vision-pill').innerText() === 'Off', 'a rejected key isn\'t kept');
+    await vp.fill('#vision-key', 'sk-ant-test');
+    await vp.locator('#vision-save').click();
+    await vp.waitForFunction(() => /Key works/.test(document.querySelector('#vision-status').textContent), null, { timeout: 30000 });
+    const kept = await vp.evaluate(async () => ({ ls: localStorage.getItem('gigtracker.anthropicKey'), db: JSON.stringify((await import('./js/store.js')).getDB()) }));
+    ok(await vp.locator('#vision-pill').innerText() === 'On' && kept.ls === 'sk-ant-test' && !kept.db.includes('sk-ant'), 'key checked (models lookup, no tokens), saved on this device only — not in the synced data');
+
+    // Schedule screenshots → planner rows.
+    const dates = await vp.evaluate(async () => { const s = await import('./js/store.js'); const d = (n) => s.isoDate(new Date(Date.now() + n * 86400000)); return { tom: d(1), next: d(2), yest: d(-1) }; });
+    reply = { blocks: [
+      { date: dates.tom, start: '17:30', end: '21:00', platform: 'flex', pay: 92.75, place: 'DWA6', note: '' },
+      { date: dates.next, start: '22:00', end: '01:30', platform: 'doordash', pay: 0, place: '', note: '' },
+      { date: dates.yest, start: '06:00', end: '09:30', platform: 'flex', pay: 96, place: '', note: '' },
+    ], unreadable: '' };
+    await vp.locator('.tab[data-view=import]').click();
+    const png = fs.readFileSync(path.join(root, 'icons/icon-192.png'));
+    await vp.setInputFiles('#cal-img-file', [{ name: 'a.png', mimeType: 'image/png', buffer: png }, { name: 'b.png', mimeType: 'image/png', buffer: png }]);
+    await vp.waitForSelector('#cal-preview:not(.hidden) .cal-row', { timeout: 30000 });
+    const msg = calls.find((c) => c.method === 'POST');
+    const imgs = msg.body.messages[0].content.filter((b) => b.type === 'image');
+    ok(msg.path === '/v1/messages' && msg.body.model === 'claude-opus-5-5' && imgs.length === 2 && imgs[0].source.media_type === 'image/jpeg'
+      && msg.body.output_config.format.type === 'json_schema' && msg.headers['anthropic-dangerous-direct-browser-access'] === 'true'
+      && /server-side-fallback/.test(msg.headers['anthropic-beta'] || ''), 'one request: both screenshots, structured JSON output, browser access header, refusal fallback');
+    ok(/Today is \w+day \d{4}-\d{2}-\d{2}/.test(msg.body.messages[0].content.at(-1).text), 'tells Claude today\'s date (to resolve "Tomorrow", weekdays)');
+    const rows = await vp.locator('#cal-preview .cal-row').count();
+    const first = vp.locator('#cal-preview .cal-row').first();
+    ok(rows === 2 && /skipped 1 past/.test(await vp.locator('#cal-status').innerText()), 'Claude\'s blocks listed for review (yesterday\'s skipped)');
+    ok(await first.locator('[data-k=startTime]').inputValue() === '17:30' && await first.locator('[data-k=estimate]').inputValue() === '92.75' && /Amazon Flex · DWA6/.test(await first.innerText()), 'Flex block: 17:30–21:00 at the pay shown ($92.75), station in the title');
+    await vp.locator('#cal-add').click();
+    await vp.waitForTimeout(150);
+    const added = await vp.evaluate(async () => (await import('./js/store.js')).getPlans().map((p) => `${p.platform} ${p.startTime}-${p.endTime} ${p.estimate}`).sort());
+    ok(added.join('|') === 'doordash 22:00-01:30 0|flex 17:30-21:00 92.75', `added to the planner (${added.join(', ')})`);
+
+    // Earnings screenshot → review form.
+    reply = { platform: 'doordash', date: dates.yest, start: '17:00', end: '20:15', hours: 0, base_pay: 41.5, tips: 23.25, total: 64.75, deliveries: 7, miles: 31.4, unreadable: '' };
+    await vp.locator('.tab[data-view=import]').click();
+    await vp.setInputFiles('#ocr-file', { name: 'e.png', mimeType: 'image/png', buffer: png });
+    await vp.waitForSelector('#ocr-preview:not(.hidden) #ocr-save', { timeout: 30000 });
+    ok(await vp.inputValue('#ocr-r-gross') === '41.5' && await vp.inputValue('#ocr-r-tips') === '23.25' && await vp.inputValue('#ocr-r-hours') === '3.25'
+      && await vp.inputValue('#ocr-r-jobs') === '7' && await vp.inputValue('#ocr-r-date') === dates.yest
+      && await vp.locator('#ocr-r-platform .chip.active').getAttribute('data-val') === 'doordash', 'earnings: base $41.50, tips $23.25, 3.25 h (17:00–20:15), 7 deliveries, DoorDash');
+    await vp.locator('#ocr-save').click();
+    const sh = await vp.evaluate(async () => (await import('./js/store.js')).getShifts()[0]);
+    ok(sh && sh.startTime === '17:00' && sh.endTime === '20:15' && sh.miles === 31.4, 'saved with its clock times (so it shows on Best hours)');
+    await vctx.close();
   }
 
   console.log('\n26) No sideways spill on small phones (incl. iOS-wide date/time inputs)');
