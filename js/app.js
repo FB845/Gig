@@ -1113,14 +1113,14 @@ function updatePlanUI() {
   updatePlanLive();
 }
 
-// Suggested estimate for the plan on screen: what you've made in that weekday
-// + time slot on that platform (best-hours history), else your recent $/hr.
+// Suggested estimate for the plan on screen: Flex blocks at the standard
+// $26.50/hr; nothing for other platforms (type your own if you like).
 function planSuggestion(f) {
   const plat = chipValue('#plan-platform');
   const hours = store.hoursBetween(f.startTime.value, f.endTime.value);
   if (plat === 'income' || !hours) return { value: 0, rate: 0 };
-  const e = store.estimateFor({ date: f.date.value || store.todayISO(), startTime: f.startTime.value, endTime: f.endTime.value, platform: plat });
-  return { value: e.estimate, rate: e.rate, fromSlot: e.fromSlot };
+  const e = store.estimateFor({ startTime: f.startTime.value, endTime: f.endTime.value, platform: plat });
+  return { value: e.estimate, rate: e.rate };
 }
 
 function updatePlanLive() {
@@ -1130,10 +1130,10 @@ function updatePlanLive() {
   dur.classList.toggle('hidden', !hours);
   if (hours) dur.innerHTML = `= <b>${fmtHM(hours)}</b> planned${f.endTime.value < f.startTime.value ? ' · <span class="tr-night">overnight</span>' : ''}`;
 
-  // Estimate: blank uses your average $/hr on this platform.
+  // Estimate: blank = Flex's standard rate × block length; optional elsewhere.
   const sug = planSuggestion(f);
-  f.estimate.placeholder = sug.value ? String(sug.value) : '84.00';
-  $('#plan-est-hint').textContent = sug.value ? `blank = ${fmtMoney0(sug.value)} at your ${fmtMoney(sug.rate)}/hr ${sug.fromSlot ? 'for this slot' : 'avg'}` : '';
+  f.estimate.placeholder = sug.value ? String(sug.value) : 'optional';
+  $('#plan-est-hint').textContent = sug.value ? `blank = ${fmtMoney(sug.value)} at Flex's standard ${fmtMoney(sug.rate)}/hr` : '';
 
   // Checks: clashes with other plans + what this does to the week's goal.
   const est = parseFloat(f.estimate.value) || sug.value;
@@ -1271,7 +1271,7 @@ function checkDue() {
     <div class="due-when muted">${when}</div>
     <div class="due-time"><span class="led">${p.startTime ? `${p.startTime}–${p.endTime}` : 'Anytime'}</span>${ty ? flapHTML(ty.label, ty.color, ty.ink) : ''}</div>
     <div class="due-what">${escapeHtml(name)}${p.hours ? ` · ${fmtHM(p.hours)}` : ''}${p.note ? ` · ${escapeHtml(p.note)}` : ''}</div>
-    <div class="due-est"><span class="led">${fmtMoney0(p.estimate)}</span> <span class="muted">planned</span></div>`;
+    ${p.estimate ? `<div class="due-est"><span class="led">${fmtMoney0(p.estimate)}</span> <span class="muted">planned</span></div>` : ''}`;
   $('#due-count').textContent = due.length > 1 ? `1 / ${due.length}` : '';
   sheet.classList.remove('hidden');
   if (fresh) setTimeout(() => $('#due-sheet .due-log')?.focus({ preventScroll: true }), 50);
@@ -1315,7 +1315,8 @@ function planSlot(date, hour) {
   const f = $('#plan-form');
   const hh = (h) => `${String(h % 24).padStart(2, '0')}:00`;
   const end = Math.min(hour + 3, 24);
-  const best = ['flex', 'doordash', 'other'].map((p) => ({ p, e: store.estimateFor({ date, startTime: hh(hour), endTime: hh(end), platform: p }) }))
+  // Platform: whichever has paid best in this slot (history only picks the app).
+  const best = ['flex', 'doordash', 'other'].map((p) => ({ p, e: store.slotRate(date, hh(hour), hh(end), p) }))
     .filter((x) => x.e.fromSlot).sort((a, b) => b.e.rate - a.e.rate)[0];
   if (best) setChip('#plan-platform', best.p);
   f.date.value = date; f.startTime.value = hh(hour); f.endTime.value = hh(end);
@@ -1323,8 +1324,9 @@ function planSlot(date, hour) {
   f.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// "Log it": open the real shift/income form prefilled from the plan. The
-// estimate goes in as the pay — adjust it to what you actually made.
+// "Log it": open the real shift/income form prefilled from the plan. A Flex
+// block's base pay is prefilled at the standard rate × block length; other
+// platforms' pay is left for you to enter.
 function logPlan(id) {
   const p = store.getPlans().find((x) => x.id === id);
   if (!p) return;
@@ -1339,7 +1341,7 @@ function logPlan(id) {
     setPayType('flat');
     f.amount.value = p.estimate || '';
   } else {
-    f.gross.value = p.estimate || '';
+    f.gross.value = p.platform === 'flex' ? (store.flexPay(p.hours || store.hoursBetween(p.startTime, p.endTime)) || '') : '';
     if (p.platform === 'flex') { setChip('#shift-tag', p.tag || ''); setBlockPreset(p.hours || 0); }
     if (p.startTime && p.endTime) fillFormTime(f, p);
   }
@@ -1356,11 +1358,11 @@ function planRow(p, today) {
   const color = p.platform === 'income' ? '#e9eef6' : (plat ? plat.color : PLATFORMS.other.color);
   const when = p.startTime ? `${p.startTime}–${p.endTime}` : 'Anytime';
   const pill = { logged: 'Logged ✓', skipped: 'Skipped', missed: 'Missed', today: 'Today', upcoming: '' }[st];
-  let amount = `<span class="led">${fmtMoney0(p.estimate)}</span><small>est</small>`;
+  let amount = p.estimate ? `<span class="led">${fmtMoney0(p.estimate)}</span><small>est</small>` : `<span class="led muted">—</span><small>no est</small>`;
   if (st === 'logged') {
     const rec = p.loggedType === 'income' ? store.getIncomes().find((x) => x.id === p.loggedId) : store.getShifts().find((x) => x.id === p.loggedId);
     const actual = rec ? (p.loggedType === 'income' ? rec.amount : store.shiftIncome(rec)) : 0;
-    amount = `<span class="led">${fmtMoney0(actual)}</span><small>vs ${fmtMoney0(p.estimate)} est</small>`;
+    amount = `<span class="led">${fmtMoney0(actual)}</span>${p.estimate ? `<small>vs ${fmtMoney0(p.estimate)} est</small>` : ''}`;
   }
   const ty = p.tag && TRAIN_TYPES[p.tag];
   const name = p.platform === 'income' ? planName(p) : (plat || PLATFORMS.other).label;
@@ -1874,7 +1876,7 @@ function showCalPreview(events) {
   refreshCount();
 }
 
-// Suggested estimate for an imported row: your $/hr on that platform × hours.
+// Suggested estimate for an imported row: Flex at the standard rate, else none.
 function calSuggest(r) {
   const hours = store.hoursBetween(r.startTime, r.endTime);
   if (r.platform === 'income' || !hours) return 0;
@@ -2492,6 +2494,8 @@ function boot() {
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   window.scrollTo(0, 0);
   initTime24();
+  const repriced = store.migrateFlexRate();
+  if (repriced) setTimeout(() => toast(`Re-priced ${repriced} upcoming Flex block${repriced === 1 ? '' : 's'} at $26.50/hr`), 600);
   initForms();
   initImport();
   initSettings();

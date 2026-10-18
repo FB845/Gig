@@ -594,10 +594,30 @@ export function slotRate(dateISO, startTime, endTime, platform, nowISO = todayIS
   const r = rateFromHeat(estimateHeat(platform, nowISO), dateISO, startTime, endTime);
   return r != null ? { rate: r, fromSlot: true } : { rate: fallback, fromSlot: false };
 }
-export function estimateFor({ date, startTime, endTime, platform }, nowISO = todayISO()) {
+// Amazon Flex's standard block rate. Planned Flex blocks are estimated at this
+// flat rate; other platforms get no automatic estimate (averages from your
+// history weren't close enough to be useful) — type one if you want it.
+export const FLEX_RATE = 26.5;
+export const flexPay = (hours) => Math.round(FLEX_RATE * num(hours) * 100) / 100;
+// One-time per device: upcoming open Flex plans made before the switch (priced
+// from your average) are re-priced at the standard rate. Same result on every
+// device, so it's safe to run on each. Returns how many changed.
+export function migrateFlexRate(nowISO = todayISO()) {
+  if (db.flexRateFix) return 0;
+  let n = 0;
+  for (const p of db.plans) {
+    if (p.platform !== 'flex' || p.date < nowISO || !planOpen(p) || (p.createdAt || '') >= '2026-10-19') continue;
+    const est = flexPay(p.hours || hoursBetween(p.startTime, p.endTime));
+    if (est && est !== p.estimate) { p.estimate = est; n++; }
+  }
+  db.flexRateFix = 1;
+  persist();
+  return n;
+}
+export function estimateFor({ startTime, endTime, platform }) {
   const h = hoursBetween(startTime, endTime);
-  const { rate, fromSlot } = slotRate(date, startTime, endTime, platform, nowISO);
-  return { estimate: Math.round(rate * h), rate, fromSlot, hours: h };
+  if (platform !== 'flex') return { estimate: 0, rate: 0, fixed: false, hours: h };
+  return { estimate: flexPay(h), rate: FLEX_RATE, fixed: true, hours: h };
 }
 
 // Everything on the clock for a date: open plans + logged shifts/incomes with
@@ -674,7 +694,8 @@ export function suggestSlots(weekStartISO, { max = 6, perDay = 2, nowISO = today
           const span = [h * 60, (h + L) * 60];
           if (overlaps(span, busy)) continue;
           const rate = hs.reduce((a, c) => a + c.rate, 0) / L;
-          cands.push({ date, startTime: fromMinutes(span[0]), endTime: fromMinutes(span[1]), span, platform: p, rate, hours: L, estimate: Math.round(rate * L), shifts: Math.max(...hs.map((c) => c.shifts)), freeDay });
+          // Ranked by what you've made there; a Flex block is priced at the standard rate.
+          cands.push({ date, startTime: fromMinutes(span[0]), endTime: fromMinutes(span[1]), span, platform: p, rate, hours: L, estimate: p === 'flex' ? flexPay(L) : Math.round(rate * L), shifts: Math.max(...hs.map((c) => c.shifts)), freeDay });
         }
       }
     }

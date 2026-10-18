@@ -76,7 +76,7 @@ export function LogShiftForm({ planId }: { planId?: string }) {
         </ActionPanel>
       }
     >
-      {plan ? <Form.Description title="From plan" text={`${plan.date} ${plan.startTime || "anytime"}–${plan.endTime || ""} · est ${money0(plan.estimate)} — set what you actually made`} /> : null}
+      {plan ? <Form.Description title="From plan" text={`${plan.date} ${plan.startTime || "anytime"}–${plan.endTime || ""}${plan.estimate ? ` · est ${money0(plan.estimate)}` : ""} — set what you actually made`} /> : null}
       <Form.Dropdown id="platform" title="Platform 事業者" value={platform} onChange={setPlatform}>
         <Form.Dropdown.Item value="flex" title="Amazon Flex" />
         <Form.Dropdown.Item value="doordash" title="DoorDash" />
@@ -94,7 +94,7 @@ export function LogShiftForm({ planId }: { planId?: string }) {
         </>
       ) : (
         <>
-          <Form.TextField id="gross" title="Base pay 基本給 $" placeholder="84.00" defaultValue={plan?.estimate ? String(plan.estimate) : ""} error={errors.gross} />
+          <Form.TextField id="gross" title="Base pay 基本給 $" placeholder="84.00" defaultValue={plan?.platform === "flex" && store ? String(store.flexPay(plan.hours || store.hoursBetween(plan.startTime, plan.endTime)) || "") : ""} error={errors.gross} />
           <Form.TextField id="tips" title="Tips チップ $" placeholder="0" />
           <Form.TextField id="miles" title="Miles 走行距離" placeholder="34.5" />
           <Form.TextField id="jobs" title="Deliveries 配達数" placeholder="12" />
@@ -132,7 +132,7 @@ export function PlanBlockForm(props: { date?: string; start?: string; end?: stri
   const hint = useMemo(() => {
     if (!store || !s || !e || s === e) return null;
     const d = iso(store, date);
-    const est = platform === "income" ? null : store.estimateFor({ date: d, startTime: s, endTime: e, platform });
+    const est = platform === "flex" ? store.estimateFor({ startTime: s, endTime: e, platform }) : null;
     const clash = store.planOverlaps({ date: d, startTime: s, endTime: e });
     const wk = store.deskWeek(store.isoDate(store.startOfWeek(dateOf(d))));
     return { est, clash, wk, hours: store.hoursBetween(s, e) };
@@ -150,7 +150,7 @@ export function PlanBlockForm(props: { date?: string; start?: string; end?: stri
         date: iso(st, date), platform, startTime: s, endTime: e, estimate,
         tag: platform === "flex" ? v.tag || "" : "", source: platform === "income" ? v.source || "" : "", note: v.note || "",
       }));
-      await showToast({ style: Toast.Style.Success, title: `Planned ${s}–${e} · ${money0(estimate)} est` });
+      await showToast({ style: Toast.Style.Success, title: `Planned ${s}–${e}${estimate ? ` · ${money0(estimate)} est` : ""}` });
       await popToRoot();
     } catch (err) {
       await showToast({ style: Toast.Style.Failure, title: "Couldn’t save", message: err instanceof Error ? err.message : String(err) });
@@ -188,13 +188,13 @@ export function PlanBlockForm(props: { date?: string; start?: string; end?: stri
       <Form.TextField
         id="estimate"
         title="Estimate 見込 $"
-        placeholder={hint?.est ? String(hint.est.estimate) : "0"}
-        info="Leave blank to use the suggested estimate."
+        placeholder={hint?.est ? String(hint.est.estimate) : "optional"}
+        info={platform === "flex" ? "Leave blank for Flex's standard $26.50/hr." : "Optional."}
       />
       {hint?.est ? (
         <Form.Description
           title="Suggested"
-          text={`${money0(hint.est.estimate)} — ${money(hint.est.rate)}/hr ${hint.est.fromSlot ? `from your ${PLATFORM_NAME[platform]} history in this slot` : "(your overall average — no history in this slot yet)"}`}
+          text={`${money(hint.est.estimate)} — Flex standard ${money(hint.est.rate)}/hr`}
         />
       ) : null}
       {hint?.clash?.length ? <Form.Description title="⚠ Overlaps" text={hint.clash.map((p: Plan) => `${p.startTime}–${p.endTime} ${PLATFORM_NAME[p.platform] || p.source}`).join(", ")} /> : null}

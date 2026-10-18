@@ -42,7 +42,10 @@ check("week: goal row, fill-the-gap suggestions, day sections with blocks", wk, 
 const ls = render("log shift", <LogShift launchContext={{ planId: p1.id }} />);
 check("log shift (from a plan): prefilled form", ls, ["Log Planned Block", 'data-value="doordash"', 'data-value="22:00"', "est $45", "Base pay"]);
 const pb = render("plan block", <PlanBlock launchContext={{ date: day(1), start: "17:00", end: "21:00", platform: "doordash" }} />);
-check("plan block: slot estimate from history + week line", pb, [/\$\d+ — \$30\.00\/hr from your DoorDash history in this slot/, "This week"]);
+check("plan block (DoorDash): no estimate from history + week line", pb, ["Optional.", "This week"]);
+if (/from your DoorDash history|Suggested/.test(pb)) { console.log("  ✗ plan block (DoorDash) still suggests an estimate"); fails++; }
+const pf = render("plan block flex", <PlanBlock launchContext={{ date: day(1), start: "09:00", end: "12:30", platform: "flex" }} />);
+check("plan block (Flex): $92.75 at the standard $26.50/hr", pf, ["$92.75 — Flex standard $26.50/hr"]);
 const bad = (globalThis as any).__prefs;
 console.log(fails ? `\nRAYCAST RENDER: ${fails} FAILED` : "\nRAYCAST RENDER: ALL PASSED ✓");
 process.exit(fails ? 1 : 0);

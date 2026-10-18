@@ -56,8 +56,9 @@ mileage tracking** — without asking for a cent.
   category, taxable profit, estimated tax and quarterly set-aside — with CSV
   export and Print / Save-PDF. (Estimate, not tax advice.)
 - **📅 Planner + income trajectory** — in **Log → Plan**, pre-plan Flex blocks,
-  Dashes and income with start–finish times and an **estimated** payout (leave
-  it blank to use your recent $/hr on that platform × the planned hours). It
+  Dashes and income with start–finish times and an **estimated** payout. A
+  Flex block left blank is priced at Amazon's standard **$26.50/hr** × block
+  length; other platforms get no automatic estimate (type one if you like). It
   warns when plans overlap and shows what each one does to this week's goal.
   The agenda groups plans by day; tap **Log it** on the day to open the real
   shift/income form prefilled (enter what you actually made), and the plan is
@@ -126,7 +127,7 @@ mileage tracking** — without asking for a cent.
 - **Planning desk (desktop · GT07 計画)** — a week timetable you plan on with the
   mouse: drag down a column to add a block, drag it to move, pull its bottom
   edge to resize (15-min snap). Each new block gets the platform that pays best
-  in that slot and an estimate from *your* history for that weekday and hour.
+  in that slot (Flex blocks priced at the standard $26.50/hr).
   The week strip tracks earned + planned against the weekly goal and shows the
   day you'd hit it (and the free days that earns). **Fill the gap** ranks the
   best open slots from the last 90 days — hover to preview, + Add to plan —
@@ -146,8 +147,7 @@ mileage tracking** — without asking for a cent.
   fuel + wear, by platform and period, coloured on your own scale (top fifth =
   best). Click a slot for details; **Plan this slot** opens the desk (or the
   plan form on a phone). Shows how much of your history has clock times —
-  duration-only shifts count in totals but not on the clock. The same slot
-  rates now pre-fill estimates in the phone planner and calendar import.
+  duration-only shifts count in totals but not on the clock.
 
 Amazon Flex block tags map to JR train types (種別): **Local (普通)**, **Rapid
 (快速)**, **Express (急行)**, **Rapid Express (特急)** — shown as colour-coded

@@ -93,17 +93,12 @@ function buildCache() {
   const counts = {};
   for (const s of store.getShifts()) counts[s.platform] = (counts[s.platform] || 0) + 1;
   const usual = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0] || 'flex';
-  const fallback = Object.fromEntries([...PLATS, 'income'].map((p) => [p, store.suggestedRate(p === 'income' ? 'other' : p)]));
-  return { heats, all, usual, fallback, scale: store.heatScale(all) };
+  return { heats, all, usual, scale: store.heatScale(all) };
 }
 
-// Expected pay for a slot from the cached heat maps.
+// Expected pay for a slot: Flex at the standard block rate, else none.
 function estimate(date, startMin, endMin, platform) {
-  const st0 = hm(startMin), en0 = hm(endMin);
-  const hours = (endMin - startMin) / 60;
-  const r = platform !== 'income' ? store.rateFromHeat(st.cache.heats[platform], date, st0, en0) : null;
-  const rate = r ?? st.cache.fallback[platform] ?? 0;
-  return { estimate: Math.round(rate * hours), rate, fromSlot: r != null };
+  return store.estimateFor({ startTime: hm(startMin), endTime: hm(endMin), platform });
 }
 // The platform that pays best in a slot (with history), else your usual one.
 function bestPlatform(date, startMin, endMin) {
@@ -378,7 +373,7 @@ function renderInspector(items) {
       <div class="field"><label for="di-start">Start 発</label><input ${T24_ATTRS} id="di-start" value="${r.startTime || ''}" /></div>
       <div class="field"><label for="di-end">Finish 着</label><input ${T24_ATTRS} id="di-end" value="${r.endTime || ''}" /></div>
     </div>
-    <div class="field"><label for="di-est">Estimate 見込 $ ${est ? `<span class="hint">your ${dow} avg here ${C.fmtMoney(est.rate)}/hr → ${C.fmtMoney0(est.estimate)}${est.fromSlot ? '' : ' (overall avg)'}</span>` : ''}</label><input type="number" id="di-est" min="0" step="1" inputmode="decimal" value="${r.estimate || ''}" /></div>
+    <div class="field"><label for="di-est">Estimate 見込 $ ${est && est.fixed ? `<span class="hint">Flex standard ${C.fmtMoney(est.rate)}/hr → ${C.fmtMoney(est.estimate)}</span>` : ''}</label><input type="number" id="di-est" min="0" step="0.01" inputmode="decimal" value="${r.estimate || ''}" /></div>
     ${r.platform === 'income' ? `<div class="field"><label for="di-source">Source 取引先</label><input type="text" id="di-source" value="${esc(r.source)}" /></div>` : ''}
     <div class="field"><label for="di-note">Note メモ</label><input type="text" id="di-note" value="${esc(r.note)}" /></div>
     <div class="di-acts">
@@ -605,7 +600,8 @@ function onPointerMove(e) {
     const end = Math.min(en, h1 * 60);
     drawGhost(d.col, 'new', s, end, '');
     const plat = bestPlatform(d.date, s, end);
-    tip(d.col, `${hm(s)}–${hm(end)} · ${C.fmtHM((end - s) / 60)} · est ${C.fmtMoney0(estimate(d.date, s, end, plat).estimate)} ${PNAME[plat]}`, end);
+    const e0 = estimate(d.date, s, end, plat).estimate;
+    tip(d.col, `${hm(s)}–${hm(end)} · ${C.fmtHM((end - s) / 60)}${e0 ? ` · est ${C.fmtMoney0(e0)}` : ''} ${PNAME[plat]}`, end);
   } else if (d.mode === 'move') {
     const col = colAt(e.clientX) || d.col;
     const len = d.sp[1] - d.sp[0];
@@ -649,7 +645,7 @@ function onPointerUp() {
     if (!d.moved) { if (st.sel) { st.sel = null; renderDesk(); } return; }
     const s = Math.min(d.a, d.b), e = Math.min(Math.max(d.a, d.b, s + MIN_LEN), st.range[1] * 60);
     const p = createPlan(d.date, s, e);
-    C.toast(`Planned ${DOW_EN[dowOf(d.date)]} ${p.startTime}–${p.endTime} · ${C.fmtMoney0(p.estimate)} est`);
+    C.toast(`Planned ${DOW_EN[dowOf(d.date)]} ${p.startTime}–${p.endTime}${p.estimate ? ` · ${C.fmtMoney0(p.estimate)} est` : ''}`);
   } else if (d.mode === 'move') {
     const len = d.sp[1] - d.sp[0];
     if (d.date === d.p.date && d.start === d.sp[0]) return;

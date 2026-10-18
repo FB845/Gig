@@ -743,12 +743,13 @@ try {
   ok(!(await page.locator('#plan-blockpreset').isVisible()), 'block length/type only for Flex');
   await page.fill('#plan-form [name=startTime]', '18:00');
   await page.fill('#plan-form [name=endTime]', '21:00');
-  ok(/blank = \$75 at your \$25\.00\/hr avg/.test(await page.locator('#plan-est-hint').innerText()), 'estimate suggestion: 3h × $25/hr = $75');
+  ok(await page.locator('#plan-est-hint').innerText() === '' && await page.getAttribute('#plan-form [name=estimate]', 'placeholder') === 'optional', 'DoorDash: no estimate pre-filled from your average ($25/hr history ignored)');
+  await page.fill('#plan-form [name=estimate]', '75');
   ok(/This week with this plan|reaches the/.test(await page.locator('#plan-check').innerText()), 'shows the week-goal impact');
   await page.locator('#plan-submit').click();
   await page.waitForTimeout(120);
   const p1 = await page.evaluate(async () => (await import('./js/store.js')).getPlans()[0]);
-  ok(p1 && p1.estimate === 75 && p1.platform === 'doordash', 'blank estimate saved as the $75 suggestion');
+  ok(p1 && p1.estimate === 75 && p1.platform === 'doordash', 'typed estimate ($75) saved');
 
   await page.locator('#plan-platform .chip[data-val=flex]').click();
   await page.locator('#plan-blockpreset .chip[data-val="3.5"]').click();
@@ -757,6 +758,7 @@ try {
   ok(/Overlaps 18:00–21:00 Dasher/.test(await page.locator('#plan-check').innerText()), 'overlap with the DoorDash plan flagged');
   await page.fill('#plan-form [name=startTime]', '09:00');
   ok(await page.inputValue('#plan-form [name=endTime]') === '12:30' && !/Overlaps/.test(await page.locator('#plan-check').innerText()), 'moving the start moves the finish; no overlap');
+  ok(/blank = \$92\.75 at Flex's standard \$26\.50\/hr/.test(await page.locator('#plan-est-hint').innerText()), 'Flex 3:30 block: blank = $92.75 at the standard $26.50/hr');
   await page.locator('#plan-tag .chip[data-val=Express]').click();
   await page.fill('#plan-form [name=estimate]', '84');
   await page.locator('#plan-submit').click();
@@ -780,10 +782,10 @@ try {
   await page.waitForTimeout(150);
   ok(await page.locator('#shift-form').isVisible() && /Log planned block/i.test(await page.locator('#shift-form-title').innerText()), 'Log it opens the shift form ("Log planned block")');
   ok(await page.locator('#shift-platform .chip.active').getAttribute('data-val') === 'flex'
-    && await page.inputValue('#shift-form [name=gross]') === '84'
+    && await page.inputValue('#shift-form [name=gross]') === '92.75'
     && await page.inputValue('#shift-form [name=startTime]') === '09:00'
     && await page.locator('#shift-tag .chip.active').getAttribute('data-val') === 'Express'
-    && await page.locator('#shift-blockpreset .chip.active').getAttribute('data-val') === '3.5', 'prefilled: Flex, $84, 09:00–12:30, Express, 3:30 block');
+    && await page.locator('#shift-blockpreset .chip.active').getAttribute('data-val') === '3.5', 'prefilled: Flex, base pay $92.75 (3.5 h × $26.50), 09:00–12:30, Express, 3:30 block');
   await page.fill('#shift-form [name=gross]', '92');
   await page.locator('#shift-submit').click();
   await page.waitForTimeout(150);
@@ -1013,7 +1015,7 @@ try {
     await ph.waitForTimeout(200);
     await ph.locator('#due-sheet [data-due=log]').click();
     await ph.waitForTimeout(150);
-    ok(await ph.locator('#view-log.active').count() === 1 && /Log planned block/i.test(await ph.locator('#shift-form-title').innerText()) && await ph.inputValue('#shift-form [name=gross]') === '118', 'Log it → shift form prefilled from the plan ($118)');
+    ok(await ph.locator('#view-log.active').count() === 1 && /Log planned block/i.test(await ph.locator('#shift-form-title').innerText()) && await ph.inputValue('#shift-form [name=gross]') === '', 'Log it → shift form from the plan (DoorDash pay left for you to enter)');
     await ph.locator('#shift-form [name=startTime]').fill('17:00');
     await ph.locator('#shift-form [name=endTime]').fill('21:10');
     await ph.locator('#shift-submit').click();
@@ -1092,12 +1094,14 @@ try {
     const net = s.hourlyHeat({ platform: 'doordash', days: 90, net: true }, now);
     const flexOnly = s.hourlyHeat({ platform: 'flex', days: 90 }, now);
     const scale = s.heatScale(heat);
-    const est = s.estimateFor({ date: '2026-10-05', startTime: '17:00', endTime: '19:00', platform: 'doordash' }, now);
+    const est = s.slotRate('2026-10-05', '17:00', '19:00', 'doordash', now);
+    const estDash = s.estimateFor({ startTime: '17:00', endTime: '19:00', platform: 'doordash' });
+    const estFlex = s.estimateFor({ startTime: '22:00', endTime: '01:30', platform: 'flex' });
     const noHist = s.slotRate('2026-10-06', '09:00', '11:00', 'doordash', now);
     return {
       mon17: heat.cells[1][17], mon18: heat.cells[1][18], tue23: heat.cells[2][23], wed0: heat.cells[3][0],
       timed: heat.timed, total: heat.total, netMon18: net.cells[1][18].rate, flexMon17: flexOnly.cells[1][17].rate,
-      lvlBest: scale.level(heat.cells[1][17].rate), lvlNone: scale.level(null), est, noHist,
+      lvlBest: scale.level(heat.cells[1][17].rate), lvlNone: scale.level(null), est, estDash, estFlex, noHist,
     };
   });
   ok(Math.abs(an.mon17.rate - 35) < 0.01 && an.mon17.shifts === 2, 'heat: Mon 17h = ($30 + $40) over 2 h = $35/hr from 2 shifts');
@@ -1107,8 +1111,28 @@ try {
   ok(Math.abs(an.netMon18 - (30 - 10 * 0.7)) < 0.01, 'net heat takes off miles × IRS rate (Mon 18h $30 − $7 = $23/hr)');
   ok(an.flexMon17 === null, 'platform filter: no Flex history on Mon 17h');
   ok(an.lvlBest === 4 && an.lvlNone === -1, 'heat scale: your top cell is "best", empty cells have no level');
-  ok(an.est.fromSlot && Math.abs(an.est.rate - 32.5) < 0.01 && an.est.estimate === 65, 'estimateFor Mon 17–19 DoorDash = avg($35, $30) × 2 h = $65');
+  ok(an.est.fromSlot && Math.abs(an.est.rate - 32.5) < 0.01, 'slotRate Mon 17–19 DoorDash = avg($35, $30) = $32.50/hr');
+  ok(an.estFlex.estimate === 92.75 && an.estFlex.rate === 26.5 && an.estDash.estimate === 0, 'estimateFor: Flex 3.5 h at the standard $26.50 = $92.75 (overnight ok); DoorDash none');
   ok(!an.noHist.fromSlot && an.noHist.rate > 0, 'slot without history falls back to your overall rate');
+  {
+    const mctx = await newCtx({ width: 390, height: 800 });
+    const mp = await mctx.newPage();
+    await mp.goto(base + '/index.html');
+    const mig = await mp.evaluate(async () => {
+      const s = await import('./js/store.js');
+      s.clearAll();
+      const t = s.todayISO(), old = '2026-10-01T00:00:00.000Z';
+      const tom = s.isoDate(new Date(Date.now() + 86400000)), yest = s.isoDate(new Date(Date.now() - 86400000));
+      const up = s.addPlan({ date: tom, platform: 'flex', startTime: '09:00', endTime: '12:30', estimate: 71, createdAt: old });
+      const past = s.addPlan({ date: yest, platform: 'flex', startTime: '09:00', endTime: '12:00', estimate: 60, createdAt: old });
+      const dash = s.addPlan({ date: tom, platform: 'doordash', startTime: '17:00', endTime: '20:00', estimate: 97, createdAt: old });
+      const n = s.migrateFlexRate(t), again = s.migrateFlexRate(t);
+      const get = (id) => s.getPlans().find((p) => p.id === id).estimate;
+      return { n, again, up: get(up.id), past: get(past.id), dash: get(dash.id) };
+    });
+    ok(mig.n === 1 && mig.up === 92.75 && mig.past === 60 && mig.dash === 97 && mig.again === 0, 'one-time re-price: upcoming Flex plan $71 → $92.75; past and DoorDash plans untouched; runs once');
+    await mctx.close();
+  }
 
   const sg = await page.evaluate(async () => {
     const s = await import('./js/store.js');
@@ -1183,12 +1207,12 @@ try {
     await desk.mouse.move(b.x + b.width / 2, yAt(b, 17 * 60) + 2);
     await desk.mouse.down();
     await desk.mouse.move(b.x + b.width / 2, yAt(b, 18 * 60), { steps: 4 });
-    ok(await desk.locator('.d-tip').count() === 1 && /est \$\d+/.test(await desk.locator('.d-tip').innerText()), 'dragging shows a live time + estimate tip');
+    ok(await desk.locator('.d-tip').count() === 1 && /17:00–18:00/.test(await desk.locator('.d-tip').innerText()) && !/est/.test(await desk.locator('.d-tip').innerText()), 'dragging shows a live time tip (no estimate for DoorDash)');
     await desk.mouse.move(b.x + b.width / 2, yAt(b, 20 * 60), { steps: 4 });
     await desk.mouse.up();
     await desk.waitForTimeout(150);
     let ps = await plans();
-    ok(ps.length === 1 && ps[0].s === '17:00' && ps[0].e === '20:00' && ps[0].plat === 'doordash' && Math.abs(ps[0].est - 97.5) <= 1, `drag-create: Tue 17:00–20:00 DoorDash, est from history (${JSON.stringify(ps[0])})`);
+    ok(ps.length === 1 && ps[0].s === '17:00' && ps[0].e === '20:00' && ps[0].plat === 'doordash' && ps[0].est === 0, `drag-create: Tue 17:00–20:00 DoorDash, no estimate from history (${JSON.stringify(ps[0])})`);
     ok(await desk.locator('#desk-inspector .di-when').count() === 1 && /17:00–20:00/.test(await desk.locator('#desk-inspector').innerText()), 'new block is selected in the inspector');
 
     // Move it to Thursday 18:00 by its body.
@@ -1212,7 +1236,7 @@ try {
     await desk.mouse.up();
     await desk.waitForTimeout(150);
     ps = await plans();
-    ok(ps[0].e === '22:00' && ps[0].est > 97, `resize: ends 22:00, estimate grew to $${ps[0].est}`);
+    ok(ps[0].e === '22:00' && ps[0].est === 0, `resize: ends 22:00 (still no estimate: $${ps[0].est})`);
 
     // Inspector: a typed estimate sticks.
     await desk.fill('#di-est', '150');
@@ -1290,7 +1314,7 @@ try {
     ok(await ph.locator('#view-log.active #plan-form:not(.hidden)').count() === 1
       && await ph.inputValue('#plan-form [name=startTime]') === '17:00' && await ph.inputValue('#plan-form [name=endTime]') === '20:00'
       && await ph.locator('#plan-platform .chip.active').getAttribute('data-val') === 'doordash'
-      && /for this slot/.test(await ph.locator('#plan-est-hint').innerText()), 'phone: "Plan this slot" opens Log → Plan prefilled (Fri 17–20 DoorDash, slot estimate)');
+      && await ph.locator('#plan-est-hint').innerText() === '', 'phone: "Plan this slot" opens Log → Plan prefilled (Fri 17–20 DoorDash, no estimate)');
     await pctx.close();
   }
 
