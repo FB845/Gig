@@ -1,35 +1,21 @@
-// vision.js — read schedule and earnings screenshots with Claude.
+// vision.js — read schedule and earnings screenshots with Claude (a built-in
+// Claude feature: Settings → Claude → "Screenshot reading").
 // Much more accurate than on-device OCR: Claude understands the Flex and
 // DoorDash layouts and returns exact dates, 24-hour times and pay.
-//
-// Uses your own Anthropic API key, kept in this browser only (never synced,
-// never in backups). Each screenshot is sent to Anthropic to be read. The
-// official SDK is loaded on first use.
+// Each screenshot is sent to Anthropic to be read; the key and SDK live in claude.js.
 
-const SDK_URL = 'https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.135.0/+esm';
-const MODEL = 'claude-opus-5-5';
-const KEY_STORE = 'gigtracker.anthropicKey';
+import { ask as askClaude, registerPlugin, hasKey, isEnabled } from './claude.js';
+export { getApiKey, setApiKey, testKey } from './claude.js';
+
 const MAX_EDGE = 1568; // larger images are scaled down by the API anyway
 
-export function getApiKey() {
-  try { return localStorage.getItem(KEY_STORE) || ''; } catch { return ''; }
-}
-export function setApiKey(key) {
-  try {
-    if (key) localStorage.setItem(KEY_STORE, key.trim());
-    else localStorage.removeItem(KEY_STORE);
-  } catch { /* ignore */ }
-}
-export const visionEnabled = () => !!getApiKey();
-
-let sdk = null;
-async function client() {
-  const key = getApiKey();
-  if (!key) throw new Error('Add your Anthropic API key in Settings first.');
-  if (!sdk) sdk = import(SDK_URL).catch((e) => { sdk = null; throw e; });
-  const { default: Anthropic } = await sdk;
-  return { Anthropic, api: new Anthropic({ apiKey: key, dangerouslyAllowBrowser: true, maxRetries: 2 }) };
-}
+registerPlugin({
+  id: 'screenshots',
+  name: 'Screenshot reading',
+  jp: 'スクショ読取',
+  blurb: 'Schedule and earnings screenshots are read by Claude instead of on-device OCR. Sends each screenshot to Anthropic.',
+});
+export const visionEnabled = () => hasKey() && isEnabled('screenshots');
 
 // File → base64 JPEG/PNG, long edge ≤ MAX_EDGE (keeps uploads small).
 async function toImageBlock(file) {
@@ -53,34 +39,7 @@ const COMMON = `You read screenshots from a US gig driver's apps (Amazon Flex, D
 - Money: plain numbers in dollars, 0 when not shown. Never guess a number that isn't on screen.
 - platform: "flex" for Amazon Flex, "doordash" for DoorDash (Dasher), "other" for anything else.`;
 
-async function ask(images, system, prompt, schema) {
-  const { Anthropic, api } = await client();
-  let res;
-  try {
-    res = await api.beta.messages.create({
-      model: MODEL,
-      max_tokens: 16000,
-      // Re-routes the rare declined request to another model automatically.
-      betas: ['server-side-fallback-2026-07-01'],
-      fallbacks: 'default',
-      output_config: { effort: 'low', format: { type: 'json_schema', schema } },
-      system,
-      messages: [{ role: 'user', content: [...images, { type: 'text', text: prompt }] }],
-    });
-  } catch (e) {
-    if (e instanceof Anthropic.AuthenticationError) throw new Error('Your Anthropic API key wasn’t accepted — check it in Settings.');
-    if (e instanceof Anthropic.PermissionDeniedError) throw new Error('This API key isn’t allowed to use Claude — check it in the Anthropic Console.');
-    if (e instanceof Anthropic.RateLimitError) throw new Error('Claude is busy right now (rate limit) — try again in a minute.');
-    if (e instanceof Anthropic.BadRequestError && /credit/i.test(e.message)) throw new Error('Your Anthropic account is out of credit — add some in the Anthropic Console (Billing).');
-    if (e instanceof Anthropic.APIConnectionError) throw new Error('Couldn’t reach Claude — check your connection and try again.');
-    if (e instanceof Anthropic.APIError) throw new Error(`Claude couldn’t read it (${e.status || 'error'}): ${e.message}`);
-    throw e;
-  }
-  if (res.stop_reason === 'refusal') throw new Error('Claude declined to read this screenshot.');
-  if (res.stop_reason === 'max_tokens') throw new Error('That was too much to read in one go — try fewer screenshots at once.');
-  const text = res.content.filter((b) => b.type === 'text').map((b) => b.text).join('');
-  return JSON.parse(text);
-}
+const ask = (images, system, prompt, schema) => askClaude({ images, system, prompt, schema, effort: 'low' });
 
 // ---- schedule screenshots → planner rows ----
 const SCHEDULE_SCHEMA = {
@@ -168,14 +127,4 @@ Task: read ONE shift / block / dash from an earnings screen. If base pay isn't s
     unreadable: g.unreadable || '',
     _confidence: base || g.tips ? 2 : 0,
   };
-}
-
-// Cheap key check (no tokens used): look up the model.
-export async function testKey() {
-  const { Anthropic, api } = await client();
-  try { await api.models.retrieve(MODEL); return true; } catch (e) {
-    if (e instanceof Anthropic.AuthenticationError) throw new Error('That key wasn’t accepted.');
-    if (e instanceof Anthropic.APIConnectionError) throw new Error('Couldn’t reach Anthropic — check your connection.');
-    throw new Error(e.message || String(e));
-  }
 }

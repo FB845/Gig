@@ -517,8 +517,8 @@
       </div>
 
       <div class="card" id="vision-card">
-        <div class="card-head"><h2 aria-label="Screenshot reading"><span class="swap"><span>スクショ読取 · Claude</span><span>SCREENSHOT READING</span></span></h2><span class="sync-pill" id="vision-pill">Off</span></div>
-        <p class="muted">Add your Anthropic API key and Claude reads your schedule and earnings screenshots: exact dates, 24-hour times and pay, far more accurately than on-device reading. Each screenshot is sent to Anthropic and costs about 1–2¢ on your Anthropic account. The key stays on this device only — it isn't synced or included in backups, so add it on each device you import from.</p>
+        <div class="card-head"><h2 aria-label="Claude"><span class="swap"><span>Claude 連携</span><span>CLAUDE FEATURES</span></span></h2><span class="sync-pill" id="vision-pill">Off</span></div>
+        <p class="muted">Add your Anthropic API key to switch on Claude-powered features. Anything Claude reads is sent to Anthropic and billed to your Anthropic account (a cent or two each) — and only when you tap a button. The key stays on this device only: it isn't synced or included in backups, so add it on each device you use.</p>
         <div class="field">
           <label for="vision-key">Anthropic API key</label>
           <input type="password" id="vision-key" placeholder="sk-ant-…" autocomplete="off" spellcheck="false" />
@@ -528,6 +528,7 @@
           <button type="button" class="btn ghost" id="vision-remove">Remove key</button>
         </div>
         <p class="muted sync-tip" id="vision-status"></p>
+        <div class="claude-features" id="claude-features" role="group" aria-label="Claude features"></div>
       </div>
 
       <div class="card" id="sync-card">
@@ -606,7 +607,7 @@ service cloud.firestore {
         <button class="btn primary hidden" id="install-btn">インストール Install app</button>
       </div>
 
-      <p class="version muted">Gig Tracker · 白色LED · v34</p>
+      <p class="version muted">Gig Tracker · 白色LED · v35</p>
     </section>
   </main>
 

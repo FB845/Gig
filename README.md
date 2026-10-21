@@ -73,7 +73,7 @@ mileage tracking** — without asking for a cent.
   the Plan form), bring in blocks you've already scheduled: an **.ics** file
   exported from Google / Apple / Outlook Calendar, or **screenshots** of your
   schedule (e.g. the Flex calendar), read by Claude when you've added an
-  Anthropic API key (see *Screenshot reading* below), else on-device OCR. Time zones,
+  Anthropic API key (see *Claude features* below), else on-device OCR. Time zones,
   all-day events, durations, cancelled events and **weekly/daily repeating
   events** are handled; platform and pay are picked up from the event text
   ("Amazon Flex block $88" → Flex, $88). You review every entry first — work
@@ -190,7 +190,7 @@ assisted paths to get earnings in fast:
    you to review and save. *First use needs internet to download the OCR engine
    (~a few MB); after that it's cached.*
 
-   **Screenshot reading with Claude** — in **Settings → Screenshot reading**,
+   **Screenshot reading with Claude** — in **Settings → Claude**,
    paste your Anthropic API key and both screenshot imports (schedule and
    earnings) are read by Claude instead: exact dates, 24-hour times, pay,
    tips, miles and deliveries, with the Flex station in the title. Several
@@ -198,6 +198,24 @@ assisted paths to get earnings in fast:
    sends the screenshot to Anthropic and costs about 1–2¢ on your account. The
    key is stored in that browser only — never synced to the cloud or included
    in backups.
+
+   **Claude plugins** — Claude features are small plugins, switched on and off
+   in **Settings → Claude** (everything is on once a key is set, and nothing
+   is sent until you tap its button). Installed so far:
+   - *Screenshot reading* — the importer above.
+   - *Weekly summary* — a card at the top of **Trends**: pick *Last week* or
+     *This week so far* and tap **Generate**. Claude writes a short summary —
+     what happened, what to watch, what to do next week — from that week's
+     totals, per-day income, per-platform and Flex block-type $/hr, best and
+     worst shifts, expenses by category, the previous four weeks and next
+     week's plan. Notes, places and income source names are never sent. Saved
+     on the device per week (reopening is free; it's marked out of date if you
+     log more later); about 2¢ per generation.
+
+   To add another, write a file in `js/plugins/` exporting
+   `{ id, name, jp, blurb, slot, render(card, ctx) }` and register it in
+   `js/app.js` — `weekly-summary.js` is the template; `ctx.ask()` returns JSON
+   that matches a schema you give it.
 2. **📄 CSV import** — Import DoorDash's earnings export (or any spreadsheet with
    date / earnings / miles / deliveries columns). Columns are auto-detected; you
    preview before importing.
@@ -320,7 +338,9 @@ js/store.js             on-device data model + metrics ($/hr, $/mi, net, tax)
 js/charts.js            dependency-free SVG bar / line / donut charts
 js/parse.js             CSV parsing + OCR/free-text field extraction
 js/ocr.js               lazy Tesseract.js loader for screenshot OCR
+js/claude.js            Claude layer: API key, ask(), plugin registry + Settings list
 js/vision.js            Claude screenshot reading (schedule + earnings → JSON)
+js/plugins/             Claude plugins (weekly-summary.js)
 js/time24.js            24-hour time fields (replace the native time pickers)
 js/geo.js               GPS auto-mileage tracker (Haversine + jitter filtering)
 js/sync.js              optional Firebase cloud sync (one Firestore doc per record)

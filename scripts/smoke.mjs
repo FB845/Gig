@@ -1131,6 +1131,76 @@ try {
     await vctx.close();
   }
 
+  console.log('\n25f) Claude plugins: weekly summary (Anthropic API mocked)');
+  {
+    const wctx = await newCtx({ width: 390, height: 844 });
+    const calls = [];
+    const reply = { headline: 'A solid week: $555 in, goal covered Thursday.', verdict: 'on_track', highlights: ['Best shift was Thu at $33.33/hr.'], watch: ['DoorDash lagged at $26.67/hr.'], next_week: ['Repeat the Thu block.', 'Add one DoorDash dinner.'] };
+    await wctx.route('https://api.anthropic.com/**', (r) => {
+      const req = r.request();
+      calls.push(req.postData() ? JSON.parse(req.postData()) : null);
+      r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ id: 'msg_w', type: 'message', role: 'assistant', model: 'claude-opus-5-5', content: [{ type: 'text', text: JSON.stringify(reply) }], stop_reason: 'end_turn', stop_sequence: null, usage: { input_tokens: 1, output_tokens: 1 } }) });
+    });
+    const wp = await wctx.newPage();
+    await wp.goto(base + '/index.html');
+    const W = await wp.evaluate(async () => {
+      const s = await import('./js/store.js');
+      s.clearAll();
+      const thisWk = s.isoDate(s.startOfWeek(new Date()));
+      const add = (iso, n) => { const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + n); return s.isoDate(d); };
+      const L = add(thisWk, -7);
+      s.addShift({ platform: 'flex', date: add(L, 1), startTime: '17:30', endTime: '21:00', hours: 3.5, gross: 90, tag: 'Express', notes: 'SECRET-NOTE' });
+      s.addShift({ platform: 'doordash', date: add(L, 2), hours: 3, gross: 60, tips: 20, miles: 20 });
+      s.addShift({ platform: 'flex', date: add(L, 3), hours: 3, gross: 100, tag: 'Local' });
+      s.addShift({ platform: 'doordash', date: add(L, 4), hours: 2, gross: 30, tips: 5 });
+      s.addExpense({ date: add(L, 2), category: 'Tolls', amount: 12, note: 'SECRET-EXPENSE' });
+      s.addIncome({ date: add(L, 5), source: 'TraceHaus', payType: 'flat', amount: 250 });
+      const { buildDigest } = await import('./js/plugins/weekly-summary.js');
+      const d = buildDigest(s, L, s.todayISO());
+      return { L, thisWk, digest: d, json: JSON.stringify(d) };
+    });
+    const dg = W.digest;
+    ok(dg.totals.shifts === 4 && dg.totals.gig_income === 305 && dg.totals.other_income === 250 && dg.by_platform.flex.income === 190 && dg.by_platform.doordash.shifts === 2 && dg.week_complete === true, 'digest: 4 shifts, $305 gig + $250 other income, per-platform split, week complete');
+    ok(dg.best_shifts[0].per_hour === 33.33 && dg.worst_shifts[0].per_hour === 17.5 && dg.previous_weeks.length === 4 && dg.flex_by_block_type.length === 2 && dg.expenses_by_category.Tolls === 12, 'digest: best/worst shift $/hr, four previous weeks, Flex block types, expenses by category');
+    ok(!/SECRET|TraceHaus/.test(W.json), 'digest leaves out notes and income-source names');
+
+    await wp.locator('.tab[data-view=trends]').click();
+    ok(await wp.locator('[data-plugin=weekly-summary]').count() === 0, 'no key → no Claude card on Trends');
+    await wp.evaluate(() => localStorage.setItem('gigtracker.anthropicKey', 'sk-ant-test'));
+    await wp.reload();
+    await wp.locator('.tab[data-view=trends]').click();
+    const card = wp.locator('#view-trends > [data-plugin=weekly-summary]');
+    ok(await card.count() === 1 && /Generate summary/.test(await card.innerText()), 'with a key: Weekly summary card on Trends with a Generate button (no call yet)');
+    ok(calls.length === 0, 'nothing is sent until you tap Generate');
+    await card.locator('[data-ws-week=last]').click();
+    await card.locator('[data-ws-go]').click();
+    await wp.waitForSelector('#view-trends .ws-headline', { timeout: 30000 });
+    ok(calls.length === 1 && calls[0].output_config.effort === 'medium' && calls[0].output_config.format.type === 'json_schema' && calls[0].model === 'claude-opus-5-5', 'one request: structured JSON, medium effort');
+    const sent = calls[0].messages[0].content.at(-1).text;
+    ok(sent.includes('"gig_income":305') && !/SECRET|TraceHaus/.test(JSON.stringify(calls[0])), 'sent the week\'s digest — and no notes or income source names');
+    const txt = await card.innerText();
+    ok(/solid week/.test(txt) && /ON TRACK/.test(txt) && /Best shift was Thu/.test(txt) && /DoorDash lagged/.test(txt) && /Add one DoorDash dinner/.test(txt), 'summary rendered: headline, verdict, what happened, watch, next week');
+    await wp.reload();
+    await wp.locator('.tab[data-view=trends]').click();
+    await wp.locator('[data-plugin=weekly-summary] [data-ws-week=last]').click();
+    ok(/solid week/.test(await wp.locator('[data-plugin=weekly-summary]').innerText()) && calls.length === 1, 'saved on this device: reopening shows it again without another call');
+    await wp.evaluate(async (L) => { const s = await import('./js/store.js'); const d = new Date(L + 'T00:00:00'); d.setDate(d.getDate() + 6); s.addShift({ platform: 'flex', date: s.isoDate(d), hours: 2, gross: 55 }); }, W.L);
+    await wp.reload();
+    await wp.locator('.tab[data-view=trends]').click();
+    await wp.locator('[data-plugin=weekly-summary] [data-ws-week=last]').click();
+    ok(/numbers have changed/.test(await wp.locator('[data-plugin=weekly-summary]').innerText()) && /Update summary/.test(await wp.locator('[data-plugin=weekly-summary]').innerText()), 'logging more later marks the saved summary as out of date');
+
+    await wp.locator('.tab[data-view=settings]').click();
+    ok(await wp.locator('#claude-features .cf-row').count() === 2 && /Screenshot reading/.test(await wp.locator('#claude-features').innerText()) && /Weekly summary/.test(await wp.locator('#claude-features').innerText()), 'Settings → Claude lists both features');
+    await wp.locator('#claude-features input[data-feature=weekly-summary]').uncheck();
+    await wp.locator('.tab[data-view=trends]').click();
+    ok(await wp.locator('[data-plugin=weekly-summary]').count() === 0, 'switching Weekly summary off removes the card');
+    await wp.locator('.tab[data-view=settings]').click();
+    await wp.locator('#claude-features input[data-feature=screenshots]').uncheck();
+    ok(await wp.evaluate(async () => (await import('./js/vision.js')).visionEnabled()) === false, 'switching Screenshot reading off falls back to on-device OCR');
+    await wctx.close();
+  }
+
   console.log('\n26) No sideways spill on small phones (incl. iOS-wide date/time inputs)');
   {
     const narrow = await newCtx({ width: 320, height: 700 }).then((c) => c.newPage());

@@ -175,11 +175,11 @@ textarea { font-family: var(--font-led); font-size: 13px; line-height: 1.5; resi
 .cal-row.is-dupe { opacity: .6; }
 .cal-pick { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 14px; cursor: pointer; }
 /* Inputs are globally `appearance: none`, so draw the checkbox ourselves. */
-.cal-pick input[type=checkbox] {
+.cal-pick input[type=checkbox], .cf-row input[type=checkbox] {
   width: 22px; height: 22px; padding: 0; flex-shrink: 0; border-radius: 6px; cursor: pointer;
   border: 2px solid var(--muted); background: transparent;
 }
-.cal-pick input[type=checkbox]:checked {
+.cal-pick input[type=checkbox]:checked, .cf-row input[type=checkbox]:checked {
   border-color: var(--accent);
   background: var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' stroke='%2305231a' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 15px no-repeat;
 }
@@ -255,6 +255,25 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 .ocr-status { margin-top: 12px; font-size: 13px; color: var(--muted); }
 .progress { height: 6px; background: var(--card-2); border-radius: 999px; overflow: hidden; margin-top: 8px; }
 .progress > span { display: block; height: 100%; background: var(--accent); width: 0; transition: width .2s; }
+/* Claude plugins (Settings → Claude, cards in views) */
+.claude-features { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 4px; }
+.cf-row { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; padding: 10px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+.cf-row:last-child { border-bottom: 0; }
+.cf-row input[type=checkbox] { margin-top: 1px; }
+.cf-text small { display: block; margin-top: 3px; font-size: 12px; line-height: 1.45; }
+.cf-jp { color: var(--muted); font-size: 12px; }
+.claude-card .ws-weeks { margin: 4px 0 6px; }
+.claude-card .ws-range { margin: 0 0 10px; font-size: 12px; }
+.ws-headline { font-size: 17px; line-height: 1.4; margin: 6px 0 12px; }
+.ws-sec { margin: 0 0 12px; }
+.ws-sec h3 { margin: 0 0 4px; font-size: 11px; letter-spacing: .08em; color: var(--muted); font-weight: 800; }
+.ws-sec ul { margin: 0; padding: 0 0 0 18px; }
+.ws-sec li { margin: 0 0 5px; line-height: 1.45; font-size: 15px; }
+.ws-sec.watch h3 { color: #f5a524; }
+.ws-sec.next h3 { color: var(--accent); }
+.ws-foot { font-size: 12px; margin: 6px 0 12px; }
+.ws-err { color: var(--danger); font-size: 13px; }
+.claude-card .ws-go { width: 100%; justify-content: center; margin-top: 4px; }
 .progress.indeterminate > span { width: 35%; animation: prog-slide 1.2s ease-in-out infinite; }
 @keyframes prog-slide { from { transform: translateX(-100%); } to { transform: translateX(290%); } }
 
@@ -835,7 +854,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--text); box-shado
 .type-chip.active { background: transparent; box-shadow: 0 0 0 2px var(--text); }
 .type-chip.active b { color: var(--ink); }
 .type-chip.active i { color: var(--text); opacity: 1; }
-.cal-pick input[type=checkbox]:checked { border-color: var(--text); background-color: var(--text); }
+.cal-pick input[type=checkbox]:checked, .cf-row input[type=checkbox]:checked { border-color: var(--text); background-color: var(--text); }
 
 /* ---- Records + planner ---- */
 .record { border-bottom-color: #12161e; }

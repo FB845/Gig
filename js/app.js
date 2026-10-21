@@ -10,6 +10,8 @@ import { initDesk, renderDesk, focusSlot } from './desk.js';
 import { initBestHours, renderBestHours } from './besthours.js';
 import { initTime24, T24_ATTRS } from './time24.js';
 import * as vision from './vision.js';
+import * as claude from './claude.js';
+import weeklySummary from './plugins/weekly-summary.js';
 
 const { PLATFORMS, EXPENSE_CATEGORIES } = store;
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -77,7 +79,7 @@ function showView(name) {
   window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
   if (name === 'dashboard') renderDashboard();
   checkDue();
-  if (name === 'trends') renderTrends();
+  if (name === 'trends') { renderTrends(); mountClaude('trends'); }
   if (name === 'log') renderLogList();
   if (name === 'campaign') renderCampaign();
   if (name === 'desk') renderDesk();
@@ -1826,7 +1828,7 @@ async function onCalImageFile(e) {
     const text = await recognize(file, (p) => { const bar = $('#cal-bar'); if (bar) bar.style.width = Math.round(p * 100) + '%'; });
     const today = store.todayISO();
     const events = parseScheduleText(text, today).events.filter((ev) => ev.date >= today);
-    const tip = ' <span class="muted">For far more accurate reading, add a Claude API key in Settings → Screenshot reading.</span>';
+    const tip = ' <span class="muted">For far more accurate reading, add a Claude API key in Settings → Claude.</span>';
     status.innerHTML = (events.length
       ? `✓ Read ${events.length} block${events.length === 1 ? '' : 's'} — check dates, times and pay (screenshots can misread), then add.`
       : '⚠️ Couldn’t find any time ranges like “9:00 AM – 12:30 PM”. Try a sharper screenshot of the schedule list, or an .ics file.') + tip;
@@ -2272,16 +2274,24 @@ function initDisplaySettings() {
   }));
 }
 
-// Settings → Screenshot reading: the Anthropic API key (this device only).
+// Claude plugins. Each is one file with a card in a view; Settings → Claude
+// switches them on and off. What a plugin is given to work with:
+claude.registerPlugin(weeklySummary);
+const claudeCtx = () => ({ store, ask: claude.ask, toast, fmtMoney, fmtMoney0, escapeHtml });
+// Add / refresh the cards of whatever is installed in the view on screen.
+const mountClaude = (view) => claude.mountPlugins(view, claudeCtx());
+
+// Settings → Claude: the Anthropic API key (this device only) + feature switches.
 function initVisionSettings() {
   const input = $('#vision-key'), status = $('#vision-status'), pill = $('#vision-pill');
   const show = (msg = '') => {
-    const on = vision.visionEnabled();
+    const on = claude.hasKey();
     pill.textContent = on ? 'On' : 'Off';
     pill.className = `sync-pill${on ? ' ok' : ''}`;
     input.value = '';
     input.placeholder = on ? 'Key saved — paste a new one to replace it' : 'sk-ant-…';
-    status.textContent = msg || (on ? 'Screenshots are read by Claude on this device.' : 'Off — screenshots are read on-device (less accurate).');
+    status.textContent = msg || (on ? 'Claude features are on for this device.' : 'Off — screenshots are read on-device (less accurate) and Claude features are hidden.');
+    claude.renderFeatureList($('#claude-features'), escapeHtml);
   };
   $('#vision-save').addEventListener('click', async () => {
     const key = input.value.trim();
@@ -2291,7 +2301,7 @@ function initVisionSettings() {
     status.textContent = 'Checking the key…';
     try {
       await vision.testKey();
-      show('✓ Key works — screenshots will be read by Claude.');
+      show('✓ Key works — Claude features are on.');
     } catch (err) {
       vision.setApiKey(key ? prev : vision.getApiKey()); // keep the old key if the new one fails
       show(`⚠️ ${err.message || err}`);
@@ -2595,7 +2605,7 @@ function boot() {
     if (active.id === 'view-dashboard') renderDashboard();
     else if (active.id === 'view-campaign') renderCampaign();
     else if (active.id === 'view-log') renderLogList();
-    else if (active.id === 'view-trends') renderTrends();
+    else if (active.id === 'view-trends') { renderTrends(); mountClaude('trends'); }
     else if (active.id === 'view-desk') renderDesk();
   });
 
