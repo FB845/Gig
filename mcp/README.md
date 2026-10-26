@@ -48,20 +48,20 @@ You need Node 20+ and this repo cloned on the computer where Claude Desktop runs
    npm run doctor
    ```
    It should end with "All good" and show how many shifts and plans it can see.
-4. **Add it to Claude Desktop** — Settings → Developer → Edit Config opens
-   `claude_desktop_config.json`. Add (use the real path to this folder):
-   ```json
-   {
-     "mcpServers": {
-       "gig-tracker": {
-         "command": "node",
-         "args": ["/Users/YOU/Gig/mcp/server.mjs"]
-       }
-     }
-   }
+4. **Add it to Claude Desktop** — the easy, safe way:
+   ```sh
+   npm run install-claude
    ```
-   Quit and reopen Claude Desktop. The tools appear under the connector menu in
-   chats and in Cowork.
+   It backs up Claude Desktop's config file, keeps everything already in it, and
+   adds the server with the right paths (it also repairs the common mistake of
+   pasting a second `{ … }` block after the existing one). Then quit Claude
+   Desktop completely (Cmd+Q) and reopen it. The tools appear under the
+   connector menu in chats and in Cowork.
+
+   *By hand instead:* Settings → Developer → Edit Config, and add an
+   `"mcpServers"` entry **inside** the file's existing outer `{ }` (never a
+   second `{ }` after it), using the full path to `node` (`which node`) as the
+   command and the full path to `server.mjs` in `args`.
 
    *Claude Code instead:* `claude mcp add gig-tracker -- node /Users/YOU/Gig/mcp/server.mjs`
 
@@ -96,7 +96,7 @@ Ask in plain language, in a chat or a Cowork task:
 ## Development
 
 ```sh
-npm test          # fake Firebase + the real MCP client; never touches your data
+npm test          # config merge + fake Firebase driven by the real MCP client; never touches your data
 npm run doctor    # check your own setup
 ```
 
