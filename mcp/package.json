@@ -10,9 +10,10 @@
   "scripts": {
     "prepare": "node scripts/sync-core.mjs",
     "start": "node server.mjs",
-    "test": "node test/config.mjs && node test/run.mjs",
+    "test": "node test/config.mjs && node test/plugin.mjs && node test/run.mjs",
     "doctor": "node scripts/doctor.mjs",
-    "install-claude": "node scripts/install-claude-desktop.mjs"
+    "install-claude": "node scripts/install-claude-desktop.mjs",
+    "build-plugin": "node scripts/build-cowork-plugin.mjs"
   },
   "engines": {
     "node": ">=20"

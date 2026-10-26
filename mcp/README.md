@@ -68,6 +68,32 @@ You need Node 20+ and this repo cloned on the computer where Claude Desktop runs
    If you'd rather not keep the key in a file, put it in the config instead:
    `"env": { "GIG_TRACKER_KEY": "gt1.…" }` — but then it sits in that config file.
 
+## Cowork (and Claude Code): install it as a plugin
+
+Claude Desktop's config file (step 4) makes the tools available in **regular
+chats**. **Cowork** loads local servers through **plugins** instead, so build
+one from your install:
+
+```sh
+cd Gig/mcp
+npm run build-plugin
+```
+
+That writes `mcp/dist/gig-tracker.zip`. In Claude Desktop go to **Customize →
+Plugins → Add → Upload plugin**, pick the zip, then start a **new** Cowork task.
+The plugin carries this Mac's paths (build it on the Mac that runs the server)
+and **no key** — the server still reads `~/.config/gig-tracker/key`.
+
+It also adds a skill that tells Claude to use the tools instead of opening the
+web app in a browser, and two commands: `/gig-tracker:status` and
+`/gig-tracker:weekly`.
+
+Anthropic's docs say a local server in a plugin works in Cowork through the
+desktop app (so keep Claude Desktop open), and not in chat — which is why chat
+uses the config file and Cowork uses the plugin. If Cowork still can't see the
+tools, ask it "which gig-tracker tools do you have?" and check the server log:
+`~/Library/Logs/Claude/` (look for `gig-tracker`).
+
 ## Using it
 
 Ask in plain language, in a chat or a Cowork task:
