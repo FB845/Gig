@@ -1,0 +1,19 @@
+{
+  "name": "gig-tracker-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Read-only MCP server: lets Claude Desktop / Cowork / Claude Code look at your live Gig Tracker data.",
+  "bin": { "gig-tracker-mcp": "server.mjs" },
+  "scripts": {
+    "prepare": "node scripts/sync-core.mjs",
+    "start": "node server.mjs",
+    "test": "node test/run.mjs",
+    "doctor": "node scripts/doctor.mjs"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "zod": "^3.25.0"
+  }
+}

@@ -329,6 +329,14 @@ next blocks and the campaign pace), plus **Today & This Week**, **Log Shift**,
 `store.js`, so the numbers always match. Set-up: copy your key from **Settings →
 Cloud sync → Copy Raycast key**, then see [raycast/README.md](raycast/README.md).
 
+## Claude connection (live data for Claude Desktop / Cowork / Claude Code)
+
+`mcp/` is a small **read-only** MCP server that lets Claude look at your live
+tracker data — "where am I on this week's goal?", "write my weekly summary",
+"which hours pay best?" — with no exporting or pasting. It uses the same key as
+Raycast and the app's own maths, and can't change anything. Set-up in
+[mcp/README.md](mcp/README.md) (`cd mcp && npm install && npm run doctor`).
+
 ## Project layout
 
 ```
@@ -355,6 +363,7 @@ manifest.webmanifest    PWA manifest
 sw.js                   offline service worker
 icons/                  logo.svg (ギグ線 mark) + glyph.svg → PNG icons via `npm run icons`
 raycast/                Raycast extension (menu bar + commands), syncs with the app
+mcp/                    read-only MCP server: live tracker data for Claude Desktop / Cowork
 scripts/                icon generator + headless smoke test + screenshot tool
 ```
 
@@ -364,6 +373,7 @@ scripts/                icon generator + headless smoke test + screenshot tool
 npm test         # headless smoke test + GPS drive end-to-end (simulated movement)
 npm run icons    # render icons/logo.svg → PWA + Raycast icons (headless Chromium)
 npm run shots    # generate seeded screenshots
+cd mcp && npm test   # the Claude connection (fake Firebase + real MCP client)
 ```
 
 The smoke test uses `playwright-core` against the pre-installed Chromium; install

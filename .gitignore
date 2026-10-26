@@ -5,3 +5,6 @@ scripts/*.png
 
 # Firebase emulator logs (scripts/sync-test.mjs)
 firebase/*-debug.log
+
+# copied from ../js and ../raycast by mcp/scripts/sync-core.mjs
+mcp/lib/

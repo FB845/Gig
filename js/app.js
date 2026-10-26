@@ -2350,8 +2350,8 @@ function initSyncUI() {
   $('#sync-raycast').addEventListener('click', async () => {
     const key = sync.getConnectionKey();
     if (!key) { showErr('Sign in to cloud sync first.'); return; }
-    try { await navigator.clipboard.writeText(key); toast('Raycast key copied — paste it in the extension’s preferences'); }
-    catch { window.prompt('Copy your Raycast connection key:', key); }
+    try { await navigator.clipboard.writeText(key); toast('Connection key copied — keep it private (Raycast preferences or the Claude connection)'); }
+    catch { window.prompt('Copy your connection key (keep it private):', key); }
   });
   $('#sync-signout').addEventListener('click', async () => { try { await sync.signOutSync(); toast('Signed out of sync'); } catch { /* ignore */ } });
 
